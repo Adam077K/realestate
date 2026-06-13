@@ -3,10 +3,10 @@
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
-// Chevron: right-pointing arrow polygon. Section workers can reference this
-// path in SVG clip-path definitions for consistency.
+// Chevron: true right-pointing arrowhead. Flat left edge, single point at right.
+// Panels overlap into one ascending directional band (see ChevronStrip).
 export const CHEVRON_CLIP_PATH =
-  'polygon(0% 0%, 85% 0%, 100% 50%, 85% 100%, 0% 100%, 15% 50%)'
+  'polygon(0% 0%, 78% 0%, 100% 50%, 78% 100%, 0% 100%)'
 
 export const RECT_CLIP_PATH = 'none'
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { Fragment, useRef } from 'react'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
@@ -101,19 +101,23 @@ export default function RewiredSteps() {
           <span className="text-[var(--color-ink)]">
             {/* Word spans for GSAP — replicate TwoToneHeading pattern inline */}
             {rewiredSteps.intro.lead.split(' ').map((word, i, arr) => (
-              <span key={`lead-${i}`} className="word-clip">
-                <span className="word-inner tt-word">{word}</span>
+              <Fragment key={`lead-${i}`}>
+                <span className="word-clip">
+                  <span className="word-inner tt-word">{word}</span>
+                </span>
                 {i < arr.length - 1 ? ' ' : null}
-              </span>
+              </Fragment>
             ))}
           </span>
           {' '}
           <span className="text-[var(--color-muted)]">
             {rewiredSteps.intro.tail.split(' ').map((word, i, arr) => (
-              <span key={`tail-${i}`} className="word-clip">
-                <span className="word-inner tt-word">{word}</span>
+              <Fragment key={`tail-${i}`}>
+                <span className="word-clip">
+                  <span className="word-inner tt-word">{word}</span>
+                </span>
                 {i < arr.length - 1 ? ' ' : null}
-              </span>
+              </Fragment>
             ))}
           </span>
         </p>

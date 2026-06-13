@@ -69,14 +69,19 @@ export default function ChevronStrip() {
       aria-label="Property image strip"
     >
       {/* Negative margin so chevrons overlap slightly at edges */}
-      <div className="flex items-stretch" style={{ height: 'clamp(200px, 30vw, 380px)' }}>
+      <div className="flex items-stretch justify-center" style={{ height: 'clamp(280px, 34vw, 520px)' }}>
         {chevronStrip.images.map((src, i) => (
           <div
             key={src}
             ref={(el) => { itemRefs.current[i] = el }}
-            className="relative flex-1"
-            // Negative margin to create the chevron overlap effect
-            style={{ marginRight: i < chevronStrip.images.length - 1 ? '-2%' : 0 }}
+            className="relative shrink-0 grow-0"
+            // Fixed basis + deep negative margin: panels overlap into one
+            // ascending, single-direction sweep of tall right-arrowheads.
+            style={{
+              flexBasis: '26%',
+              marginRight: i < chevronStrip.images.length - 1 ? '-12%' : 0,
+              zIndex: i,
+            }}
           >
             <MaskedImage
               shape="chevron"

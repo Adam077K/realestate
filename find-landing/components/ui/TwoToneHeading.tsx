@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 
 type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4'
 
@@ -49,10 +49,15 @@ function WordSpans({
   return (
     <>
       {words.map((word, i) => (
-        <span key={`${word}-${i}`} className="word-clip">
-          <span className={cn('word-inner tt-word', className)}>{word}</span>
-          {i < words.length - 1 ? ' ' : null}
-        </span>
+        // The inter-word space is emitted as a real sibling BETWEEN .word-clip
+        // elements (never inside them) - whitespace at an inline-block boundary
+        // collapses, so a Fragment with a separate text node preserves the gap.
+        <Fragment key={`${word}-${i}`}>
+          <span className="word-clip">
+            <span className={cn('word-inner tt-word', className)}>{word}</span>
+          </span>
+          {i < words.length - 1 ? ' ' : null}
+        </Fragment>
       ))}
     </>
   )

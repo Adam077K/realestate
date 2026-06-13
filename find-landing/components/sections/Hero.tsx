@@ -313,7 +313,7 @@ function FindWordmarkSVG({ buildingSrc }: FindWordmarkSVGProps) {
   return (
     <div
       className="w-full"
-      style={{ maxWidth: 'clamp(300px, 68vw, 860px)' }}
+      style={{ maxWidth: 'clamp(340px, 82vw, 1100px)' }}
     >
       <svg
         viewBox={`0 0 ${MASK_VB_W} ${MASK_VB_H}`}
@@ -333,15 +333,19 @@ function FindWordmarkSVG({ buildingSrc }: FindWordmarkSVGProps) {
           </clipPath>
         </defs>
 
-        {/* Building photo clipped to the FIND letterforms */}
+        {/* Building photo clipped to the FIND letterforms.
+            xMidYMax favours the warm-lit brick + window band (brighter than the
+            dark roofline); the filter lifts brightness/contrast so the letterforms
+            read with high contrast against the pale sky (frame_011). */}
         <image
           href={buildingSrc}
           x={0}
           y={0}
           width={MASK_VB_W}
           height={60}
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio="xMidYMax slice"
           clipPath="url(#findMask)"
+          style={{ filter: 'brightness(1.18) contrast(1.08) saturate(1.12)' }}
         />
 
         {/* "Real Estate" sub-line in display font, dark, below the glyphs */}

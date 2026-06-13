@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
-import { Space_Grotesk, Hanken_Grotesk } from 'next/font/google'
+import { Onest, Hanken_Grotesk } from 'next/font/google'
 import './globals.css'
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider'
 
-const spaceGrotesk = Space_Grotesk({
+// Display face: Onest - a tight, near-zero-tracking neo-grotesk that reads
+// close to the reference's Helvetica/Sohne-like headings (see frame_034, frame_019).
+const onest = Onest({
   subsets: ['latin'],
-  variable: '--font-space-grotesk',
+  variable: '--font-onest',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700', '800'],
 })
 
 const hankenGrotesk = Hanken_Grotesk({
@@ -35,7 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${hankenGrotesk.variable}`}
+      className={`${onest.variable} ${hankenGrotesk.variable}`}
     >
       <body>
         <SmoothScrollProvider>

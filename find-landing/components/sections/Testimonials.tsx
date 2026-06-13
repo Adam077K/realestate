@@ -189,8 +189,8 @@ export default function Testimonials() {
 
             {/* Decorative large quote mark */}
             <span
-              className="text-[var(--color-muted)] select-none"
-              style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1, opacity: 0.35 }}
+              className="font-[var(--font-display)] font-bold text-[var(--color-ink)] select-none"
+              style={{ fontSize: 'clamp(3rem, 5.5vw, 4.5rem)', lineHeight: 1, opacity: 0.85 }}
               aria-hidden="true"
             >
               &#8221;
@@ -200,7 +200,7 @@ export default function Testimonials() {
           {/* Active quote — animated crossfade */}
           <div ref={quoteRef} className="flex-1 flex flex-col justify-between">
             <blockquote
-              className="text-[var(--color-ink)] text-[clamp(1rem,1.8vw,1.25rem)] leading-[1.6] mb-8"
+              className="font-[var(--font-display)] font-medium text-[var(--color-ink)] text-[clamp(1.5rem,2.4vw,2.25rem)] leading-[1.3] tracking-[-0.02em] mb-8"
               aria-live="polite"
               aria-atomic="true"
             >
