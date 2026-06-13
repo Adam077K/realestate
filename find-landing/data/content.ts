@@ -11,6 +11,9 @@ export const images = {
   // Golden-hour building with the background keyed out to transparency — used as the
   // hero centerpiece (sits over the sky) AND the fill for the FIND clip-mask wordmark.
   heroBuildingCutout: '/images/hero-building-cutout.png',
+  // Opaque, content-trimmed golden building — used as the FILL for the FIND clip-mask
+  // wordmark (the transparent cutout left F/D letters empty over its transparent margins).
+  heroBuildingFill: '/images/hero-building-fill.jpg',
   cityStreet: '/images/city-street.jpg',
   chevron: [
     '/images/chevron-1.jpg',

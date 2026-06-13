@@ -9,20 +9,15 @@ import TwoToneHeading from '@/components/ui/TwoToneHeading'
 import { chevronStrip } from '@/data/content'
 
 // Per-image alt text and object-position tuning so faces/subjects stay centred
-// within the chevron clip shape (the visible area is roughly the right 58% of
-// the bounding box once the notch clips the left edge).
+// within the chevron clip shape. The notch clips the left ~42% of the bounding
+// box, so the visible content lives in the right portion of each panel — we bias
+// object-position rightward so faces/subjects don't get eaten by the notch.
 const IMAGE_META: { alt: string; objectPosition: string }[] = [
-  { alt: 'Woman in blazer — FIND Real Estate agent', objectPosition: '60% center' },
-  { alt: 'Bedroom interior with city views', objectPosition: '55% center' },
+  { alt: 'Woman in blazer — FIND Real Estate agent', objectPosition: '62% center' },
+  { alt: 'Bedroom interior with city views', objectPosition: '58% center' },
   { alt: 'Open-plan living interior', objectPosition: '55% center' },
-  { alt: 'Man in suit — FIND Real Estate agent', objectPosition: '50% center' },
+  { alt: 'Man in suit — FIND Real Estate agent', objectPosition: '55% center' },
 ]
-
-// How much each chevron overlaps the next (as a fraction of the flex-basis).
-// The notch sits at 42% from left; the tip is at 100%.  Overlapping by ~16–18%
-// seats the tip of arrow N inside the notch of arrow N+1, leaving a clean white
-// V-gap between them — matching the reference (frame_016, frame_018).
-const OVERLAP_FRACTION = '17%'
 
 export default function ChevronStrip() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -35,48 +30,30 @@ export default function ChevronStrip() {
       if (!motionOk) return
 
       const items = itemRefs.current.filter(Boolean) as HTMLDivElement[]
+      if (items.length === 0) return
 
-      // Left→right opening reveal: each arrow enters in sequence from left to right.
-      // We clip from opacity 0 + slight leftward offset so the chain "opens" rightward
-      // — matching the band-reveal motion across frames 015→019.
+      // Left→right "opening" reveal: arrows enter in sequence from the left, each
+      // sliding in from a slight leftward offset with a fade. The stagger makes the
+      // ❯❯❯❯ chain appear to open rightward (frames 015→019). GPU transforms only
+      // (opacity + translateX via xPercent).
       gsap.from(items, {
         opacity: 0,
-        xPercent: -18,
+        xPercent: -22,
         stagger: {
-          each: 0.12,
-          from: 'start', // left first
+          each: 0.14,
+          from: 'start', // arrow 1 first … arrow 4 last
         },
         ease: 'power3.out',
-        duration: 0.85,
+        duration: 0.8,
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top 80%',
         },
       })
-
-      // Subtle continuous parallax — each panel drifts at a slightly different rate.
-      // Keep the offset small so the ❯❯❯❯ chain stays visually aligned.
-      items.forEach((el, i) => {
-        gsap.fromTo(
-          el,
-          { x: (i + 1) * 8 },
-          {
-            x: (i + 1) * -8,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top bottom',
-              end: 'bottom top',
-              scrub: 1.8,
-            },
-          }
-        )
-      })
     },
     [motionOk]
   )
 
-  // Static (no-motion) fallback: arrows simply visible, no transform
   const images = chevronStrip.images
 
   return (
@@ -95,37 +72,35 @@ export default function ChevronStrip() {
         />
       </div>
 
-      {/* Arrow row — overflow-hidden so the outermost clips don't cause scrollbar */}
-      <div className="overflow-hidden">
-        {/*
-          The flex container is centred and uses a fixed height.
-          Each chevron has a flex-basis that when summed (minus overlaps) fills ~70–76%
-          of the viewport at 1280px — matching the reference proportions.
-          Negative right margin = overlap so tip nests into the next chevron's notch.
-          Ascending z-index ensures the right-most arrow renders on top, consistent
-          with a left-to-right directional sweep.
-        */}
-        <div
-          className="flex items-stretch justify-center"
-          style={{ height: 'clamp(300px, 38vw, 560px)' }}
-        >
+      {/*
+        Arrow row — 4 EQUAL chevron-arrow panels in a centered horizontal row.
+        Every panel is identical width/height with flex-shrink:0, so the four arrows
+        are always the same size (no unequal flex-basis, no negative margins). A small
+        consistent gap between panels yields a clean white chevron-shaped gap between
+        every arrow: the tip (100% 50%) of arrow N points toward the concave notch
+        (42% 50%) of arrow N+1, so the empty space between them reads as a white ❯.
+        overflow-hidden guards against sub-pixel clip bleed creating a scrollbar.
+      */}
+      <div className="overflow-hidden px-4">
+        <div className="flex items-stretch justify-center gap-[clamp(4px,0.6vw,12px)]">
           {images.map((src, i) => {
-            const meta = IMAGE_META[i] ?? { alt: `FIND Real Estate image ${i + 1}`, objectPosition: 'center' }
-            const isLast = i === images.length - 1
+            const meta =
+              IMAGE_META[i] ?? {
+                alt: `FIND Real Estate image ${i + 1}`,
+                objectPosition: 'center',
+              }
 
             return (
               <div
                 key={src}
-                ref={(el) => { itemRefs.current[i] = el }}
-                className="relative shrink-0 grow-0"
-                style={{
-                  // Each panel is ~22% wide; 4 × 22% − 3 × 17% overlap ≈ 37% total,
-                  // leaving ~63% white — tuned to match reference (frame_018).
-                  flexBasis: '22%',
-                  marginRight: isLast ? 0 : `-${OVERLAP_FRACTION}`,
-                  zIndex: i,
+                ref={(el) => {
+                  itemRefs.current[i] = el
                 }}
-                aria-hidden={false}
+                className="relative shrink-0 grow-0 will-change-transform"
+                style={{
+                  width: 'clamp(150px, 17vw, 230px)',
+                  height: 'clamp(320px, 40vw, 560px)',
+                }}
               >
                 <MaskedImage
                   shape="chevron"

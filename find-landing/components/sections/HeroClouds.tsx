@@ -12,8 +12,9 @@
  *  - Continuous slow horizontal DRIFT via CSS @keyframes (different speed/range
  *    per cloud layer) — alive even when scroll is idle.
  *  - Scroll parallax driven by `progressRef`: a rAF loop reads progressRef.current
- *    and translates the whole field UP + fades it as progress 0->1, fully lifted
- *    by p ~= 0.85 (hand-off to the FIND wordmark beat).
+ *    and translates the whole field gently UP. Clouds stay VISIBLE through the
+ *    ENTIRE pin — the FIND wordmark beat (frames 8-11) floats IN the clouds — with
+ *    only a very slight thinning past p > 0.95 as the pin releases.
  *  - Reduced motion / !active: clouds render STATICALLY (still fully visible).
  *
  * Performance: transform / opacity / filter only; will-change:transform on
@@ -206,15 +207,18 @@ export default function HeroClouds({ progressRef, active = true }: HeroCloudsPro
 
     const tick = () => {
       const p = progressRef?.current ?? 0
-      // Gentle continuous lift, then accelerated exit:
-      //   parallax: clouds part + rise as the building ascends (p 0 -> 0.55)
-      //   exit:     fully drift up + out by p ~= 0.85 for the FIND hand-off
-      const parallaxLift = p * 9 // vh
-      const exitLift = Math.max(0, (p - 0.55) / 0.3) * 26 // vh, kicks in late
+      // Clouds stay VISIBLE through the ENTIRE hero pin — the wordmark beat floats IN
+      // the clouds (reference frames 8-11). They drift/parallax gently UP as the
+      // building rises and the wordmark forms, but never fade to nothing mid-scroll.
+      //   lift: a gentle continuous rise across the whole pin, with a touch more at
+      //         the very end so the field clears as the pin releases.
+      const parallaxLift = p * 10 // vh, gentle steady rise across the pin
+      const exitLift = Math.max(0, (p - 0.86) / 0.14) * 14 // vh, only at the very end
       const liftVh = parallaxLift + exitLift
 
-      // Fade: hold full opacity through the build, dissolve across p 0.6 -> 0.85.
-      const fade = 1 - Math.max(0, (p - 0.6) / 0.25)
+      // Opacity: hold FULL visibility through the build AND the wordmark beat. Only a
+      // very slight thinning past p>0.95 (never a fade-to-nothing at 0.85).
+      const fade = 1 - Math.max(0, (p - 0.95) / 0.05) * 0.45
       const opacity = Math.max(0, Math.min(1, fade))
 
       el.style.transform = `translate3d(0, ${-liftVh}vh, 0)`
