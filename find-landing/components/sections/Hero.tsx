@@ -317,29 +317,45 @@ export default function Hero() {
             (frame_001). On scroll it GROWS (scale up, transform-origin center bottom) so
             it rises to cover the headline (frame_004 -> 007) — its base never leaves the
             viewport bottom (the section clips it), so there is zero floating gap. Then it
-            cross-dissolves out as the wordmark fills. */}
+            cross-dissolves out as the wordmark fills.
+
+            TWO-LAYER wrapper pattern to avoid GSAP clobbering the CSS centering:
+            - OUTER: owns left/translateX centering — never touched by GSAP.
+            - INNER (buildingWrapRef): owns scale via GSAP — transform-origin center bottom.
+            GSAP only sets `scale` on the inner element, so the outer `translateX(-50%)`
+            is never overwritten. */}
+      {/* Outer: centering only — no GSAP ref, no transform to clobber */}
       <div
-        ref={buildingWrapRef}
-        className="absolute bottom-0 left-1/2 z-[2] -translate-x-1/2"
+        className="absolute bottom-0 left-1/2 z-[2]"
         style={{
           width: 'min(95vw, 1100px)',
-          transformOrigin: 'center bottom',
-          // Bottom-anchored even before GSAP initialises (prevents a flash at full size).
-          transform: `translateX(-50%) scale(${BUILDING_REST_SCALE})`,
+          transform: 'translateX(-50%)',
         }}
+        aria-hidden="true"
       >
-        {/* Inner wrapper holds opacity for the cross-dissolve */}
-        <div ref={buildingImgRef} aria-hidden="true">
-          <Image
-            src={images.heroBuildingCutout}
-            alt="Golden-hour residential building"
-            width={1998}
-            height={1338}
-            priority
-            quality={90}
-            className="h-auto w-full select-none object-contain"
-            sizes="(max-width: 768px) 95vw, 1100px"
-          />
+        {/* Inner: GSAP scale target — transform-origin center bottom keeps the base
+            flush as the building grows. Initial scale matches BUILDING_REST_SCALE so
+            there is no full-size flash before GSAP initialises. */}
+        <div
+          ref={buildingWrapRef}
+          style={{
+            transformOrigin: 'center bottom',
+            transform: `scale(${BUILDING_REST_SCALE})`,
+          }}
+        >
+          {/* Opacity wrapper for the cross-dissolve */}
+          <div ref={buildingImgRef}>
+            <Image
+              src={images.heroBuildingCutout}
+              alt="Golden-hour residential building"
+              width={1998}
+              height={1338}
+              priority
+              quality={90}
+              className="h-auto w-full select-none object-contain"
+              sizes="(max-width: 768px) 95vw, 1100px"
+            />
+          </div>
         </div>
       </div>
 
