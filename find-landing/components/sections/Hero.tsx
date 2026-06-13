@@ -384,41 +384,41 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* 6. Headline block — CYCLING slot-roll above the growing building. Bilingual via
-            useContent(); centered so it reads correctly in both RTL (he) and LTR (en). */}
+      {/* 6. Text stack — CYCLING slot-roll headline -> subhead -> CTA pill, as a single
+            clean vertical FLOW in the UPPER-CENTER of the hero (above the building's
+            resting top). Each piece reserves its own space (no absolute stacking on top of
+            each other), so there is NO overlap at rest. headlineRef and subCtaRef stay as
+            separate children so the timeline can fade the subhead/CTA slightly earlier than
+            the headline as the building rises. Centered -> correct in RTL (he) and LTR (en);
+            the slot-roll track is direction-agnostic. */}
       <div
-        ref={headlineRef}
         className="absolute inset-x-0 z-[4] flex flex-col items-center px-6 text-center"
-        style={{ top: '50%', transform: 'translateY(-58%)' }}
+        style={{ top: 'clamp(4.5rem, 11vh, 8.5rem)' }}
       >
-        {/* Slot-roll viewport: clips a vertical track of N stacked sentences. The track
-            translates upward (driven by scroll) so each sentence rolls out as the next
-            rolls in — a premium "dice/slot" resolve. One line tall. */}
-        <SlotRollHeadline ref={slotTrackRef} lines={cycle} />
-      </div>
+        {/* Cycling headline. The SlotRollHeadline clip window is exactly one line tall and
+            occupies real flow height, so the subhead + CTA sit cleanly below it. */}
+        <div ref={headlineRef} className="flex w-full flex-col items-center">
+          <SlotRollHeadline ref={slotTrackRef} lines={cycle} />
+        </div>
 
-      {/* Subhead + CTA — separate group so they can fade slightly earlier than the
-          headline as the building rises over them. */}
-      <div
-        ref={subCtaRef}
-        className="absolute inset-x-0 z-[4] flex flex-col items-center px-6 text-center"
-        style={{ top: '50%', transform: 'translateY(40%)' }}
-      >
-        <p
-          className="max-w-xl font-[var(--font-body)] font-light text-[var(--color-ink)]"
-          style={{
-            fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
-            lineHeight: 1.6,
-            opacity: 0.78,
-          }}
-        >
-          {c.hero.subhead}
-        </p>
+        {/* Subhead + CTA — separate group, fades slightly earlier than the headline. */}
+        <div ref={subCtaRef} className="mt-5 flex w-full flex-col items-center sm:mt-7">
+          <p
+            className="max-w-xl font-[var(--font-body)] font-light text-[var(--color-ink)]"
+            style={{
+              fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
+              lineHeight: 1.6,
+              opacity: 0.78,
+            }}
+          >
+            {c.hero.subhead}
+          </p>
 
-        <div className="mt-8">
-          <Pill variant="dark" href="#register" withArrow>
-            {c.hero.cta}
-          </Pill>
+          <div className="mt-7 sm:mt-8">
+            <Pill variant="dark" href="#register" withArrow>
+              {c.hero.cta}
+            </Pill>
+          </div>
         </div>
       </div>
 

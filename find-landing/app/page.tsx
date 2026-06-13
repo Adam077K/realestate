@@ -2,9 +2,7 @@ import Nav from '@/components/layout/Nav'
 import Hero from '@/components/sections/Hero'
 import Stats from '@/components/sections/Stats'
 import ChevronStrip from '@/components/sections/ChevronStrip'
-import Advantages from '@/components/sections/Advantages'
 import RewiredSteps from '@/components/sections/RewiredSteps'
-import Process from '@/components/sections/Process'
 import OwnYourCareer from '@/components/sections/OwnYourCareer'
 import Partners from '@/components/sections/Partners'
 import Services from '@/components/sections/Services'
@@ -22,9 +20,7 @@ export default function Home() {
         <Hero />
         <Stats />
         <ChevronStrip />
-        <Advantages />
         <RewiredSteps />
-        <Process />
         <OwnYourCareer />
         <Partners />
         <Services />
