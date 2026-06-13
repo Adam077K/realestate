@@ -5,8 +5,9 @@
  *
  * Layers (back -> front):
  *   1. Painted sky (CSS gradient, zero JS dependency — instant LCP)
- *   2. HeroClouds R3F canvas (soft white puffs; dynamic import, client-only,
- *      skipped on mobile / no-WebGL / !motionOk)
+ *   2. HeroClouds — pure CSS/DOM soft white/cream puffs (no WebGL; always visible
+ *      on every device; drifts at rest, lifts + fades on scroll; static under
+ *      reduced motion)
  *   3. Building CUTOUT (transparent PNG, next/image, object-contain so the full
  *      silhouette reads; rises from bottom + scales, then shrinks/aligns to the
  *      wordmark during the morph)
@@ -24,9 +25,8 @@
  *   p 0.80-1.00  wordmark + clouds drift up + fade -> pin releases -> Why FIND flows in
  *
  * Fallbacks:
- *   !motionOk  -> static composed end-state (sky + cutout-filled wordmark), no pin, no canvas
- *   mobile     -> skip R3F canvas; simplified GSAP cross-fade still runs (cutout)
- *   no-WebGL   -> skip R3F canvas only; GSAP timeline still runs
+ *   !motionOk  -> static composed end-state (sky + cutout-filled wordmark), no pin;
+ *                 clouds still render statically (visible, no motion)
  */
 
 import dynamic from 'next/dynamic'
@@ -41,24 +41,9 @@ import { ScrollTrigger } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 
-// ─── Dynamic import: HeroClouds only runs client-side ────────────────────────
+// ─── Dynamic import: HeroClouds (CSS/DOM) only runs client-side ───────────────
 
 const HeroClouds = dynamic(() => import('./HeroClouds'), { ssr: false })
-
-// ─── WebGL detection ─────────────────────────────────────────────────────────
-
-function detectWebGL(): boolean {
-  if (typeof window === 'undefined') return false
-  try {
-    const canvas = document.createElement('canvas')
-    return !!(
-      canvas.getContext('webgl') ||
-      canvas.getContext('experimental-webgl')
-    )
-  } catch {
-    return false
-  }
-}
 
 // ─── SVG clip-mask wordmark dimensions ───────────────────────────────────────
 // Glyph paths occupy a 186x60 box (the FIND_GLYPH_PATHS coordinate space).
@@ -81,20 +66,11 @@ export default function Hero() {
   // A plain ref avoids React re-renders on every scroll tick.
   const progressRef = useRef<number>(0)
 
-  // Client-side feature gates — set after first hydration.
-  const [isDesktop, setIsDesktop] = useState(false)
-  const [hasWebGL, setHasWebGL] = useState(false)
+  // Client-side mount gate — set after first hydration.
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    setIsDesktop(window.innerWidth >= 768)
-    setHasWebGL(detectWebGL())
-
-    const mq = window.matchMedia('(min-width: 768px)')
-    const onMqChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener('change', onMqChange)
-    return () => mq.removeEventListener('change', onMqChange)
   }, [])
 
   // ── Pinned, scrubbed master timeline (motionOk only) ─────────────────────
@@ -221,13 +197,11 @@ export default function Hero() {
       {/* 1. Sky gradient — zero JS, instant paint (contributes to LCP) */}
       <SkyGradient />
 
-      {/* 2. HeroClouds R3F canvas — only when: desktop + WebGL + motionOk */}
+      {/* 2. HeroClouds — pure CSS/DOM puffs on every device. `active` only gates
+            drift + scroll parallax; when false the clouds still render statically. */}
       {mounted && (
         <div className="absolute inset-0 z-[1]" aria-hidden="true">
-          <HeroClouds
-            progressRef={progressRef}
-            active={isDesktop && hasWebGL && motionOk}
-          />
+          <HeroClouds progressRef={progressRef} active={motionOk} />
         </div>
       )}
 
