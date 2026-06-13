@@ -8,6 +8,9 @@
 
 export const images = {
   heroBuilding: '/images/hero-building.jpg',
+  // Golden-hour building with the background keyed out to transparency — used as the
+  // hero centerpiece (sits over the sky) AND the fill for the FIND clip-mask wordmark.
+  heroBuildingCutout: '/images/hero-building-cutout.png',
   cityStreet: '/images/city-street.jpg',
   chevron: [
     '/images/chevron-1.jpg',
@@ -52,9 +55,13 @@ export const whyFind = {
   body: "We help you move forward with clarity, confidence, and the right agent by your side.",
 } as const
 
-// ─── Chevron Strip (image rail, no copy) ───────────────────────────────────────
+// ─── Chevron Strip (arrow image rail, frames 15-19) ────────────────────────────
 
 export const chevronStrip = {
+  heading: {
+    lead: "This isn't just",
+    tail: 'about real estate.',
+  },
   images: images.chevron,
 } as const
 
