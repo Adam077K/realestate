@@ -16,16 +16,50 @@
  * SSR-safe: only ever mounted client-side via `dynamic(..., { ssr: false })`.
  */
 
+// R3F 8.x + React 19 compatibility: augment the React.JSX namespace so that
+// Three.js intrinsic elements (group, ambientLight, directionalLight, etc.)
+// are recognised by the TypeScript compiler.
+import type { ThreeElements } from '@react-three/fiber'
+
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements extends ThreeElements {}
+  }
+}
+
 import { useEffect, useRef, useState, type RefObject } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Clouds, Cloud } from '@react-three/drei'
-import { MeshLambertMaterial, type Group } from 'three'
+import { MeshLambertMaterial, AmbientLight, DirectionalLight, type Group } from 'three'
 
 export interface HeroCloudsProps {
   /** Shared scroll progress over the hero pin, 0 → 1. Drives parallax + dissolve. */
   progressRef?: RefObject<number>
   /** Master gate — when false the canvas is not rendered at all. */
   active?: boolean
+}
+
+/** Adds soft daytime lighting imperatively so we avoid three.js JSX intrinsics. */
+function SceneLighting() {
+  const { scene } = useThree()
+
+  useEffect(() => {
+    const ambient = new AmbientLight(0xfff4ea, 1.15)
+    const key = new DirectionalLight(0xffd9b8, 0.9)
+    key.position.set(-6, -4, 8)
+    const fill = new DirectionalLight(0xcfe0ff, 0.5)
+    fill.position.set(5, 8, 4)
+
+    scene.add(ambient, key, fill)
+    return () => {
+      scene.remove(ambient, key, fill)
+      ambient.dispose()
+      key.dispose()
+      fill.dispose()
+    }
+  }, [scene])
+
+  return null
 }
 
 /** Cloud cluster — handles its own drift + reacts to scroll progress. */
@@ -66,7 +100,7 @@ function CloudField({ progressRef }: { progressRef?: RefObject<number> }) {
     <group ref={groupRef}>
       <group ref={churnRef}>
         <Clouds material={MeshLambertMaterial} limit={400} range={120}>
-          {/* Lower bank — warm, dense, sits in front (frame 001 base). */}
+          {/* Lower bank — warm, dense, sits in front (frame_001 base). */}
           <Cloud
             seed={1}
             bounds={[14, 3, 3]}
@@ -155,10 +189,7 @@ export default function HeroClouds({ progressRef, active = true }: HeroCloudsPro
         camera={{ position: [0, 0, 18], fov: 42 }}
         style={{ background: 'transparent' }}
       >
-        {/* Soft daytime lighting — warm key from lower-left, cool sky fill. */}
-        <ambientLight intensity={1.15} color="#fff4ea" />
-        <directionalLight position={[-6, -4, 8]} intensity={0.9} color="#ffd9b8" />
-        <directionalLight position={[5, 8, 4]} intensity={0.5} color="#cfe0ff" />
+        <SceneLighting />
         <CloudField progressRef={progressRef} />
       </Canvas>
     </div>
