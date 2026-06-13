@@ -4,14 +4,30 @@ import { useRef } from 'react'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { useLang, useContent } from '@/components/providers/LanguageProvider'
 import TwoToneHeading from '@/components/ui/TwoToneHeading'
 import SectionLabel from '@/components/ui/SectionLabel'
 import Pill from '@/components/ui/Pill'
-import { services } from '@/data/content'
 
+/**
+ * Services → "How Bonim Atid helps you" — dark giant-type pillars.
+ *
+ * Bilingual + RTL aware. Content comes from `c.pillars` (he/en).
+ * Layout: number + body on one side, an ENORMOUS thin display word on the other.
+ * In RTL (Hebrew default) the giant word sits on the LEFT and the number+body on the
+ * RIGHT; in LTR it mirrors. We rely on `dir` flipping the grid track order rather than
+ * hard-coding left/right, and we flip the clip-path wipe origin to match reading order.
+ */
 export default function Services() {
   const sectionRef = useRef<HTMLElement>(null)
   const motionOk = !useReducedMotion()
+  const { dir } = useLang()
+  const c = useContent()
+  const { pillars } = c
+
+  // In RTL the giant word lives on the left, so it should wipe in from the left edge.
+  // In LTR it lives on the right and wipes in from the right edge.
+  const isRtl = dir === 'rtl'
 
   useGsapContext(
     sectionRef,
@@ -31,14 +47,18 @@ export default function Services() {
         },
       })
 
-      // Each row: giant word wipes in from right + number ring draws
-      services.rows.forEach((_row, i) => {
+      // Each row: giant word wipes in + number ring draws
+      pillars.rows.forEach((_row, i) => {
         const rowEl = `.service-row-${i}`
 
-        // Giant word: clip-path wipe from right
+        // Giant word: clip-path wipe. Reveal origin follows reading direction so the
+        // word appears to emerge from its resting edge (left in RTL, right in LTR).
+        const hiddenClip = isRtl ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)'
+        const fromX = isRtl ? -40 : 40
+
         gsap.fromTo(
           `${rowEl} .service-giant-word`,
-          { clipPath: 'inset(0 100% 0 0)', x: 40, opacity: 0 },
+          { clipPath: hiddenClip, x: fromX, opacity: 0 },
           {
             clipPath: 'inset(0 0% 0 0)',
             x: 0,
@@ -106,7 +126,7 @@ export default function Services() {
         },
       })
     },
-    [motionOk]
+    [motionOk, isRtl]
   )
 
   return (
@@ -114,17 +134,17 @@ export default function Services() {
       ref={sectionRef}
       id="services"
       className="bg-[var(--color-dark)] text-[var(--color-paper)] w-full"
-      aria-label="Services"
+      aria-label={pillars.heading.lead}
     >
       {/* Header row */}
       <div className="w-full px-6 md:px-12 lg:px-20 pt-20 pb-16 md:pt-28 md:pb-20">
         <SectionLabel variant="light" className="mb-6 block">
-          {services.label}
+          {pillars.heading.lead}
         </SectionLabel>
         <TwoToneHeading
           as="h2"
-          lead={services.heading.lead}
-          tail={services.heading.tail}
+          lead={pillars.heading.lead}
+          tail={pillars.heading.tail}
           stacked
           leadClassName="text-white"
           tailClassName="text-white/45"
@@ -132,9 +152,12 @@ export default function Services() {
         />
       </div>
 
-      {/* Service rows — full-width hairline dividers */}
+      {/* Pillar rows — full-width hairline dividers.
+          DOM order is [number, body, giant-word]. `dir` on <html> flips the grid track
+          order: in RTL the first track (number) renders on the right and the last
+          track (giant word) on the left; in LTR it stays left to right. */}
       <div className="w-full">
-        {services.rows.map((row, i) => (
+        {pillars.rows.map((row, i) => (
           <div
             key={row.n}
             className={`service-row-${i} border-t border-[rgba(255,255,255,0.1)] w-full px-6 md:px-12 lg:px-20 py-10 md:py-14 grid grid-cols-[44px_1fr] md:grid-cols-[56px_minmax(0,280px)_1fr] items-center gap-6 md:gap-12 lg:gap-16`}
@@ -168,10 +191,12 @@ export default function Services() {
               {row.body}
             </p>
 
-            {/* Giant word — hidden on small screens, visible md+ */}
+            {/* Giant word — hidden on small screens, visible md+.
+                `text-end` keeps it hard against the outer edge in both directions:
+                in RTL that edge is the left, in LTR the right. */}
             <div className="hidden md:flex justify-end">
               <span
-                className="service-giant-word font-[var(--font-display)] font-light text-white select-none"
+                className="service-giant-word font-[var(--font-display)] font-light text-white select-none whitespace-nowrap text-end leading-none"
                 style={{
                   fontSize: 'clamp(4rem, 12vw, 11rem)',
                   lineHeight: 0.88,
@@ -191,8 +216,8 @@ export default function Services() {
       <div className="border-t border-[rgba(255,255,255,0.1)] w-full px-6 md:px-12 lg:px-20 py-16 md:py-20">
         <TwoToneHeading
           as="h3"
-          lead={services.closing.lead}
-          tail={services.closing.tail}
+          lead={pillars.closing.lead}
+          tail={pillars.closing.tail}
           stacked={false}
           leadClassName="text-white"
           tailClassName="text-white/45"
@@ -201,11 +226,11 @@ export default function Services() {
         <div className="services-cta">
           <Pill
             variant="ghost"
-            href="/search"
+            href="#register"
             withArrow
             className="border border-white text-white hover:bg-white hover:text-[var(--color-ink)]"
           >
-            {services.cta}
+            {pillars.cta}
           </Pill>
         </div>
       </div>

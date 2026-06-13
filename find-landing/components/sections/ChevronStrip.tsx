@@ -4,25 +4,27 @@ import { useRef } from 'react'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
+import { useContent } from '@/components/providers/LanguageProvider'
 import MaskedImage from '@/components/ui/MaskedImage'
 import TwoToneHeading from '@/components/ui/TwoToneHeading'
-import { chevronStrip } from '@/data/content'
+import { images } from '@/data/content'
 
 // Per-image alt text and object-position tuning so faces/subjects stay centred
 // within the chevron clip shape. The notch clips the left ~42% of the bounding
 // box, so the visible content lives in the right portion of each panel — we bias
 // object-position rightward so faces/subjects don't get eaten by the notch.
 const IMAGE_META: { alt: string; objectPosition: string }[] = [
-  { alt: 'Woman in blazer — FIND Real Estate agent', objectPosition: '62% center' },
-  { alt: 'Bedroom interior with city views', objectPosition: '58% center' },
-  { alt: 'Open-plan living interior', objectPosition: '55% center' },
-  { alt: 'Man in suit — FIND Real Estate agent', objectPosition: '55% center' },
+  { alt: 'בונים עתיד — נדל״ן ואנשים', objectPosition: '62% center' },
+  { alt: 'פנים דירה עם נוף לעיר', objectPosition: '58% center' },
+  { alt: 'סלון בתכנון פתוח', objectPosition: '55% center' },
+  { alt: 'בניין חדש מקבלן', objectPosition: '55% center' },
 ]
 
 export default function ChevronStrip() {
   const sectionRef = useRef<HTMLElement>(null)
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
   const { motionOk } = useSmoothScroll()
+  const c = useContent()
 
   useGsapContext(
     sectionRef,
@@ -54,22 +56,18 @@ export default function ChevronStrip() {
     [motionOk]
   )
 
-  const images = chevronStrip.images
+  const chevronImages = images.chevron
 
   return (
     <section
       id="chevron-strip"
       ref={sectionRef}
       className="bg-[var(--color-paper)] py-16 md:py-20 lg:py-24"
-      aria-label="FIND Real Estate — about section"
+      aria-label="בונים עתיד — אודות"
     >
       {/* Heading — centered above the arrow row */}
       <div className="mb-10 md:mb-14 flex justify-center px-4 text-center">
-        <TwoToneHeading
-          lead={chevronStrip.heading.lead}
-          tail={chevronStrip.heading.tail}
-          as="h2"
-        />
+        <TwoToneHeading lead={c.arrows.lead} tail={c.arrows.tail} as="h2" />
       </div>
 
       {/*
@@ -80,13 +78,17 @@ export default function ChevronStrip() {
         every arrow: the tip (100% 50%) of arrow N points toward the concave notch
         (42% 50%) of arrow N+1, so the empty space between them reads as a white ❯.
         overflow-hidden guards against sub-pixel clip bleed creating a scrollbar.
+
+        The chevron clip shape is intrinsically directional (points right); the row is
+        a fixed left→right visual motif, so we pin dir="ltr" on the arrow row regardless
+        of page direction so the arrows always point the same way and never collide.
       */}
-      <div className="overflow-hidden px-4">
+      <div className="overflow-hidden px-4" dir="ltr">
         <div className="flex items-stretch justify-center gap-[clamp(4px,0.6vw,12px)]">
-          {images.map((src, i) => {
+          {chevronImages.map((src, i) => {
             const meta =
               IMAGE_META[i] ?? {
-                alt: `FIND Real Estate image ${i + 1}`,
+                alt: `בונים עתיד — תמונה ${i + 1}`,
                 objectPosition: 'center',
               }
 

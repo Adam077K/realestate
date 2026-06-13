@@ -1,42 +1,42 @@
 'use client'
 
-import { Fragment, useRef } from 'react'
+import { useRef } from 'react'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
+import { useLang, useContent } from '@/components/providers/LanguageProvider'
 import TwoToneHeading from '@/components/ui/TwoToneHeading'
-import Pill from '@/components/ui/Pill'
-import { rewiredSteps } from '@/data/content'
 
+/**
+ * "What you'll learn" — id="learn".
+ *
+ * Editorial numbered list of the 4 webinar topics. The elegant numbered-steps
+ * layout is repurposed: a left-column heading + a right-column list of numbered
+ * rows (mono index, bold lead, muted tail) separated by hairline dividers.
+ *
+ * RTL-correct: the layout uses logical classes (text-start, ms-/me-, dir-aware
+ * flex order) so the index column, dividers, and reveal all mirror with `dir`.
+ * Dividers grow from the inline-start edge (right in RTL, left in LTR).
+ */
 export default function RewiredSteps() {
   const sectionRef = useRef<HTMLElement>(null)
   const dividerRefs = useRef<(HTMLSpanElement | null)[]>([])
-  const stepRefs = useRef<(HTMLLIElement | null)[]>([])
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([])
   const { motionOk } = useSmoothScroll()
+  const { dir } = useLang()
+  const c = useContent()
+
+  // Hairline dividers grow from the reading-start edge so the reveal feels native
+  // in both directions: left→right in LTR, right→left in RTL.
+  const dividerOrigin = dir === 'rtl' ? 'right center' : 'left center'
 
   useGsapContext(
     sectionRef,
     () => {
       if (!motionOk) return
 
-      // Intro paragraph words
-      const introWords = sectionRef.current?.querySelectorAll('.intro-words .tt-word')
-      if (introWords && introWords.length > 0) {
-        gsap.from(introWords, {
-          yPercent: 110,
-          opacity: 0,
-          stagger: 0.03,
-          ease: 'power3.out',
-          duration: 0.75,
-          scrollTrigger: {
-            trigger: '.intro-words',
-            start: 'top 82%',
-          },
-        })
-      }
-
       // Big heading words
-      const headingWords = sectionRef.current?.querySelectorAll('.rewired-heading .tt-word')
+      const headingWords = sectionRef.current?.querySelectorAll('.learn-heading .tt-word')
       if (headingWords && headingWords.length > 0) {
         gsap.from(headingWords, {
           yPercent: 110,
@@ -45,22 +45,22 @@ export default function RewiredSteps() {
           ease: 'power3.out',
           duration: 0.9,
           scrollTrigger: {
-            trigger: '.rewired-heading',
+            trigger: '.learn-heading',
             start: 'top 80%',
           },
         })
       }
 
-      // Steps: dividers scaleX 0 → 1 then row fades in
-      const steps = stepRefs.current.filter(Boolean) as HTMLLIElement[]
+      // Items: dividers scaleX 0 → 1 then row fades in
+      const items = itemRefs.current.filter(Boolean) as HTMLLIElement[]
       const dividers = dividerRefs.current.filter(Boolean) as HTMLSpanElement[]
 
-      steps.forEach((step, i) => {
+      items.forEach((item, i) => {
         const divider = dividers[i]
 
         const tl = gsap.timeline({
           scrollTrigger: {
-            trigger: step,
+            trigger: item,
             start: 'top 82%',
           },
         })
@@ -68,13 +68,13 @@ export default function RewiredSteps() {
         if (divider) {
           tl.fromTo(
             divider,
-            { scaleX: 0, transformOrigin: 'left center' },
+            { scaleX: 0, transformOrigin: dividerOrigin },
             { scaleX: 1, duration: 0.5, ease: 'power2.out' }
           )
         }
 
         tl.from(
-          step.querySelectorAll('.step-content'),
+          item.querySelectorAll('.item-content'),
           {
             opacity: 0,
             y: 12,
@@ -85,100 +85,68 @@ export default function RewiredSteps() {
         )
       })
     },
-    [motionOk]
+    [motionOk, dividerOrigin]
   )
 
   return (
     <section
-      id="rewired-steps"
+      id="learn"
       ref={sectionRef}
       className="bg-[var(--color-paper)] px-6 md:px-12 lg:px-20 py-24 md:py-32"
-      aria-label="Real Estate Rewired"
+      aria-label={`${c.learn.heading.lead} ${c.learn.heading.tail}`}
     >
-      {/* Centered intro paragraph */}
-      <div className="max-w-3xl mx-auto text-center mb-20 md:mb-28">
-        <p className="intro-words font-[var(--font-display)] text-[clamp(1.125rem,2.5vw,1.5rem)] leading-[1.45] tracking-[-0.01em]">
-          <span className="text-[var(--color-ink)]">
-            {/* Word spans for GSAP — replicate TwoToneHeading pattern inline */}
-            {rewiredSteps.intro.lead.split(' ').map((word, i, arr) => (
-              <Fragment key={`lead-${i}`}>
-                <span className="word-clip">
-                  <span className="word-inner tt-word">{word}</span>
-                </span>
-                {i < arr.length - 1 ? ' ' : null}
-              </Fragment>
-            ))}
-          </span>
-          {' '}
-          <span className="text-[var(--color-muted)]">
-            {rewiredSteps.intro.tail.split(' ').map((word, i, arr) => (
-              <Fragment key={`tail-${i}`}>
-                <span className="word-clip">
-                  <span className="word-inner tt-word">{word}</span>
-                </span>
-                {i < arr.length - 1 ? ' ' : null}
-              </Fragment>
-            ))}
-          </span>
-        </p>
-      </div>
-
-      {/* Two-column block */}
       <div className="flex flex-col md:flex-row md:gap-16 lg:gap-24 max-w-7xl mx-auto">
-        {/* LEFT: giant stacked heading + CTA */}
+        {/* HEADING — giant stacked, top of the inline-start column */}
         <div className="md:w-5/12 lg:w-[42%] mb-16 md:mb-0 flex flex-col justify-start">
-          <div className="rewired-heading">
+          <div className="learn-heading">
             <TwoToneHeading
-              lead={rewiredSteps.title.lead}
-              tail={rewiredSteps.title.tail}
+              lead={c.learn.heading.lead}
+              tail={c.learn.heading.tail}
               as="h2"
               stacked
               className="text-[clamp(2.75rem,6vw,5.5rem)] leading-[1.0]"
             />
           </div>
-          <div className="mt-10">
-            <Pill variant="dark" href="/search" withArrow>
-              {rewiredSteps.cta}
-            </Pill>
-          </div>
         </div>
 
-        {/* RIGHT: steps list */}
+        {/* TOPICS — numbered editorial list */}
         <div className="md:w-7/12 lg:w-[58%]">
-          {/* "Steps:" label */}
-          <p className="text-[var(--color-ink)] text-sm font-medium tracking-wide mb-4">
-            Steps:
-          </p>
-
-          <ol aria-label="How FIND works — three steps">
-            {rewiredSteps.steps.map((step, i) => (
+          <ol aria-label={`${c.learn.heading.lead} ${c.learn.heading.tail}`}>
+            {c.learn.items.map((item, i) => (
               <li
-                key={step.n}
-                ref={(el) => { stepRefs.current[i] = el }}
+                key={item.n}
+                ref={(el) => {
+                  itemRefs.current[i] = el
+                }}
                 className="relative"
               >
-                {/* Hairline divider — animates scaleX 0→1 */}
+                {/* Hairline divider — animates scaleX 0→1 from the reading-start edge */}
                 <span
-                  ref={(el) => { dividerRefs.current[i] = el }}
+                  ref={(el) => {
+                    dividerRefs.current[i] = el
+                  }}
                   className="block h-px bg-[rgba(17,17,17,0.15)]"
-                  style={{ transformOrigin: 'left center', transform: motionOk ? 'scaleX(0)' : 'scaleX(1)' }}
+                  style={{
+                    transformOrigin: dividerOrigin,
+                    transform: motionOk ? 'scaleX(0)' : 'scaleX(1)',
+                  }}
                   aria-hidden="true"
                 />
 
                 {/* Row content */}
-                <div className="step-content flex items-start gap-4 md:gap-6 py-8 md:py-10">
-                  {/* Step number */}
-                  <span className="shrink-0 text-xs font-mono text-[var(--color-muted)] pt-1 w-6 text-right select-none">
-                    {step.n}
+                <div className="item-content flex items-start gap-4 md:gap-6 py-8 md:py-10">
+                  {/* Index — sits on the reading-start side, mono + muted */}
+                  <span className="shrink-0 text-xs font-mono text-[var(--color-muted)] pt-1 w-6 text-end select-none">
+                    {item.n}
                   </span>
 
-                  {/* Step text */}
-                  <p className="text-[clamp(1.125rem,2.2vw,1.5rem)] leading-[1.35] tracking-[-0.01em]">
+                  {/* Topic text */}
+                  <p className="text-[clamp(1.125rem,2.2vw,1.5rem)] leading-[1.35] tracking-[-0.01em] text-start">
                     <strong className="font-semibold text-[var(--color-ink)]">
-                      {step.lead}
+                      {item.lead}
                     </strong>{' '}
                     <span className="text-[var(--color-muted)] font-normal">
-                      {step.tail}
+                      {item.tail}
                     </span>
                   </p>
                 </div>

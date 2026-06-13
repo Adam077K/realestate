@@ -5,21 +5,45 @@ import Image from 'next/image'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-import { FindGlyph } from '@/components/layout/Logo'
+import { useContent } from '@/components/providers/LanguageProvider'
+import { BrandWordmarkMask } from '@/components/layout/Logo'
 import Pill from '@/components/ui/Pill'
-import { ctaFooter, images } from '@/data/content'
+import { images } from '@/data/content'
 
+/**
+ * Registration band + Footer.
+ *
+ * TOP  (id="register"): cinematic background-image band with a dark scrim,
+ *   a heading/sub, a real 3-field controlled form (name / phone / email) that
+ *   preventDefaults and shows a "thanks" state, and a prominent CTA pill.
+ * BOTTOM: newsletter signup, nav columns, rights line, and the giant
+ *   "בונים עתיד" wordmark filled with the hero building image.
+ */
 export default function CtaFooter() {
   const footerRef = useRef<HTMLElement>(null)
   const motionOk = !useReducedMotion()
-  const [email, setEmail] = useState('')
+  const c = useContent()
+  const isHebrew = c.register.fields.name === 'שם מלא'
+
+  // Registration form — controlled, no backend; shows a success state on submit.
+  const [form, setForm] = useState({ name: '', phone: '', email: '' })
+  const [submitted, setSubmitted] = useState(false)
+  // Newsletter — separate controlled field.
+  const [newsletterEmail, setNewsletterEmail] = useState('')
 
   useGsapContext(
     footerRef,
     () => {
       if (!motionOk) return
 
-      // Footer wordmark: clip-path wipe left → right
+      gsap.from('.reg-inner', {
+        y: 28,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: '.reg-band', start: 'top 78%' },
+      })
+
       gsap.fromTo(
         '.footer-wordmark',
         { clipPath: 'inset(0 100% 0 0)' },
@@ -27,167 +51,162 @@ export default function CtaFooter() {
           clipPath: 'inset(0 0% 0 0)',
           duration: 1.4,
           ease: 'power3.inOut',
-          scrollTrigger: {
-            trigger: '.footer-wordmark',
-            start: 'top 88%',
-          },
+          scrollTrigger: { trigger: '.footer-wordmark', start: 'top 90%' },
         }
       )
 
-      // Newsletter row fade up
-      gsap.from('.footer-newsletter', {
-        y: 24,
-        opacity: 0,
-        duration: 0.7,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: '.footer-newsletter',
-          start: 'top 88%',
-        },
-      })
-
-      // Contact blocks stagger
-      gsap.from('.footer-contact-block', {
-        y: 16,
+      gsap.from('.footer-col', {
+        y: 18,
         opacity: 0,
         stagger: 0.1,
         duration: 0.6,
         ease: 'power2.out',
-        scrollTrigger: {
-          trigger: '.footer-contact',
-          start: 'top 88%',
-        },
+        scrollTrigger: { trigger: '.footer-grid', start: 'top 88%' },
       })
     },
     [motionOk]
   )
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault()
-    // Newsletter submit — placeholder; wires to email service
-    setEmail('')
+    setSubmitted(true)
   }
 
+  const handleNewsletter = (e: React.FormEvent) => {
+    e.preventDefault()
+    setNewsletterEmail('')
+  }
+
+  const thanksMsg = isHebrew ? 'תודה! שמרנו לכם מקום — נשלח את הלינק למייל.' : "Thanks! Your spot is saved — we'll email the link."
+  const headOfficeCaption = isHebrew ? 'המנחים' : 'Hosts'
+
   return (
-    <footer
-      ref={footerRef}
-      id="cta-footer"
-      className="w-full"
-      aria-label="Footer"
-    >
-      {/* ── CTA Band — full-width family image with scrim + pill ── */}
-      <div className="relative w-full aspect-[16/7] min-h-[320px] overflow-hidden">
+    <footer ref={footerRef} className="w-full" aria-label="Footer">
+      {/* ── Registration band — cinematic image + scrim + form ── */}
+      <section
+        id="register"
+        className="reg-band relative w-full overflow-hidden"
+        aria-labelledby="register-heading"
+      >
         <Image
           src={images.ctaFamily}
-          alt="A family finding their new home"
+          alt=""
           fill
-          priority
           sizes="100vw"
           className="object-cover object-center"
-        />
-        {/* Dark scrim */}
-        <div
-          className="absolute inset-0"
-          style={{ background: 'rgba(0,0,0,0.55)' }}
           aria-hidden="true"
         />
-        {/* Centered CTA */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 text-center">
-          <Pill
-            variant="ghost"
-            href="/search"
-            withArrow
-            className="border border-white text-white hover:bg-white hover:text-[var(--color-ink)] text-base px-8 py-4"
-            aria-label={ctaFooter.ctaBand.heading}
+        {/* Dark scrim for legibility */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(to bottom, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.8) 100%)',
+          }}
+          aria-hidden="true"
+        />
+
+        <div className="reg-inner relative z-10 w-full px-6 md:px-12 lg:px-20 py-20 md:py-28 flex flex-col items-center text-center">
+          <h2
+            id="register-heading"
+            className="font-[var(--font-display)] font-semibold text-white text-[clamp(1.9rem,4.5vw,3.5rem)] leading-[1.08] tracking-[-0.02em] max-w-3xl"
           >
-            {ctaFooter.ctaBand.heading}
-          </Pill>
+            {c.register.heading}
+          </h2>
+          <p className="mt-4 text-[rgba(255,255,255,0.78)] text-base md:text-lg font-light max-w-xl">
+            {c.register.sub}
+          </p>
+
+          {submitted ? (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mt-10 w-full max-w-xl rounded-2xl border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] px-6 py-8 backdrop-blur-sm"
+            >
+              <p className="text-lg md:text-xl font-medium text-white">{thanksMsg}</p>
+            </div>
+          ) : (
+            <form
+              onSubmit={handleRegister}
+              className="mt-10 w-full max-w-xl flex flex-col gap-4"
+              noValidate
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {(['name', 'phone', 'email'] as const).map((field) => (
+                  <div key={field} className="flex flex-col gap-1.5 text-start">
+                    <label htmlFor={`reg-${field}`} className="sr-only">
+                      {c.register.fields[field]}
+                    </label>
+                    <input
+                      id={`reg-${field}`}
+                      name={field}
+                      type={field === 'email' ? 'email' : field === 'phone' ? 'tel' : 'text'}
+                      autoComplete={
+                        field === 'email' ? 'email' : field === 'phone' ? 'tel' : 'name'
+                      }
+                      required
+                      value={form[field]}
+                      onChange={(e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))}
+                      placeholder={c.register.fields[field]}
+                      className="min-h-[48px] w-full rounded-full border border-[rgba(255,255,255,0.3)] bg-[rgba(255,255,255,0.06)] px-5 text-sm text-white placeholder:text-[rgba(255,255,255,0.55)] outline-none transition-colors duration-200 focus-visible:border-white focus-visible:ring-2 focus-visible:ring-white/60"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-center pt-1">
+                <Pill
+                  variant="ghost"
+                  type="submit"
+                  withArrow
+                  className="border border-white bg-white text-[var(--color-ink)] hover:bg-transparent hover:text-white text-base px-8 py-4"
+                  aria-label={c.register.cta}
+                >
+                  {c.register.cta}
+                </Pill>
+              </div>
+            </form>
+          )}
         </div>
-      </div>
+      </section>
 
       {/* ── Footer body — dark ── */}
       <div className="bg-[var(--color-dark)] text-[var(--color-paper)]">
-        {/* Top grid: newsletter + contact + nav + social */}
-        <div className="w-full px-6 md:px-12 lg:px-20 pt-14 md:pt-20 pb-12 md:pb-16 grid grid-cols-1 md:grid-cols-[1fr_auto_auto] lg:grid-cols-[1fr_1fr_auto_auto] gap-10 md:gap-12 lg:gap-16">
-
+        <div className="footer-grid w-full px-6 md:px-12 lg:px-20 pt-14 md:pt-20 pb-12 md:pb-16 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-10 md:gap-16">
           {/* Newsletter column */}
-          <div className="footer-newsletter flex flex-col gap-6 max-w-sm">
-            <p className="text-sm font-medium text-white">
-              {ctaFooter.newsletter.label}
-            </p>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-0">
+          <div className="footer-col flex flex-col gap-5 max-w-sm">
+            <p className="text-sm font-medium text-white">{c.footer.newsletter}</p>
+            <form onSubmit={handleNewsletter}>
               <label htmlFor="footer-email" className="sr-only">
-                Email address for newsletter
+                {c.footer.emailPlaceholder}
               </label>
               <div className="relative flex items-center">
                 <input
                   id="footer-email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={ctaFooter.newsletter.emailPlaceholder}
-                  aria-label="Email address for newsletter"
-                  className={[
-                    'w-full bg-transparent border-b border-[rgba(255,255,255,0.3)] pb-2 pr-10',
-                    'text-sm text-white placeholder:text-[rgba(255,255,255,0.35)]',
-                    'outline-none focus:border-white transition-[border-color] duration-200',
-                  ].join(' ')}
+                  autoComplete="email"
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  placeholder={c.footer.emailPlaceholder}
+                  className="w-full bg-transparent border-b border-[rgba(255,255,255,0.3)] pb-2 pe-10 text-sm text-white placeholder:text-[rgba(255,255,255,0.4)] outline-none transition-[border-color] duration-200 focus:border-white"
                 />
                 <button
                   type="submit"
-                  aria-label="Submit newsletter subscription"
-                  className="absolute right-0 bottom-2 text-[rgba(255,255,255,0.5)] hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+                  aria-label={c.footer.newsletter}
+                  className="absolute end-0 bottom-2 text-[rgba(255,255,255,0.5)] hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
                 >
-                  →
+                  {isHebrew ? '←' : '→'}
                 </button>
               </div>
             </form>
-
-            {/* Contact blocks */}
-            <div className="footer-contact flex flex-col gap-5 pt-4">
-              <div className="footer-contact-block flex flex-col gap-1">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-[rgba(255,255,255,0.38)] font-medium">
-                  Head Office
-                </span>
-                <address className="not-italic text-sm text-[rgba(255,255,255,0.55)] leading-snug">
-                  {ctaFooter.contact.headOffice}
-                </address>
-              </div>
-              <div className="footer-contact-block flex flex-col gap-1">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-[rgba(255,255,255,0.38)] font-medium">
-                  Email Us
-                </span>
-                <a
-                  href={`mailto:${ctaFooter.contact.email}`}
-                  className="text-sm text-[rgba(255,255,255,0.55)] hover:text-white transition-colors duration-150"
-                >
-                  {ctaFooter.contact.email}
-                </a>
-              </div>
-              <div className="footer-contact-block flex flex-col gap-1">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-[rgba(255,255,255,0.38)] font-medium">
-                  Call Us
-                </span>
-                <a
-                  href={`tel:${ctaFooter.contact.phone.replace(/\s/g, '')}`}
-                  className="text-sm text-[rgba(255,255,255,0.55)] hover:text-white transition-colors duration-150"
-                >
-                  {ctaFooter.contact.phone}
-                </a>
-              </div>
-            </div>
           </div>
 
-          {/* Spacer — pushes nav + social right on lg */}
-          <div className="hidden lg:block" aria-hidden="true" />
-
           {/* Nav column */}
-          <nav aria-label="Footer navigation">
-            <ul className="flex flex-col gap-3">
-              {ctaFooter.navCols.map((item) => (
+          <nav className="footer-col" aria-label={headOfficeCaption}>
+            <ul className="flex flex-col gap-3 md:items-end">
+              {c.footer.navCols.map((item) => (
                 <li key={item}>
                   <a
-                    href={`/${item.toLowerCase().replace(/\s+/g, '-')}`}
+                    href={`#${item}`}
                     className="text-lg md:text-xl font-[var(--font-display)] font-light text-white hover:text-[rgba(255,255,255,0.55)] transition-colors duration-150"
                   >
                     {item}
@@ -196,44 +215,23 @@ export default function CtaFooter() {
               ))}
             </ul>
           </nav>
-
-          {/* Social column */}
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.14em] text-[rgba(255,255,255,0.38)] font-medium mb-3">
-              Follow
-            </p>
-            <ul className="flex flex-col gap-3">
-              {ctaFooter.social.map((platform) => (
-                <li key={platform}>
-                  <a
-                    href={`https://${platform.toLowerCase()}.com/findrealestate`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-[rgba(255,255,255,0.55)] hover:text-white transition-colors duration-150"
-                    aria-label={`FIND Real Estate on ${platform}`}
-                  >
-                    {platform}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
 
-        {/* ── Giant FIND wordmark — full viewport width, wipes left→right ── */}
+        {/* ── Giant "בונים עתיד" wordmark — building-filled, wipes in ── */}
         <div
-          className="footer-wordmark w-full overflow-hidden px-0"
+          className="footer-wordmark w-full overflow-hidden px-4 md:px-8"
           style={{ willChange: 'clip-path' }}
-          aria-label="FIND"
-          role="img"
         >
-          <FindGlyph className="w-full h-auto text-white block" />
+          <BrandWordmarkMask
+            fillSrc={images.heroBuildingFill}
+            className="w-full h-auto block"
+          />
         </div>
 
         {/* Legal bar */}
         <div className="px-6 md:px-12 lg:px-20 py-5 border-t border-[rgba(255,255,255,0.06)]">
-          <p className="text-xs text-[rgba(255,255,255,0.28)]">
-            &copy; {new Date().getFullYear()} FIND Real Estate. All rights reserved.
+          <p className="text-xs text-[rgba(255,255,255,0.32)]">
+            &copy; {new Date().getFullYear()} · {c.footer.rights}
           </p>
         </div>
       </div>

@@ -1,15 +1,15 @@
 'use client'
 
 /**
- * Hero — Signature pinned scroll experience for FIND Real Estate.
+ * Hero — Signature pinned scroll experience for בונים עתיד (Bonim Atid).
  *
  * Reference arc (docs/reference-video-screenshots):
  *   frame_003  REST    — building is LARGE, anchored to the BOTTOM of the viewport,
  *                         its upper mass filling the lower half. Headline on top,
  *                         clouds wrapping the base.
  *   frame_005/008      — building has RISEN so the WHOLE building is visible; a thin
- *                         WHITE OUTLINE of the "FIND / Real Estate" wordmark is
- *                         overlaid on the building; clouds at the base.
+ *                         WHITE OUTLINE of the "בונים עתיד" wordmark is overlaid on
+ *                         the building; clouds at the base.
  *   frame_009/011      — the building IMAGE FILLS the wordmark letters (image-inside-
  *                         text) floating in the clouds.
  *
@@ -20,11 +20,11 @@
  *   3. Building CUTOUT (transparent PNG) — bottom-anchored, LARGE; rises up + scales
  *      slightly on scroll so all of it is revealed, then cross-dissolves out as the
  *      wordmark fills
- *   4. Wordmark OUTLINE — thin white stroke of "FIND / Real Estate" overlaid on the
- *      risen building (frames 5/8)
- *   5. Wordmark FILL — the opaque building image clipped to the letterforms
- *      (frames 9/11), the end-state
- *   6. Headline block ("Find What Moves You" + subhead + pill CTA)
+ *   4. Wordmark OUTLINE — thin white stroke of "בונים עתיד" overlaid on the risen
+ *      building (frames 5/8)
+ *   5. Wordmark FILL — the building image clipped to the Hebrew letterforms via
+ *      <BrandWordmarkMask> (frames 9/11), the end-state
+ *   6. Headline block (Hebrew hero title + subhead + pill CTA) — bilingual via useContent()
  *
  * Scroll timeline (pinned +=340%, scrub 1.1):
  *   p 0.00-0.08  static hold (frame_003) — building bottom-anchored, headline up top
@@ -33,12 +33,16 @@
  *   p 0.34-0.52  wordmark OUTLINE strokes on over the risen building (frame_005/008)
  *   p 0.50-0.68  the building image FILLS the letters: fill fades in, outline + the
  *                full building cross-dissolve out (frame_009/011)
- *   p 0.68-0.86  FIND BEAT — image-filled wordmark held in the clouds, micro breath
- *   p 0.86-1.00  wordmark drifts up + fades -> pin releases -> Why FIND flows in
+ *   p 0.68-0.86  BRAND BEAT — image-filled wordmark held in the clouds, micro breath
+ *   p 0.86-1.00  wordmark drifts up + fades -> pin releases -> next section flows in
  *
  * Fallbacks:
- *   !motionOk  -> static composed end-state (sky + building-FILL wordmark + clouds),
+ *   !motionOk  -> static composed end-state (sky + BrandWordmarkMask + clouds),
  *                 no pin; clouds render statically (visible, no motion)
+ *
+ * RTL: the hero is fully centered, so it reads identically in dir=rtl and dir=ltr.
+ * The Hebrew wordmark renders direction:rtl inside <BrandWordmarkMask>; the scroll
+ * nudge and headline block are centered and direction-agnostic.
  */
 
 import dynamic from 'next/dynamic'
@@ -46,10 +50,10 @@ import Image from 'next/image'
 import { useRef, useState, useEffect } from 'react'
 
 import Pill from '@/components/ui/Pill'
-import { FIND_GLYPH_PATHS } from '@/components/layout/Logo'
-import { hero, images } from '@/data/content'
+import { BrandWordmarkMask } from '@/components/layout/Logo'
+import { images } from '@/data/content'
+import { useContent } from '@/components/providers/LanguageProvider'
 import { gsap } from '@/lib/gsap'
-import { ScrollTrigger } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 
@@ -57,24 +61,11 @@ import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 
 const HeroClouds = dynamic(() => import('./HeroClouds'), { ssr: false })
 
-// ─── SVG wordmark dimensions ──────────────────────────────────────────────────
-// Glyph paths occupy roughly x:4→182, y:4→56 in a 200×60 space; the canonical
-// FIND_GLYPH_PATHS box is 186 wide. We add room below for "Real Estate" text —
-// total logical height = 88.
-const MASK_VB_W = 186
-const MASK_VB_H = 88
-
-// Glyph bounding box inside the viewBox (used so the clip-mask <image> covers the
-// ENTIRE union of the four letterforms — no empty F/D).
-const GLYPH_X = 2
-const GLYPH_Y = 2
-const GLYPH_W = 184 // 2 → 186
-const GLYPH_H = 58 // 2 → 60
-
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
 export default function Hero() {
   const { motionOk } = useSmoothScroll()
+  const c = useContent()
 
   const sectionRef = useRef<HTMLElement>(null)
   const buildingWrapRef = useRef<HTMLDivElement>(null)
@@ -167,12 +158,12 @@ export default function Hero() {
         0.50
       )
 
-      // p 0.68-0.86  FIND BEAT — image-filled wordmark held in the clouds, micro breath
+      // p 0.68-0.86  BRAND BEAT — image-filled wordmark held in the clouds, micro breath
       tl.to(wordmark, { scale: 1.04, duration: 0.18, ease: 'sine.inOut' }, 0.68)
 
       // p 0.86-1.00  wordmark drifts up + fades; clouds lift (HeroClouds reacts to the
-      // same progress) -> the pin releases and Why FIND flows in beneath. Seamless
-      // hand-off, no hard cut.
+      // same progress) -> the pin releases and the next section flows in beneath.
+      // Seamless hand-off, no hard cut.
       tl.to(
         wordmark,
         { y: '-22%', scale: 1.1, opacity: 0, duration: 0.14, ease: 'power2.in' },
@@ -204,9 +195,12 @@ export default function Hero() {
             <HeroClouds progressRef={progressRef} active={false} />
           </div>
         )}
-        <div className="relative z-10 flex flex-col items-center px-4">
-          {/* End-state uses the OPAQUE fill so every letter is filled. */}
-          <FindWordmarkSVG buildingSrc={images.heroBuildingFill} showFill showText />
+        <div className="relative z-10 flex w-full flex-col items-center px-4">
+          {/* End-state: the בונים עתיד wordmark filled with the golden building. */}
+          <BrandWordmarkMask
+            fillSrc={images.heroBuildingFill}
+            className="block h-auto w-full max-w-[clamp(360px,86vw,1100px)]"
+          />
         </div>
       </section>
     )
@@ -259,27 +253,32 @@ export default function Hero() {
       </div>
 
       {/* 4 + 5. Wordmark group — OUTLINE (thin white stroke over the building,
-            frames 5/8) then FILL (opaque building image clipped to the glyphs,
-            frames 9/11). Both share one transform group so they stay co-located. */}
+            frames 5/8) then FILL (building image clipped to the בונים עתיד glyphs
+            via <BrandWordmarkMask>, frames 9/11). Both share one transform group so
+            they stay co-located through the cross-dissolve. */}
       <div
         ref={wordmarkRef}
         className="absolute inset-0 z-[3] flex items-center justify-center px-4"
         style={{ transformOrigin: 'center center' }}
         aria-hidden="true"
       >
-        <div className="relative w-full" style={{ maxWidth: 'clamp(340px, 82vw, 1100px)' }}>
+        <div className="relative w-full" style={{ maxWidth: 'clamp(360px, 86vw, 1100px)' }}>
           {/* Outline (white stroke) — sits over the risen building */}
           <div ref={outlineRef} className="absolute inset-0">
-            <FindWordmarkSVG showOutline showText textOutline />
+            <BrandWordmarkOutline />
           </div>
-          {/* Fill (opaque building image inside the letters) */}
+          {/* Fill (building image inside the Hebrew letters) */}
           <div ref={fillRef}>
-            <FindWordmarkSVG buildingSrc={images.heroBuildingFill} showFill showText />
+            <BrandWordmarkMask
+              fillSrc={images.heroBuildingFill}
+              className="block h-auto w-full"
+            />
           </div>
         </div>
       </div>
 
-      {/* 6. Headline block — fades + lifts as scroll begins */}
+      {/* 6. Headline block — fades + lifts as scroll begins. Bilingual via useContent();
+            centered so it reads correctly in both RTL (he) and LTR (en). */}
       <div
         ref={headlineRef}
         className="absolute inset-x-0 z-[4] flex flex-col items-center px-6 text-center"
@@ -288,36 +287,32 @@ export default function Hero() {
         <h1
           className="font-[var(--font-display)] font-bold text-[var(--color-ink)] leading-[0.95]"
           style={{
-            fontSize: 'clamp(3rem, 9vw, 9rem)',
-            letterSpacing: '-0.025em',
+            fontSize: 'clamp(2.5rem, 8vw, 7.5rem)',
+            letterSpacing: '-0.02em',
           }}
         >
-          {hero.title}
+          {c.hero.title}
         </h1>
 
         <p
-          className="mt-5 max-w-lg font-[var(--font-body)] font-light text-[var(--color-ink)]"
+          className="mt-5 max-w-xl font-[var(--font-body)] font-light text-[var(--color-ink)]"
           style={{
             fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
             lineHeight: 1.6,
-            opacity: 0.72,
+            opacity: 0.78,
           }}
         >
-          Expert agents.{' '}
-          <strong className="font-semibold text-[var(--color-ink)] opacity-100">
-            Real guidance.
-          </strong>{' '}
-          A clear path to find what&apos;s next.
+          {c.hero.subhead}
         </p>
 
         <div className="mt-8">
-          <Pill variant="dark" href="/search" withArrow>
-            {hero.cta}
+          <Pill variant="dark" href="#register" withArrow>
+            {c.hero.cta}
           </Pill>
         </div>
       </div>
 
-      {/* Scroll nudge — visible at rest only */}
+      {/* Scroll nudge — visible at rest only. Direction-agnostic (centered). */}
       <div
         className="pointer-events-none absolute bottom-8 left-1/2 z-[4] -translate-x-1/2 flex flex-col items-center gap-2"
         aria-hidden="true"
@@ -348,104 +343,38 @@ function SkyGradient() {
   )
 }
 
-// ─── "FIND / Real Estate" SVG wordmark ────────────────────────────────────────
-// Three render modes, controllable independently so the Hero can cross-dissolve
-// between the OUTLINE beat (frames 5/8) and the image-FILL beat (frames 9/11):
-//
-//   showOutline  — thin white stroke of the glyphs (no fill). Used over the building.
-//   showFill     — the OPAQUE, content-trimmed building image (heroBuildingFill)
-//                  clipped to the union of all four glyphs. Because the image is opaque
-//                  and `xMidYMid slice` covers the ENTIRE glyph bbox, every letter
-//                  (F, I-chevron, N, D) is fully filled — fixing the empty-letter bug
-//                  that the transparent cutout caused.
-//   showText     — render "Real Estate" sub-line (filled or outlined per `textOutline`).
-interface FindWordmarkSVGProps {
-  buildingSrc?: string
-  showOutline?: boolean
-  showFill?: boolean
-  showText?: boolean
-  /** When true, "Real Estate" renders as a white stroke (matches the outline beat). */
-  textOutline?: boolean
-}
-
-function FindWordmarkSVG({
-  buildingSrc,
-  showOutline = false,
-  showFill = false,
-  showText = false,
-  textOutline = false,
-}: FindWordmarkSVGProps) {
+// ─── "בונים עתיד" outline beat ──────────────────────────────────────────────────
+// Thin white stroke of the Hebrew wordmark, no fill (frames 5/8). Shares the same
+// viewBox + type metrics as <BrandWordmarkMask> so the outline and the image-fill
+// occupy the same letterforms and cross-dissolve cleanly. RTL via direction="rtl".
+function BrandWordmarkOutline() {
   return (
-    <div className="w-full">
-      <svg
-        viewBox={`0 0 ${MASK_VB_W} ${MASK_VB_H}`}
-        xmlns="http://www.w3.org/2000/svg"
-        xmlnsXlink="http://www.w3.org/1999/xlink"
-        role="img"
-        aria-label="FIND Real Estate"
-        className="w-full h-auto block"
-        style={{ overflow: 'visible' }}
+    <svg
+      viewBox="0 0 600 160"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="בונים עתיד"
+      className="block h-auto w-full"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <text
+        x="50%"
+        y="50%"
+        dominantBaseline="central"
+        textAnchor="middle"
+        direction="rtl"
+        fontFamily="var(--font-hebrew), system-ui, sans-serif"
+        fontWeight="800"
+        fontSize="130"
+        letterSpacing="-2"
+        fill="none"
+        stroke="#ffffff"
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+        style={{ filter: 'drop-shadow(0 0 0.6px rgba(0,0,0,0.25))' }}
       >
-        <defs>
-          {/* Clip region: the union of the FIND glyph paths defines the visible
-              window for the building photo. */}
-          <clipPath id="findMask">
-            {FIND_GLYPH_PATHS.map((p) => (
-              <path key={p.id} d={p.d} fillRule="evenodd" />
-            ))}
-          </clipPath>
-        </defs>
-
-        {/* FILL beat — opaque building image clipped to the letterforms. The <image>
-            box spans the ENTIRE glyph bounding box so no letter is left empty, and
-            `xMidYMid slice` keeps the building filling every glyph. */}
-        {showFill && buildingSrc && (
-          <image
-            href={buildingSrc}
-            x={GLYPH_X}
-            y={GLYPH_Y}
-            width={GLYPH_W}
-            height={GLYPH_H}
-            preserveAspectRatio="xMidYMid slice"
-            clipPath="url(#findMask)"
-            style={{ filter: 'brightness(1.08) contrast(1.04) saturate(1.06)' }}
-          />
-        )}
-
-        {/* OUTLINE beat — thin white stroke of the glyphs, no fill (frames 5/8). */}
-        {showOutline &&
-          FIND_GLYPH_PATHS.map((p) => (
-            <path
-              key={p.id}
-              d={p.d}
-              fill="none"
-              fillRule="evenodd"
-              stroke="#ffffff"
-              strokeWidth={0.9}
-              strokeLinejoin="round"
-              style={{ filter: 'drop-shadow(0 0 0.4px rgba(0,0,0,0.25))' }}
-            />
-          ))}
-
-        {/* "Real Estate" sub-line */}
-        {showText && (
-          <text
-            x={MASK_VB_W / 2}
-            y={82}
-            textAnchor="middle"
-            dominantBaseline="auto"
-            fontFamily="var(--font-display), system-ui, sans-serif"
-            fontWeight={700}
-            fontSize={20}
-            letterSpacing="0.06em"
-            fill={textOutline ? 'none' : 'var(--color-ink)'}
-            stroke={textOutline ? '#ffffff' : 'none'}
-            strokeWidth={textOutline ? 0.6 : 0}
-          >
-            Real Estate
-          </text>
-        )}
-      </svg>
-    </div>
+        בונים עתיד
+      </text>
+    </svg>
   )
 }
