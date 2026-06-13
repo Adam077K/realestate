@@ -21,10 +21,11 @@ export const images = {
   heroBuilding: '/images/hero-building.jpg',
   // Golden-hour building with the background keyed out to transparency — used as the
   // hero centerpiece (sits over the sky) AND the fill for the clip-mask wordmark.
-  heroBuildingCutout: '/images/hero-building-cutout.png',
-  // Opaque, content-trimmed golden building — used as the FILL for the clip-mask
-  // wordmark (the transparent cutout left letters empty over its transparent margins).
-  heroBuildingFill: '/images/hero-building-fill.jpg',
+  // New glass-tower building (transparent cutout). Fresh filename to bust the Next.js
+  // image-optimizer cache that was still serving the previous building at the old URL.
+  heroBuildingCutout: '/images/hero-tower.png',
+  // Opaque, content-trimmed tower — fill for the clip-mask wordmark.
+  heroBuildingFill: '/images/hero-tower-fill.jpg',
   cityStreet: '/images/city-street.jpg',
   chevron: [
     '/images/chevron-1.jpg',
