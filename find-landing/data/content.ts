@@ -65,6 +65,12 @@ export const content = {
     },
     hero: {
       title: 'דירה חדשה מקבלן ב-2026',
+      // Headline cycles through these on scroll (dice/scramble effect).
+      cycle: [
+        'דירה חדשה מקבלן ב-2026',
+        'איך לנצל את המצב בשוק לטובתנו?',
+        'מה חובה לבדוק לפני עסקה?',
+      ],
       subhead:
         'איך לנצל את מצב השוק לטובתכם — וובינר חינם עם עידן פלג ורועי פישמן.',
       cta: 'שריינו לי מקום עכשיו',
@@ -212,6 +218,11 @@ export const content = {
     },
     hero: {
       title: 'A New Apartment, Built Right',
+      cycle: [
+        'A new apartment from a developer, 2026',
+        'How to turn the market to your advantage?',
+        'What you must check before a deal?',
+      ],
       subhead:
         'How to turn the 2026 market to your advantage — a free webinar with Idan Peleg & Roey Fishman.',
       cta: 'Reserve my spot now',
