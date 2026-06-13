@@ -115,7 +115,7 @@ export default function BuyerGroups() {
                     {group.city}
                   </h3>
                   <p className="bg-card-text text-[rgba(255,255,255,0.75)] text-sm md:text-[0.95rem] leading-relaxed mt-2">
-                    {group.note}
+                    {group.city}
                   </p>
                   <span className="bg-card-text mt-4 inline-flex items-center gap-2 text-sm font-medium text-white">
                     {detailsLabel}

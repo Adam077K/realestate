@@ -44,6 +44,16 @@ export const images = {
     '/images/blog-3.jpg',
   ] as [string, string, string],
   ctaFamily: '/images/cta-family.jpg',
+  // Real founder photos
+  idanPeleg: '/images/idan-peleg.webp',
+  roeyFishman: '/images/roey-fishman.webp',
+  // Buyer-group cards (pre-designed, used AS-IS — no overlay)
+  buyerCards: [
+    '/images/buyer-holon.png',
+    '/images/buyer-haifa.png',
+    '/images/buyer-telaviv.png',
+    '/images/buyer-herzliya.png',
+  ] as [string, string, string, string],
 } as const
 
 // ─── Bilingual content tree ──────────────────────────────────────────────────────
@@ -113,11 +123,13 @@ export const content = {
           name: 'עידן פלג',
           role: 'כלכלן ויועץ השקעות נדל״ן',
           bio: 'תואר שני בנדל״ן ומימון, מלווה משקיעים בקבלת החלטות חכמות משנת 2021.',
+          img: images.idanPeleg,
         },
         {
           name: 'רועי פישמן',
           role: 'שמאי מקרקעין ומומחה מימון',
           bio: 'מעל 8 שנות ניסיון עסקי בחברות מובילות בישראל, עם ראייה מלאה של עסקת הנדל״ן.',
+          img: images.roeyFishman,
         },
       ],
     },
@@ -250,10 +262,13 @@ export const content = {
     },
     buyerGroups: {
       heading: { lead: 'קבוצות הקונים', tail: 'שלנו' },
+      // Pre-designed cards (text baked into the image) — render AS-IS, no overlay.
+      cards: images.buyerCards,
       groups: [
-        { city: 'חולון', note: 'פרויקט מגורים חדש במיקום מבוקש, בתנאי קבוצת רכישה אטרקטיביים.', img: images.serviceMortgage },
-        { city: 'פתח תקווה', note: 'דירות חדשות מקבלן בלב אזור צמיחה, עם פוטנציאל השבחה גבוה.', img: images.serviceProperty },
-        { city: 'בת ים', note: 'נדל״ן מול הים בתנופת התחדשות עירונית — הזדמנות לטווח ארוך.', img: images.serviceConstruction },
+        { city: 'חולון', img: images.buyerCards[0] },
+        { city: 'חיפה', img: images.buyerCards[1] },
+        { city: 'תל אביב', img: images.buyerCards[2] },
+        { city: 'הרצליה', img: images.buyerCards[3] },
       ],
     },
     hitech: {
@@ -324,11 +339,13 @@ export const content = {
           name: 'Idan Peleg',
           role: 'Economist & real-estate investment advisor',
           bio: 'MBA in real estate & finance, guiding investors to smart decisions since 2021.',
+          img: images.idanPeleg,
         },
         {
           name: 'Roey Fishman',
           role: 'Real-estate appraiser & financing expert',
           bio: '8+ years of business experience at leading Israeli firms, with a full-picture view of every deal.',
+          img: images.roeyFishman,
         },
       ],
     },
@@ -461,10 +478,12 @@ export const content = {
     },
     buyerGroups: {
       heading: { lead: 'Our buyer', tail: 'groups' },
+      cards: images.buyerCards,
       groups: [
-        { city: 'Holon', note: 'A new residential project in a sought-after location, on attractive buyer-group terms.', img: images.serviceMortgage },
-        { city: 'Petah Tikva', note: 'Brand-new developer apartments in the heart of a growth zone, with high upside.', img: images.serviceProperty },
-        { city: 'Bat Yam', note: 'Seafront real estate in an urban-renewal surge \u2014 a long-term opportunity.', img: images.serviceConstruction },
+        { city: 'Holon', img: images.buyerCards[0] },
+        { city: 'Haifa', img: images.buyerCards[1] },
+        { city: 'Tel Aviv', img: images.buyerCards[2] },
+        { city: 'Herzliya', img: images.buyerCards[3] },
       ],
     },
     hitech: {
