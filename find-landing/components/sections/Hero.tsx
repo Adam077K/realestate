@@ -7,8 +7,9 @@
  *   frame_001  REST    — only the UPPER portion of the building is visible, sitting
  *                         FLUSH at the very bottom of the viewport. The cycling
  *                         headline sits ABOVE the building. Clouds wrap the base.
- *   frame_004  scroll  — the building has GROWN bigger (more of it visible), still
- *                         flush to the bottom, starting to reach the headline.
+ *   frame_004  scroll  — the building has GROWN bigger (the REVEAL: more of it visible,
+ *                         lower floors appearing), still flush to the bottom, reaching up
+ *                         toward / past the headline (revealed roughly to its MIDDLE).
  *   frame_007  scroll  — the building fills most of the frame; the "בונים עתיד"
  *                         wordmark OUTLINE strokes on over it.
  *   frame_010  end     — the building IMAGE FILLS the wordmark letters, floating in
@@ -17,7 +18,7 @@
  * CRITICAL anchoring rule (Adam's repeated complaint — "it floats mid-air with a gap"):
  *   The building GROWS IN PLACE from a BOTTOM anchor. It is positioned
  *   `bottom:0; left:50%; transform-origin:center bottom` inside an `overflow:hidden`
- *   section. We animate SCALE ONLY (≈0.62 → ≈1.35) — never translateY upward. Its
+ *   section. We animate SCALE ONLY (≈0.86 → ≈1.5) — never translateY upward. Its
  *   base always sits at (or clipped below) the viewport bottom, so there is ALWAYS
  *   zero gap between the building base and the bottom of the screen. The growth itself
  *   is the "rising" that reaches up to cover the headline.
@@ -34,20 +35,26 @@
  *      + subhead + pill CTA. Bilingual via useContent(), centered, RTL/LTR-correct.
  *
  * Scroll timeline (pinned +=230%, scrub 1.1) — TIGHT, no long lingering:
- *   p 0.00-0.34  the building grows (scale up, bottom-anchored) while the headline
- *                (vertically + horizontally CENTERED) CYCLES through its 3 sentences via
- *                a vertical slot-roll. Subhead + CTA hold, then begin to fade.
- *   p 0.30-0.46  building keeps growing to cover the headline; headline + subhead +
- *                CTA fade out as the building rises over them.
- *   p 0.40-0.54  wordmark OUTLINE strokes on over the grown building (frame_007).
- *   p 0.52-0.64  the building image FILLS the letters: fill fades in while the outline
- *                + the full building cross-dissolve out (frame_010). BRIEF hold only.
- *   p 0.64-0.82  CLOUDS RAMP TO FULL COVER — the foreground cloud field blooms to a
- *                dense near-opaque soft cover across the whole viewport (frame_011); the
- *                image-filled wordmark fades up INTO the cloud as it is enveloped.
- *   p 0.82-1.00  the cover thins as the pin releases and the NEXT section emerges UP
- *                through the clouds (frame_012). Reveal is prompt — right after the
- *                wordmark disappears.
+ *   p 0.00-0.44  the building GROWS / REVEALS (scale up, bottom-anchored) — more of the
+ *                image is pulled up into view (lower floors appear) until roughly the
+ *                MIDDLE of the building is reached (frame_004 -> 007). Meanwhile the
+ *                headline (vertically + horizontally CENTERED) CYCLES through its 3
+ *                sentences via a vertical slot-roll, then fades.
+ *   p 0.18-0.40  headline + subhead + CTA fade out as the reveal rises over them.
+ *   p 0.42-0.50  the "בונים עתיד" wordmark appears FIRST as a thin LIGHT OUTLINE over the
+ *                mid-revealed building (frame_007), held briefly.
+ *   p ~0.50      INSTANT SWAP — the outline SNAPS (steps(1), near-zero duration) to the
+ *                image-FILLED wordmark (building image inside the letters, frame_010);
+ *                the outline + full building cut out in the same instant. NOT a fade.
+ *   p 0.52-0.60  BRIEF image-filled brand beat (micro-breath). Prompt — the front cloud
+ *                field is already blooming (bloom starts at p≈0.45).
+ *   p 0.60-0.80  CLOUD SCREEN BRIDGE — the foreground cloud field blooms to a dense
+ *                near-opaque SHEET across the whole viewport (frame_011) and the
+ *                image-filled wordmark drifts up + fades INTO it. The cloud sheet is
+ *                continuous with the next section.
+ *   p 0.80-1.00  the cover thins as the pin releases and the NEXT section emerges UP
+ *                through the SAME clouds (frame_012) — a continuous cloud bridge. Prompt,
+ *                right after the wordmark disappears.
  *
  * Fallbacks:
  *   !motionOk  -> static composed end-state (sky + BrandWordmarkMask + clouds); the
@@ -77,13 +84,21 @@ import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 const HeroClouds = dynamic(() => import('./HeroClouds'), { ssr: false })
 
 // ─── Tuning constants ──────────────────────────────────────────────────────────
-// Building scale: the cutout is now a TALL PORTRAIT glass tower (1023×1537). At rest
-// its UPPER portion reads prominently at the very bottom (frame_001 — bigger than the
-// old landscape building); on scroll it grows to cover the headline (frame_004 -> 007).
-// transform-origin is center-bottom so the base never leaves the viewport bottom
-// (zero floating gap).
-const BUILDING_REST_SCALE = 0.82
-const BUILDING_GROWN_SCALE = 1.42
+// Building scale: the cutout is a TALL PORTRAIT glass tower (1023×1537, AR ≈ 0.666 W/H).
+// The OUTER wrapper renders it at `min(96vw, 1240px)` wide, so the FULL image is far
+// TALLER than the viewport. Because it is bottom-anchored (transform-origin center
+// bottom) inside an overflow:hidden section, only its UPPER portion is visible at rest —
+// the rest of the image is clipped below the fold. That visible top slice fills the lower
+// ~40–45% of the viewport (frame_001 — the rest proportion the founder shared: large,
+// horizontally centred, bottom-flush, top ~2 floors only).
+//
+// REST → GROWN: we SCALE UP from the bottom anchor (no translateY → zero floating gap).
+// Growing the building pulls MORE of the image up into view, progressively revealing the
+// lower floors until roughly the MIDDLE of the building image is reached at the grown
+// state (frame_007). The base stays flush at / clipped below the viewport bottom the
+// whole time, so there is never a floating gap.
+const BUILDING_REST_SCALE = 0.86
+const BUILDING_GROWN_SCALE = 1.5
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
@@ -175,13 +190,15 @@ export default function Hero() {
         },
       })
 
-      // p 0.00-0.48  building GROWS in place (scale up, bottom-anchored). The growth
-      // is the "rising" — its base stays flush at the viewport bottom the whole time,
-      // and it reaches up to cover the headline. No translateY → zero floating gap.
+      // p 0.00-0.44  building GROWS in place (scale up, bottom-anchored). The growth
+      // is the "rising" / REVEAL — its base stays flush at the viewport bottom the whole
+      // time and MORE of the image is pulled up into view (lower floors appear) until
+      // roughly the MIDDLE of the building image is reached (frame_007). No translateY →
+      // zero floating gap. Eased so the reveal accelerates smoothly into the mid-point.
       tl.fromTo(
         buildingWrap,
         { scale: BUILDING_REST_SCALE },
-        { scale: BUILDING_GROWN_SCALE, duration: 0.5, ease: 'power1.in' },
+        { scale: BUILDING_GROWN_SCALE, duration: 0.44, ease: 'power1.inOut' },
         0
       )
 
@@ -223,35 +240,43 @@ export default function Hero() {
         )
       }
 
-      // p 0.28-0.44  headline group fades + lifts as the building covers it.
-      tl.to(headline, { opacity: 0, y: -64, duration: 0.14, ease: 'power2.in' }, 0.32)
+      // p 0.20-0.40  headline group fades + lifts as the building reveal rises over it.
+      tl.to(headline, { opacity: 0, y: -64, duration: 0.16, ease: 'power2.in' }, 0.24)
 
-      // p 0.22-0.40  subhead + CTA fade out a touch earlier (they sit lower, the
+      // p 0.16-0.34  subhead + CTA fade out a touch earlier (they sit lower, the
       // growing building reaches them first).
-      tl.to(subCta, { opacity: 0, y: -40, duration: 0.16, ease: 'power2.in' }, 0.26)
+      tl.to(subCta, { opacity: 0, y: -40, duration: 0.16, ease: 'power2.in' }, 0.18)
 
-      // p 0.42-0.58  wordmark OUTLINE strokes on over the grown building (frame_007).
-      tl.to(wordmark, { scale: 1, y: 0, duration: 0.14, ease: 'power2.out' }, 0.4)
-      tl.to(outline, { opacity: 1, duration: 0.14, ease: 'power1.out' }, 0.4)
+      // p 0.42-0.50  wordmark OUTLINE appears FIRST — a thin LIGHT STROKE of "בונים עתיד"
+      // over the now mid-revealed building (frame_007). It snaps on (short, no long
+      // fade) and settles into place so it is unmistakably the outline beat.
+      tl.set(wordmark, { scale: 1, y: 0 }, 0.42)
+      tl.to(outline, { opacity: 1, duration: 0.06, ease: 'power1.out' }, 0.42)
 
-      // p 0.56-0.72  the building image FILLS the letters: fill fades in while the
-      // outline + the full building cross-dissolve out (frame_010).
-      tl.to(fill, { opacity: 1, duration: 0.14, ease: 'power1.inOut' }, 0.52)
-      tl.to(outline, { opacity: 0, duration: 0.12, ease: 'power1.in' }, 0.54)
-      tl.to(buildingImg, { opacity: 0, duration: 0.16, ease: 'power1.in' }, 0.52)
+      // p ~0.50  INSTANT outline → image-fill SWAP. NOT a gradual cross-dissolve: we hold
+      // the outline for a short beat, then SNAP — within ~0.015 of progress — the fill on
+      // and the outline + the full building off, using `steps(1)` so it reads as a single
+      // near-instant transform from light-outline letters to image-filled letters
+      // (frame_010). The tiny non-zero durations + stepped ease guarantee a hard cut at
+      // the scrub mid-point rather than a slow blend.
+      tl.to(fill, { opacity: 1, duration: 0.015, ease: 'steps(1)' }, 0.5)
+      tl.to(outline, { opacity: 0, duration: 0.015, ease: 'steps(1)' }, 0.5)
+      tl.to(buildingImg, { opacity: 0, duration: 0.015, ease: 'steps(1)' }, 0.5)
 
-      // p 0.64-0.72  BRIEF brand beat — image-filled wordmark micro-breath in the clouds.
-      // Short hold only; the clouds (HeroClouds, same progressRef) are now ramping toward
-      // FULL COVER, so we move on promptly.
-      tl.to(wordmark, { scale: 1.04, duration: 0.08, ease: 'sine.inOut' }, 0.64)
+      // p 0.52-0.58  BRIEF brand beat — image-filled wordmark micro-breath. Short hold
+      // only; the front cloud field (HeroClouds, same progressRef) is already ramping
+      // toward FULL COVER (its bloom begins at p≈0.45), so we move on PROMPTLY.
+      tl.to(wordmark, { scale: 1.04, duration: 0.06, ease: 'sine.inOut' }, 0.52)
 
-      // p 0.72-0.84  wordmark drifts UP + fades INTO the cloud as the front field reaches
-      // full near-opaque cover (frame_011). It is gone before the reveal so the next
-      // section emerges from clean cloud — no long lingering.
+      // p 0.60-0.72  CLOUD SCREEN BRIDGE — the wordmark drifts UP + fades INTO the dense
+      // cloud cover as the front field reaches its near-opaque full-viewport sheet
+      // (frame_011). It is gone BEFORE the reveal so the next section emerges from clean,
+      // continuous cloud (frame_012) — the cloud sheet IS the bridge into the next
+      // section. Prompt, no long lingering.
       tl.to(
         wordmark,
         { y: '-22%', scale: 1.1, opacity: 0, duration: 0.12, ease: 'power2.in' },
-        0.72
+        0.6
       )
 
       // Clean up will-change after pin completes.
@@ -337,9 +362,11 @@ export default function Hero() {
       <div
         className="absolute bottom-0 left-1/2 z-[2]"
         style={{
-          // Portrait glass tower (1023×1537): narrower width so it reads TALL. Bigger at
-          // rest than the old landscape building — its upper portion reads prominently.
-          width: 'min(72vw, 720px)',
+          // Portrait glass tower (1023×1537). Rendered WIDE so the full image is much
+          // taller than the viewport — only its UPPER portion (top ~2 floors) shows at
+          // rest, filling the lower ~40–45% of the viewport flush to the bottom
+          // (frame_001). Horizontally centred via translateX(-50%).
+          width: 'min(96vw, 1240px)',
           transform: 'translateX(-50%)',
         }}
         aria-hidden="true"
@@ -364,7 +391,7 @@ export default function Hero() {
               priority
               quality={90}
               className="h-auto w-full select-none object-contain"
-              sizes="(max-width: 768px) 72vw, 720px"
+              sizes="(max-width: 768px) 96vw, 1240px"
             />
           </div>
         </div>

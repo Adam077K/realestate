@@ -168,8 +168,12 @@ const smooth = (n: number) => {
  * happens promptly right after the wordmark disappears.
  */
 function frontCover(p: number) {
-  const bloom = smooth(clamp01((p - 0.45) / 0.39))
-  const lift = smooth(clamp01((p - 0.84) / 0.16))
+  // Bloom to a DENSE near-full sheet by p≈0.78 (the cloud screen that bridges to the next
+  // section — frame_011, dense cover right as the image-filled wordmark has just lifted
+  // into it), then THIN promptly p 0.78→1.0 as the next section emerges UP through the
+  // SAME clouds (frame_012). Continuous bridge, no long hold.
+  const bloom = smooth(clamp01((p - 0.45) / 0.33))
+  const lift = smooth(clamp01((p - 0.78) / 0.22))
   return clamp01(bloom - lift * 0.82)
 }
 
@@ -191,14 +195,15 @@ function coverageState(p: number, layer: CloudLayer, variant: 'back' | 'front') 
   if (variant === 'front') {
     // FRONT field arc (tight, reference frames 7 -> 11 -> 12):
     //   rest (p≈0)     : near-invisible — headline fully readable.
-    //   p 0.45 -> 0.84 : blooms in fast, ramping to a DENSE near-opaque FULL viewport
-    //                    cover (the page is briefly enveloped in soft near-white cloud).
-    //   p 0.84 -> 1.0  : the cover THINS / lifts as the next section emerges UP through
-    //                    the clouds (so it does not block the reveal).
+    //   p 0.45 -> 0.78 : blooms in fast, ramping to a DENSE near-opaque FULL viewport
+    //                    SHEET (the cloud screen that bridges to the next section — the
+    //                    page is briefly enveloped in soft near-white cloud, frame_011).
+    //   p 0.78 -> 1.0  : the sheet THINS / lifts as the next section emerges UP through
+    //                    the SAME clouds (continuous bridge — frame_012).
     // `cover` is the enveloping intensity 0..1 used by both the PNG layers and the
     // dedicated near-white full-screen veil (rendered separately as the `cover-veil`).
-    const bloom = smooth(clamp01((p - 0.45) / 0.39)) // 0 at p=0.45, 1 by p=0.84
-    const lift = smooth(clamp01((p - 0.84) / 0.16)) // 0 until 0.84, 1 by p=1.0
+    const bloom = smooth(clamp01((p - 0.45) / 0.33)) // 0 at p=0.45, 1 by p=0.78
+    const lift = smooth(clamp01((p - 0.78) / 0.22)) // 0 until 0.78, 1 by p=1.0
     const cover = clamp01(bloom - lift * 0.82) // ramp to ~1, then thin to ~0.18
     const frontRamp = cover * layer.coverage
     // Near-opaque at peak so the field reads as a dense soft cover (frame_011).

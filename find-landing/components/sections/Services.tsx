@@ -13,10 +13,15 @@ import Pill from '@/components/ui/Pill'
  * Services → "How Bonim Atid helps you" — dark giant-type pillars.
  *
  * Bilingual + RTL aware. Content comes from `c.pillars` (he/en).
- * Layout: number + body on one side, an ENORMOUS thin display word on the other.
- * In RTL (Hebrew default) the giant word sits on the LEFT and the number+body on the
- * RIGHT; in LTR it mirrors. We rely on `dir` flipping the grid track order rather than
- * hard-coding left/right, and we flip the clip-path wipe origin to match reading order.
+ * Layout: an ENORMOUS thin display word on one side, number + body on the other.
+ * The giant word sits on the READING-START side so the eye lands on it first:
+ *   - RTL (Hebrew): giant word on the RIGHT, number + body on the LEFT.
+ *   - LTR (English): giant word on the RIGHT as well (matches the reference), number
+ *     + body on the LEFT.
+ * The row is laid out with an explicit, direction-aware flex template
+ * (`flex-row` vs `flex-row-reverse`) so the sides read naturally regardless of the
+ * implicit inline-flow mirroring. The clip-path wipe origin follows reading order so
+ * the word emerges from its resting (right) edge.
  */
 export default function Services() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -25,9 +30,13 @@ export default function Services() {
   const c = useContent()
   const { pillars } = c
 
-  // In RTL the giant word lives on the left, so it should wipe in from the left edge.
-  // In LTR it lives on the right and wipes in from the right edge.
   const isRtl = dir === 'rtl'
+
+  // The giant word always rests against the RIGHT edge of the section. In RTL that is
+  // the reading-start side; in LTR it matches the reference. The number + body cluster
+  // sits on the LEFT. We achieve "giant word on the right" by reversing the row's flex
+  // direction in RTL (whose default inline start is the right) and keeping the natural
+  // order in LTR (whose default inline start is the left).
 
   useGsapContext(
     sectionRef,
@@ -51,9 +60,10 @@ export default function Services() {
       pillars.rows.forEach((_row, i) => {
         const rowEl = `.service-row-${i}`
 
-        // Giant word: clip-path wipe. Reveal origin follows reading direction so the
-        // word appears to emerge from its resting edge (left in RTL, right in LTR).
-        const hiddenClip = isRtl ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)'
+        // Giant word: clip-path wipe. The word rests against the right edge, so it
+        // reveals from the right — the right side stays anchored while the left side
+        // opens up (inset left 100% → 0).
+        const hiddenClip = 'inset(0 0 0 100%)'
         const fromX = isRtl ? -40 : 40
 
         gsap.fromTo(
@@ -153,48 +163,59 @@ export default function Services() {
       </div>
 
       {/* Pillar rows — full-width hairline dividers.
-          DOM order is [number, body, giant-word]. `dir` on <html> flips the grid track
-          order: in RTL the first track (number) renders on the right and the last
-          track (giant word) on the left; in LTR it stays left to right. */}
+          Each row is a direction-aware flex track:
+            - Left cluster: number ring + body paragraph.
+            - Right item: the giant display word.
+          In RTL the row uses `flex-row-reverse` so the giant word lands on the right
+          (reading-start) edge and the number + body on the left; in LTR the natural
+          order already puts the giant word on the right. */}
       <div className="w-full">
         {pillars.rows.map((row, i) => (
           <div
             key={row.n}
-            className={`service-row-${i} border-t border-[rgba(255,255,255,0.1)] w-full px-6 md:px-12 lg:px-20 py-10 md:py-14 grid grid-cols-[44px_1fr] md:grid-cols-[56px_minmax(0,280px)_1fr] items-center gap-6 md:gap-12 lg:gap-16`}
+            className={`service-row-${i} border-t border-[rgba(255,255,255,0.1)] w-full px-6 md:px-12 lg:px-20 py-10 md:py-14 flex ${
+              isRtl ? 'flex-row-reverse' : 'flex-row'
+            } items-center gap-6 md:gap-12 lg:gap-16`}
           >
-            {/* Number circle */}
-            <div className="flex-shrink-0 w-11 h-11 relative flex items-center justify-center">
-              <svg
-                viewBox="0 0 44 44"
-                className="absolute inset-0 w-full h-full"
-                aria-hidden="true"
-              >
-                <circle
-                  cx="22"
-                  cy="22"
-                  r="15"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.35)"
-                  strokeWidth="1"
-                  className="service-ring"
-                  strokeDasharray="100"
-                  strokeDashoffset={motionOk ? 100 : 0}
-                />
-              </svg>
-              <span className="relative text-xs font-light text-[rgba(255,255,255,0.65)] select-none tabular-nums">
-                {row.n}
-              </span>
+            {/* Left cluster: number ring + body. */}
+            <div
+              className={`flex flex-1 min-w-0 ${
+                isRtl ? 'flex-row-reverse' : 'flex-row'
+              } items-center gap-6 md:gap-12 lg:gap-16`}
+            >
+              {/* Number circle */}
+              <div className="flex-shrink-0 w-11 h-11 relative flex items-center justify-center">
+                <svg
+                  viewBox="0 0 44 44"
+                  className="absolute inset-0 w-full h-full"
+                  aria-hidden="true"
+                >
+                  <circle
+                    cx="22"
+                    cy="22"
+                    r="15"
+                    fill="none"
+                    stroke="rgba(255,255,255,0.35)"
+                    strokeWidth="1"
+                    className="service-ring"
+                    strokeDasharray="100"
+                    strokeDashoffset={motionOk ? 100 : 0}
+                  />
+                </svg>
+                <span className="relative text-xs font-light text-[rgba(255,255,255,0.65)] select-none tabular-nums">
+                  {row.n}
+                </span>
+              </div>
+
+              {/* Body paragraph */}
+              <p className="service-body text-sm md:text-base text-[rgba(255,255,255,0.5)] leading-relaxed font-light max-w-[280px]">
+                {row.body}
+              </p>
             </div>
 
-            {/* Body paragraph */}
-            <p className="service-body text-sm md:text-base text-[rgba(255,255,255,0.5)] leading-relaxed font-light">
-              {row.body}
-            </p>
-
             {/* Giant word — hidden on small screens, visible md+.
-                `text-end` keeps it hard against the outer edge in both directions:
-                in RTL that edge is the left, in LTR the right. */}
-            <div className="hidden md:flex justify-end">
+                Rests against the right edge of the row in both directions. */}
+            <div className="hidden md:flex flex-1 min-w-0 justify-end">
               <span
                 className="service-giant-word font-[var(--font-display)] font-light text-white select-none whitespace-nowrap text-end leading-none"
                 style={{
@@ -223,7 +244,9 @@ export default function Services() {
           tailClassName="text-white/45"
           className="services-closing max-w-2xl mb-10"
         />
-        <div className="services-cta">
+        {/* CTA sits on the reading-start side: right in RTL, left in LTR.
+            `justify-start` resolves to the inline-start edge, mirroring section dir. */}
+        <div className="services-cta flex justify-start">
           <Pill
             variant="ghost"
             href="#register"
