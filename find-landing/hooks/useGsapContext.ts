@@ -24,8 +24,10 @@ export function useGsapContext(
     const container = containerRef.current
     if (!container) return
 
-    const ctx = gsap.context(() => {
-      return callback(ctx)
+    // gsap.context passes the created Context instance to the callback as its
+    // first argument — use that, not the outer `ctx` (which is in the TDZ here).
+    const ctx = gsap.context((self: gsap.Context) => {
+      return callback(self)
     }, container)
 
     ctxRef.current = ctx
