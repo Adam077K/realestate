@@ -1,27 +1,95 @@
 'use client'
 
+import { useRef } from 'react'
+import { gsap, ScrollTrigger } from '@/lib/gsap'
+import { useGsapContext } from '@/hooks/useGsapContext'
+import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
+import MaskedImage from '@/components/ui/MaskedImage'
 import { chevronStrip } from '@/data/content'
-import Image from 'next/image'
+
+const ALT_LABELS = [
+  'Elegant living room with designer furniture',
+  'Spacious master bedroom with city views',
+  'Open-plan kitchen and dining area',
+  'Professional agent consulting a client',
+]
 
 export default function ChevronStrip() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+  const { motionOk } = useSmoothScroll()
+
+  useGsapContext(
+    sectionRef,
+    () => {
+      if (!motionOk) return
+
+      const items = itemRefs.current.filter(Boolean) as HTMLDivElement[]
+
+      // Stagger in from the right
+      gsap.from(items, {
+        xPercent: 40,
+        opacity: 0,
+        stagger: 0.08,
+        ease: 'power3.out',
+        duration: 0.9,
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top 85%',
+        },
+      })
+
+      // Subtle continuous x-parallax: each panel shifts slightly at different rates
+      items.forEach((el, i) => {
+        const direction = i % 2 === 0 ? -1 : 1
+        gsap.fromTo(
+          el,
+          { x: direction * 12 * (i + 1) },
+          {
+            x: direction * -12 * (i + 1),
+            ease: 'none',
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: 1.5,
+            },
+          }
+        )
+      })
+    },
+    [motionOk]
+  )
+
   return (
     <section
       id="chevron-strip"
-      className="min-h-[50vh] flex overflow-hidden"
-      aria-label="Chevron image strip"
+      ref={sectionRef}
+      className="bg-[var(--color-paper)] overflow-hidden py-0"
+      aria-label="Property image strip"
     >
-      {/* ChevronStrip stub — replace with masked chevron images */}
-      {chevronStrip.images.map((src, i) => (
-        <div key={src} className="relative flex-1 min-h-[400px] bg-[var(--color-paper-warm)]">
-          <Image
-            src={src}
-            alt={`FIND Real Estate property ${i + 1}`}
-            fill
-            style={{ objectFit: 'cover' }}
-            sizes="25vw"
-          />
-        </div>
-      ))}
+      {/* Negative margin so chevrons overlap slightly at edges */}
+      <div className="flex items-stretch" style={{ height: 'clamp(200px, 30vw, 380px)' }}>
+        {chevronStrip.images.map((src, i) => (
+          <div
+            key={src}
+            ref={(el) => { itemRefs.current[i] = el }}
+            className="relative flex-1"
+            // Negative margin to create the chevron overlap effect
+            style={{ marginRight: i < chevronStrip.images.length - 1 ? '-2%' : 0 }}
+          >
+            <MaskedImage
+              shape="chevron"
+              src={src}
+              alt={ALT_LABELS[i] ?? `FIND Real Estate property ${i + 1}`}
+              fill
+              className="h-full"
+              objectFit="cover"
+              priority={i === 0}
+            />
+          </div>
+        ))}
+      </div>
     </section>
   )
 }
