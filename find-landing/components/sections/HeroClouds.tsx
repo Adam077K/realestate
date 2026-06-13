@@ -3,41 +3,52 @@
 /**
  * HeroClouds — realistic transparent PNG cloud layer for the signature Hero.
  *
- * Visual layer: layered <img> elements built from SEVEN soft-edged transparent
- * cloud PNGs (cloud-1 … cloud-7) at varied sizes, spread across the FULL sky
- * (upper, mid, a denser bank along the lower horizon / building base) plus a set
- * of dedicated FOREGROUND coverage layers near the centre-bottom. Opacities are
- * clearly visible (these are real PNGs, not gradients) with depth cues: far masses
- * are bigger, softer, slightly blurred; near puffs are crisp. scaleX flips add
- * variety without extra assets.
+ * TWO variants, selected by the `variant` prop:
+ *
+ *  • variant="back" (default) — the original full-sky field. Layered <img> elements
+ *    built from SEVEN soft-edged transparent cloud PNGs (cloud-1 … cloud-7) at varied
+ *    sizes, spread across the FULL sky (upper, mid, a denser bank along the lower
+ *    horizon / building base) plus a set of dedicated FOREGROUND coverage layers near
+ *    the centre-bottom. Mounted at z-[1] BEHIND the building/wordmark, so it envelops
+ *    the scene from behind / below. Unchanged from before.
+ *
+ *  • variant="front" — ONLY a set of soft, semi-transparent FOREGROUND drifting cloud
+ *    layers (the larger realistic cloud PNGs), transparent everywhere else. This field
+ *    is mounted ABOVE the building (z-[2]) and the wordmark (z-[3]) by Hero.tsx, so its
+ *    clouds visibly drift IN FRONT of the building and over/around the wordmark. At rest
+ *    (p≈0) it is nearly invisible (so it never blocks the headline); its opacity, scale
+ *    and cross-screen inward drift RAMP UP with progress — especially p 0.45→1.0 — so
+ *    soft cloud sweeps across the centre, increasingly covering the building/wordmark and
+ *    nestling it in mist by the wordmark beat (reference frames 7 / 9 / 10).
+ *
+ * Opacities are clearly visible (these are real PNGs, not gradients) with depth cues:
+ * far masses are bigger, softer, slightly blurred; near puffs are crisp. scaleX flips
+ * add variety without extra assets.
  *
  * Scroll-driven COVERAGE (the fix):
- *  - As hero progress increases — especially the morph + wordmark beat
- *    (p 0.45 → 1.0) — MORE clouds are pulled INTO the foreground and DRIFT
- *    inward / UPWARD, increasingly covering and enveloping the building base and
- *    the lower wordmark. Foreground coverage layers ramp their opacity + scale +
- *    inward drift UP with progress (they do NOT fade out). By the wordmark beat
+ *  - As hero progress increases — especially the morph + wordmark beat (p 0.45 → 1.0) —
+ *    MORE clouds are pulled INTO the foreground and DRIFT inward / UPWARD, increasingly
+ *    covering and enveloping the scene. Foreground coverage layers ramp their opacity +
+ *    scale + inward drift UP with progress (they do NOT fade out). By the wordmark beat
  *    the scene sits nestled in dense soft clouds (reference frames 7 / 9 / 10).
  *  - Each layer carries a `coverage` weight (0 = pure background, always visible;
  *    1 = foreground enveloper that blooms in on scroll). The rAF loop reads
- *    progressRef.current and, per layer, raises opacity, scale and an upward +
- *    inward translate proportional to its coverage weight and to progress.
- *  - Background clouds stay clearly VISIBLE the entire pin (they never fade out).
+ *    progressRef.current and, per layer, raises opacity, scale and an upward + inward
+ *    translate proportional to its coverage weight and to progress.
+ *  - 'back' background clouds stay clearly VISIBLE the entire pin (they never fade out).
+ *  - 'front' layers START near-invisible (so the headline is readable at rest) and bloom
+ *    in only as the user scrolls.
  *
  * Idle motion:
  *  - Continuous slow horizontal DRIFT via CSS @keyframes — desynced per layer
  *    (varied speed + negative delay) so the field is alive even when scroll idles.
- *  - Reduced motion / !active: clouds render STATICALLY at a mid-coverage rest
- *    state (still fully visible, building/wordmark already nestled in cloud).
+ *  - Reduced motion / !active:
+ *      back  -> renders STATICALLY at a mid-coverage rest state (still fully visible).
+ *      front -> renders a LIGHT static veil (low opacity, not fully blocking) so the
+ *               scene still reads as nestled-in-cloud without obscuring the headline.
  *
  * Performance: transform / opacity / filter only; will-change:transform on
  * drifting/coverage layers; pointer-events:none; aria-hidden. No layout thrash.
- *
- * z-index note: the parent (Hero.tsx) mounts this field at z-[1] which creates its
- * own stacking context BEHIND the z-10 wordmark, so coverage layers cannot paint
- * over the very top of the wordmark from here. They are concentrated at the
- * centre-bottom and bloom UP — matching the reference, where the densest cloud
- * mass rises from the lower edge to envelop the building base + lower wordmark.
  */
 
 import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
@@ -47,6 +58,17 @@ export interface HeroCloudsProps {
   progressRef?: RefObject<number>
   /** Master gate — when false the clouds render statically (no drift / live ramp). */
   active?: boolean
+  /**
+   * Which cloud field to render.
+   *  - 'back'  (default) — the original full background + bottom-envelope field.
+   *      Mounted BEHIND the building/wordmark; envelops the scene from behind/below.
+   *  - 'front' — ONLY a set of soft foreground drifting clouds, transparent everywhere
+   *      else. Mounted ABOVE the building + wordmark so it visibly drifts IN FRONT of
+   *      them. Near-invisible at rest; opacity + scale + cross-screen drift RAMP UP with
+   *      progress (esp. p 0.45→1.0) so it sweeps over the centre, nestling the
+   *      building/wordmark in mist by the wordmark beat (reference frames 7/9/10).
+   */
+  variant?: 'back' | 'front'
 }
 
 // ─── PNG sources (served from /public) — all SEVEN realistic clouds ───────────
@@ -59,23 +81,6 @@ const SRC = {
   c6: '/images/clouds/cloud-6.png', // 1260×605  — low flat stratus
   c7: '/images/clouds/cloud-7.png', // 1653×906  — wide wispy low mist (bluish)
 } as const
-
-// ─── Cloud layer definitions ──────────────────────────────────────────────────
-// Layout logic:
-//  - top/left: position relative to the hero viewport
-//  - width: CSS clamp string for the <img> element
-//  - baseOpacity: opacity at rest (p = 0)
-//  - blur: 0 (foreground / crisp) or 2–5px (far background masses only)
-//  - flipX: true = scaleX(-1) for variety without extra assets
-//  - anim: keyframe family (a = drifts right-and-up, b = left-and-down,
-//          c = wider slow lateral drift) — varied speeds for parallax-of-speed feel
-//  - duration / delay: idle drift tempo + desync
-//  - coverage: 0..1 — how strongly this layer responds to scroll progress.
-//      0  -> background, holds its position + full visibility the whole pin.
-//      1  -> foreground enveloper: blooms in (opacity↑, scale↑, drifts up+inward)
-//            as progress rises, peaking through the morph + wordmark beat.
-//  - driftX: signed inward-drift bias (vw) applied at full coverage — negative
-//      pulls toward centre from the right, positive from the left.
 
 type AnimFamily = 'find-cloud-drift-a' | 'find-cloud-drift-b' | 'find-cloud-drift-c'
 
@@ -95,280 +100,55 @@ interface CloudLayer {
   driftX: number
 }
 
-const LAYERS: CloudLayer[] = [
-  // ════════ FAR BACK BAND (upper) — biggest, softest, slightly blurred ════════
-  // Pure background: always visible, barely reacts to scroll.
-  {
-    id: 'far-1',
-    src: SRC.c2,
-    top: '-8%',
-    left: '-16%',
-    width: 'clamp(560px, 74vw, 1000px)',
-    baseOpacity: 0.82,
-    blur: 5,
-    flipX: false,
-    anim: 'find-cloud-drift-a',
-    duration: 118,
-    delay: 0,
-    coverage: 0.06,
-    driftX: 0,
-  },
-  {
-    id: 'far-2',
-    src: SRC.c3,
-    top: '-6%',
-    left: '46%',
-    width: 'clamp(520px, 66vw, 940px)',
-    baseOpacity: 0.8,
-    blur: 4,
-    flipX: true,
-    anim: 'find-cloud-drift-b',
-    duration: 132,
-    delay: -34,
-    coverage: 0.06,
-    driftX: 0,
-  },
+// ════════════════════════════════════════════════════════════════════════════
+// BACK field — the original full-sky + bottom-envelope layers (unchanged look).
+// ════════════════════════════════════════════════════════════════════════════
+const BACK_LAYERS: CloudLayer[] = [
+  // FAR BACK BAND (upper) — biggest, softest, slightly blurred. Pure background.
+  { id: 'far-1', src: SRC.c2, top: '-8%', left: '-16%', width: 'clamp(560px, 74vw, 1000px)', baseOpacity: 0.82, blur: 5, flipX: false, anim: 'find-cloud-drift-a', duration: 118, delay: 0, coverage: 0.06, driftX: 0 },
+  { id: 'far-2', src: SRC.c3, top: '-6%', left: '46%', width: 'clamp(520px, 66vw, 940px)', baseOpacity: 0.8, blur: 4, flipX: true, anim: 'find-cloud-drift-b', duration: 132, delay: -34, coverage: 0.06, driftX: 0 },
+  // UPPER SKY — large soft cumulus, light blur for mid-depth.
+  { id: 'up-1', src: SRC.c5, top: '0%', left: '12%', width: 'clamp(360px, 46vw, 760px)', baseOpacity: 0.86, blur: 2, flipX: false, anim: 'find-cloud-drift-c', duration: 104, delay: -52, coverage: 0.12, driftX: 1.5 },
+  { id: 'up-2', src: SRC.c1, top: '6%', left: '60%', width: 'clamp(340px, 44vw, 720px)', baseOpacity: 0.84, blur: 2, flipX: true, anim: 'find-cloud-drift-a', duration: 112, delay: -18, coverage: 0.12, driftX: -1.5 },
+  // MID SKY — crisp puffs that move IN toward the wordmark on scroll.
+  { id: 'mid-1', src: SRC.c4, top: '20%', left: '-8%', width: 'clamp(320px, 42vw, 680px)', baseOpacity: 0.9, blur: 0, flipX: false, anim: 'find-cloud-drift-b', duration: 86, delay: -40, coverage: 0.34, driftX: 6 },
+  { id: 'mid-2', src: SRC.c5, top: '24%', left: '56%', width: 'clamp(320px, 42vw, 660px)', baseOpacity: 0.88, blur: 0, flipX: true, anim: 'find-cloud-drift-a', duration: 92, delay: -12, coverage: 0.34, driftX: -6 },
+  { id: 'mid-3', src: SRC.c4, top: '36%', left: '24%', width: 'clamp(300px, 38vw, 600px)', baseOpacity: 0.86, blur: 0, flipX: false, anim: 'find-cloud-drift-c', duration: 76, delay: -58, coverage: 0.4, driftX: 4 },
+  { id: 'mid-4', src: SRC.c6, top: '30%', left: '78%', width: 'clamp(280px, 30vw, 460px)', baseOpacity: 0.88, blur: 0, flipX: true, anim: 'find-cloud-drift-b', duration: 80, delay: -26, coverage: 0.4, driftX: -5 },
+  // LOWER HORIZON — billowy masses framing building shoulders.
+  { id: 'low-1', src: SRC.c2, top: '54%', left: '-10%', width: 'clamp(440px, 60vw, 880px)', baseOpacity: 0.92, blur: 1, flipX: false, anim: 'find-cloud-drift-a', duration: 70, delay: -8, coverage: 0.62, driftX: 7 },
+  { id: 'low-2', src: SRC.c3, top: '58%', left: '50%', width: 'clamp(420px, 56vw, 820px)', baseOpacity: 0.9, blur: 1, flipX: true, anim: 'find-cloud-drift-b', duration: 66, delay: -46, coverage: 0.62, driftX: -7 },
+  // LOW CLOUD BANK — building base rises THROUGH this mist.
+  { id: 'bank-1', src: SRC.c6, top: '74%', left: '-6%', width: 'clamp(460px, 64vw, 960px)', baseOpacity: 0.96, blur: 0, flipX: false, anim: 'find-cloud-drift-c', duration: 62, delay: -30, coverage: 0.74, driftX: 5 },
+  { id: 'bank-2', src: SRC.c7, top: '78%', left: '34%', width: 'clamp(500px, 70vw, 1000px)', baseOpacity: 0.98, blur: 0, flipX: true, anim: 'find-cloud-drift-a', duration: 58, delay: -16, coverage: 0.74, driftX: -4 },
+  { id: 'bank-3', src: SRC.c7, top: '84%', left: '4%', width: 'clamp(480px, 66vw, 940px)', baseOpacity: 1.0, blur: 0, flipX: false, anim: 'find-cloud-drift-b', duration: 54, delay: -42, coverage: 0.8, driftX: 3 },
+  // FOREGROUND ENVELOPERS — bloom IN over the build + wordmark beat.
+  { id: 'fg-1', src: SRC.c4, top: '60%', left: '-14%', width: 'clamp(560px, 78vw, 1180px)', baseOpacity: 0.16, blur: 0, flipX: false, anim: 'find-cloud-drift-c', duration: 64, delay: -20, coverage: 1, driftX: 9 },
+  { id: 'fg-2', src: SRC.c5, top: '64%', left: '40%', width: 'clamp(540px, 74vw, 1120px)', baseOpacity: 0.16, blur: 0, flipX: true, anim: 'find-cloud-drift-a', duration: 60, delay: -38, coverage: 1, driftX: -9 },
+  { id: 'fg-3', src: SRC.c7, top: '70%', left: '8%', width: 'clamp(620px, 86vw, 1320px)', baseOpacity: 0.2, blur: 0, flipX: false, anim: 'find-cloud-drift-b', duration: 56, delay: -10, coverage: 1, driftX: 6 },
+  { id: 'fg-4', src: SRC.c4, top: '68%', left: '52%', width: 'clamp(520px, 72vw, 1080px)', baseOpacity: 0.18, blur: 0, flipX: true, anim: 'find-cloud-drift-c', duration: 52, delay: -28, coverage: 1, driftX: -6 },
+]
 
-  // ════════ UPPER SKY — large soft cumulus, light blur for mid-depth ══════════
-  {
-    id: 'up-1',
-    src: SRC.c5,
-    top: '0%',
-    left: '12%',
-    width: 'clamp(360px, 46vw, 760px)',
-    baseOpacity: 0.86,
-    blur: 2,
-    flipX: false,
-    anim: 'find-cloud-drift-c',
-    duration: 104,
-    delay: -52,
-    coverage: 0.12,
-    driftX: 1.5,
-  },
-  {
-    id: 'up-2',
-    src: SRC.c1,
-    top: '6%',
-    left: '60%',
-    width: 'clamp(340px, 44vw, 720px)',
-    baseOpacity: 0.84,
-    blur: 2,
-    flipX: true,
-    anim: 'find-cloud-drift-a',
-    duration: 112,
-    delay: -18,
-    coverage: 0.12,
-    driftX: -1.5,
-  },
-
-  // ════════ MID SKY — crisp puffs that move IN toward the wordmark on scroll ═══
-  {
-    id: 'mid-1',
-    src: SRC.c4,
-    top: '20%',
-    left: '-8%',
-    width: 'clamp(320px, 42vw, 680px)',
-    baseOpacity: 0.9,
-    blur: 0,
-    flipX: false,
-    anim: 'find-cloud-drift-b',
-    duration: 86,
-    delay: -40,
-    coverage: 0.34,
-    driftX: 6,
-  },
-  {
-    id: 'mid-2',
-    src: SRC.c5,
-    top: '24%',
-    left: '56%',
-    width: 'clamp(320px, 42vw, 660px)',
-    baseOpacity: 0.88,
-    blur: 0,
-    flipX: true,
-    anim: 'find-cloud-drift-a',
-    duration: 92,
-    delay: -12,
-    coverage: 0.34,
-    driftX: -6,
-  },
-  {
-    id: 'mid-3',
-    src: SRC.c4,
-    top: '36%',
-    left: '24%',
-    width: 'clamp(300px, 38vw, 600px)',
-    baseOpacity: 0.86,
-    blur: 0,
-    flipX: false,
-    anim: 'find-cloud-drift-c',
-    duration: 76,
-    delay: -58,
-    coverage: 0.4,
-    driftX: 4,
-  },
-  {
-    id: 'mid-4',
-    src: SRC.c6,
-    top: '30%',
-    left: '78%',
-    width: 'clamp(280px, 30vw, 460px)',
-    baseOpacity: 0.88,
-    blur: 0,
-    flipX: true,
-    anim: 'find-cloud-drift-b',
-    duration: 80,
-    delay: -26,
-    coverage: 0.4,
-    driftX: -5,
-  },
-
-  // ════════ LOWER HORIZON — billowy masses framing building shoulders ═════════
-  // Strong coverage: these sweep up + inward to wrap the building shoulders.
-  {
-    id: 'low-1',
-    src: SRC.c2,
-    top: '54%',
-    left: '-10%',
-    width: 'clamp(440px, 60vw, 880px)',
-    baseOpacity: 0.92,
-    blur: 1,
-    flipX: false,
-    anim: 'find-cloud-drift-a',
-    duration: 70,
-    delay: -8,
-    coverage: 0.62,
-    driftX: 7,
-  },
-  {
-    id: 'low-2',
-    src: SRC.c3,
-    top: '58%',
-    left: '50%',
-    width: 'clamp(420px, 56vw, 820px)',
-    baseOpacity: 0.9,
-    blur: 1,
-    flipX: true,
-    anim: 'find-cloud-drift-b',
-    duration: 66,
-    delay: -46,
-    coverage: 0.62,
-    driftX: -7,
-  },
-
-  // ════════ LOW CLOUD BANK — building base rises THROUGH this mist ════════════
-  // Always near-solid; coverage rises so the bank thickens through the wordmark beat.
-  {
-    id: 'bank-1',
-    src: SRC.c6,
-    top: '74%',
-    left: '-6%',
-    width: 'clamp(460px, 64vw, 960px)',
-    baseOpacity: 0.96,
-    blur: 0,
-    flipX: false,
-    anim: 'find-cloud-drift-c',
-    duration: 62,
-    delay: -30,
-    coverage: 0.74,
-    driftX: 5,
-  },
-  {
-    id: 'bank-2',
-    src: SRC.c7,
-    top: '78%',
-    left: '34%',
-    width: 'clamp(500px, 70vw, 1000px)',
-    baseOpacity: 0.98,
-    blur: 0,
-    flipX: true,
-    anim: 'find-cloud-drift-a',
-    duration: 58,
-    delay: -16,
-    coverage: 0.74,
-    driftX: -4,
-  },
-  {
-    id: 'bank-3',
-    src: SRC.c7,
-    top: '84%',
-    left: '4%',
-    width: 'clamp(480px, 66vw, 940px)',
-    baseOpacity: 1.0,
-    blur: 0,
-    flipX: false,
-    anim: 'find-cloud-drift-b',
-    duration: 54,
-    delay: -42,
-    coverage: 0.8,
-    driftX: 3,
-  },
-
-  // ════════ FOREGROUND ENVELOPERS — bloom IN over the build + wordmark beat ════
-  // At rest these sit low & faint (a thin mist along the bottom). As progress rises
-  // (esp. p 0.45→1.0) they grow, brighten and drift UP + inward to roll over the
-  // building base and the lower wordmark — the wordmark ends nestled in soft cloud
-  // (reference frames 7 / 9 / 10). They are the densest, largest, crispest layers.
-  {
-    id: 'fg-1',
-    src: SRC.c4,
-    top: '60%',
-    left: '-14%',
-    width: 'clamp(560px, 78vw, 1180px)',
-    baseOpacity: 0.16,
-    blur: 0,
-    flipX: false,
-    anim: 'find-cloud-drift-c',
-    duration: 64,
-    delay: -20,
-    coverage: 1,
-    driftX: 9,
-  },
-  {
-    id: 'fg-2',
-    src: SRC.c5,
-    top: '64%',
-    left: '40%',
-    width: 'clamp(540px, 74vw, 1120px)',
-    baseOpacity: 0.16,
-    blur: 0,
-    flipX: true,
-    anim: 'find-cloud-drift-a',
-    duration: 60,
-    delay: -38,
-    coverage: 1,
-    driftX: -9,
-  },
-  {
-    id: 'fg-3',
-    src: SRC.c7,
-    top: '70%',
-    left: '8%',
-    width: 'clamp(620px, 86vw, 1320px)',
-    baseOpacity: 0.2,
-    blur: 0,
-    flipX: false,
-    anim: 'find-cloud-drift-b',
-    duration: 56,
-    delay: -10,
-    coverage: 1,
-    driftX: 6,
-  },
-  {
-    id: 'fg-4',
-    src: SRC.c4,
-    top: '68%',
-    left: '52%',
-    width: 'clamp(520px, 72vw, 1080px)',
-    baseOpacity: 0.18,
-    blur: 0,
-    flipX: true,
-    anim: 'find-cloud-drift-c',
-    duration: 52,
-    delay: -28,
-    coverage: 1,
-    driftX: -6,
-  },
+// ════════════════════════════════════════════════════════════════════════════
+// FRONT field — soft foreground clouds that drift IN FRONT of the building +
+// wordmark. Near-transparent at rest (very low baseOpacity), all coverage≈1 so
+// they bloom in on scroll and sweep ACROSS / OVER the centre. Larger realistic
+// cloud PNGs, soft (slight blur), crossing the full width and drifting inward
+// from both edges so the centre fills with mist (the "moving across" look in the
+// reference). At rest the headline is fully readable; by the wordmark beat soft
+// cloud passes in front of the building and nestles the wordmark (frames 7/9/10).
+// ════════════════════════════════════════════════════════════════════════════
+const FRONT_LAYERS: CloudLayer[] = [
+  // Wisps that sweep across the UPPER-MID, drifting toward centre.
+  { id: 'fr-mid-l', src: SRC.c7, top: '14%', left: '-26%', width: 'clamp(560px, 80vw, 1240px)', baseOpacity: 0.04, blur: 3, flipX: false, anim: 'find-cloud-drift-a', duration: 74, delay: -12, coverage: 1, driftX: 16 },
+  { id: 'fr-mid-r', src: SRC.c3, top: '10%', left: '52%', width: 'clamp(540px, 76vw, 1180px)', baseOpacity: 0.04, blur: 3, flipX: true, anim: 'find-cloud-drift-b', duration: 82, delay: -40, coverage: 1, driftX: -16 },
+  // Soft mass that rolls directly OVER the centre (the wordmark band).
+  { id: 'fr-centre-l', src: SRC.c4, top: '32%', left: '-22%', width: 'clamp(600px, 84vw, 1320px)', baseOpacity: 0.05, blur: 2, flipX: false, anim: 'find-cloud-drift-c', duration: 66, delay: -22, coverage: 1, driftX: 19 },
+  { id: 'fr-centre-r', src: SRC.c5, top: '30%', left: '46%', width: 'clamp(580px, 82vw, 1280px)', baseOpacity: 0.05, blur: 2, flipX: true, anim: 'find-cloud-drift-a', duration: 70, delay: -8, coverage: 1, driftX: -19 },
+  // Dense low mist that climbs from the bottom over the lower wordmark.
+  { id: 'fr-low-l', src: SRC.c7, top: '54%', left: '-20%', width: 'clamp(680px, 92vw, 1480px)', baseOpacity: 0.07, blur: 1, flipX: false, anim: 'find-cloud-drift-b', duration: 60, delay: -30, coverage: 1, driftX: 13 },
+  { id: 'fr-low-r', src: SRC.c4, top: '58%', left: '40%', width: 'clamp(640px, 88vw, 1400px)', baseOpacity: 0.07, blur: 1, flipX: true, anim: 'find-cloud-drift-c', duration: 56, delay: -16, coverage: 1, driftX: -13 },
+  { id: 'fr-low-c', src: SRC.c6, top: '64%', left: '8%', width: 'clamp(700px, 96vw, 1560px)', baseOpacity: 0.08, blur: 0, flipX: false, anim: 'find-cloud-drift-a', duration: 52, delay: -44, coverage: 1, driftX: 8 },
 ]
 
 // ── easing helpers (pure, transform/opacity only output) ──────────────────────
@@ -380,44 +160,59 @@ const smooth = (n: number) => {
 }
 
 /**
- * Coverage ramp for a layer at a given scroll progress.
- * Returns opacity / scale / translateY(vh) / translateX(vw) deltas to layer on
- * top of the layer's base position. Higher `coverage` => stronger response, and
- * the response accelerates through the morph + wordmark beat (p 0.45 → 1.0).
+ * Coverage ramp for a layer at a given scroll progress + variant.
+ * Returns opacity / scale / translateY(vh) / translateX(vw) deltas to layer on top
+ * of the layer's base position. Higher `coverage` => stronger response, accelerating
+ * through the morph + wordmark beat (p 0.45 → 1.0).
+ *
+ * 'front' starts near-invisible and reaches a strong (but still soft, never fully
+ * opaque) veil so the wordmark stays legible-through-the-mist; 'back' keeps its
+ * original (fully-visible) behaviour.
  */
-function coverageState(p: number, layer: CloudLayer) {
-  // Early build (0 → 0.45): gentle warm-up so the field is already alive.
+function coverageState(p: number, layer: CloudLayer, variant: 'back' | 'front') {
   const early = smooth(p / 0.45) // 0..1 by p=0.45
-  // Main envelop beat (0.45 → 1.0): the bloom that covers the wordmark.
   const beat = smooth(clamp01((p - 0.45) / 0.55)) // 0..1 across 0.45..1.0
-
-  // Combined progress for this layer, weighted by its coverage role.
-  // Foreground layers (coverage~1) are dominated by the beat; background layers
-  // (coverage~0) barely move at all.
   const ramp = clamp01(early * 0.28 + beat * 0.85) * layer.coverage
 
-  // Opacity grows toward full as coverage ramps (capped at 1).
+  if (variant === 'front') {
+    // At rest near-invisible (headline readable). Bloom in on scroll, capped below
+    // full so the wordmark still reads through the mist. Faster front ramp (smaller
+    // early warm-up; beat dominates) keeps the headline clear at rest.
+    const frontRamp = clamp01(early * 0.16 + beat * 0.95) * layer.coverage
+    const FRONT_PEAK = 0.74 // softest enveloping veil, never a hard wipe
+    const opacity = clamp01(layer.baseOpacity + (FRONT_PEAK - layer.baseOpacity) * frontRamp)
+    const scale = 1 + frontRamp * 0.5 // swell as it rolls across the centre
+    const translateY = -frontRamp * 16 // gentle upward climb over the wordmark
+    const translateX = layer.driftX * frontRamp // strong inward sweep toward centre
+    return { opacity, scale, translateY, translateX }
+  }
+
+  // back (original behaviour)
   const opacity = clamp01(layer.baseOpacity + (1 - layer.baseOpacity) * ramp)
-
-  // Scale: foreground / billowy layers swell as they roll in.
   const scale = 1 + ramp * 0.42
-
-  // Vertical: foreground/bank layers rise UP into the scene; faint background
-  // layers stay put. Up to ~24vh of upward travel at full coverage.
   const translateY = -ramp * 24
-
-  // Horizontal: inward drift toward centre (driftX is the signed bias).
   const translateX = layer.driftX * ramp
-
   return { opacity, scale, translateY, translateX }
 }
 
-export default function HeroClouds({ progressRef, active = true }: HeroCloudsProps) {
+export default function HeroClouds({
+  progressRef,
+  active = true,
+  variant = 'back',
+}: HeroCloudsProps) {
   const fieldRef = useRef<HTMLDivElement>(null)
   const layerRefs = useRef<Array<HTMLImageElement | null>>([])
   const rafRef = useRef<number | null>(null)
   // Resolve reduced-motion only on the client to avoid an SSR mismatch.
   const [reducedMotion, setReducedMotion] = useState(false)
+
+  const layers = variant === 'front' ? FRONT_LAYERS : BACK_LAYERS
+
+  // Static rest progress per variant:
+  //  - back  -> mid coverage (scene already nestled, fully visible).
+  //  - front -> a LIGHT veil: reads as cloud-in-front but NOT blocking (FRONT_PEAK
+  //    cap + this modest progress keep the wordmark legible).
+  const staticRestP = variant === 'front' ? 0.5 : 0.62
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return
@@ -430,21 +225,22 @@ export default function HeroClouds({ progressRef, active = true }: HeroCloudsPro
 
   const animate = active && !reducedMotion
 
-  // Coverage loop: per-layer opacity + scale + inward/upward drift ramp UP with
-  // hero progress so clouds increasingly ENVELOP the building base + lower wordmark.
+  // Coverage loop: per-layer opacity + scale + inward/upward drift ramp UP with hero
+  // progress so clouds increasingly ENVELOP the scene. For the FRONT field this is
+  // what makes soft cloud drift in front of the building + over the wordmark.
   useEffect(() => {
     const els = layerRefs.current
     if (els.length === 0) return
 
-    // The per-layer coverage transform is written to CSS custom properties that
-    // the keyframes read, so the idle drift animation (which owns `transform`)
-    // and the scroll coverage can coexist without one clobbering the other.
+    // Per-layer coverage transform is written to CSS custom properties read by the
+    // keyframes, so the idle drift animation (which owns `transform`) and the scroll
+    // coverage coexist without one clobbering the other.
     const apply = (p: number) => {
-      for (let i = 0; i < LAYERS.length; i++) {
+      for (let i = 0; i < layers.length; i++) {
         const el = els[i]
         if (!el) continue
-        const layer = LAYERS[i]
-        const { opacity, scale, translateY, translateX } = coverageState(p, layer)
+        const layer = layers[i]
+        const { opacity, scale, translateY, translateX } = coverageState(p, layer, variant)
         el.style.opacity = opacity.toFixed(3)
         el.style.setProperty('--cov-scale', scale.toFixed(3))
         el.style.setProperty('--cov-ty', `${translateY.toFixed(2)}vh`)
@@ -453,9 +249,10 @@ export default function HeroClouds({ progressRef, active = true }: HeroCloudsPro
     }
 
     if (!animate) {
-      // Static fallback — render at a mid-coverage rest state: clouds already
-      // nestle the wordmark (matches the composed end-state), no live ramp.
-      apply(0.62)
+      // Static fallback:
+      //  - back  -> mid-coverage rest state (clouds nestle the wordmark).
+      //  - front -> light static veil (not fully blocking — headline still reads).
+      apply(staticRestP)
       return
     }
 
@@ -468,7 +265,7 @@ export default function HeroClouds({ progressRef, active = true }: HeroCloudsPro
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
     }
-  }, [animate, progressRef])
+  }, [animate, progressRef, layers, variant, staticRestP])
 
   return (
     <div
@@ -479,9 +276,9 @@ export default function HeroClouds({ progressRef, active = true }: HeroCloudsPro
       {/*
         Drift keyframes — transform-only, GPU-composited. Three families + flips.
         Each keyframe COMPOSES the idle drift with the scroll-coverage transform
-        carried by CSS vars (--cov-tx / --cov-ty / --cov-scale), so the live
-        coverage ramp and the continuous drift never fight over `transform`.
-        Defaults keep static (reduced-motion / pre-paint) layers at coverage rest.
+        carried by CSS vars (--cov-tx / --cov-ty / --cov-scale), so the live coverage
+        ramp and the continuous drift never fight over `transform`. Defaults keep
+        static (reduced-motion / pre-paint) layers at coverage rest.
       */}
       <style>{`
         @keyframes find-cloud-drift-a {
@@ -516,21 +313,18 @@ export default function HeroClouds({ progressRef, active = true }: HeroCloudsPro
         }
       `}</style>
 
-      {LAYERS.map((layer, i) => {
-        // Build filter string — only blur on far/atmospheric layers; foreground crisp.
+      {layers.map((layer, i) => {
         const filterVal = layer.blur > 0 ? `blur(${layer.blur}px)` : 'none'
 
-        // For flipped layers: use dedicated flip keyframes so scaleX(-1) stays
-        // combined with the coverage transform (avoids a wrapper element).
         const animName = animate
           ? layer.flipX
             ? `${layer.anim}-flip`
             : layer.anim
           : undefined
 
-        // Initial coverage rest values so the very first paint (before the rAF
-        // loop runs / when static) already shows the field nestling the scene.
-        const initial = coverageState(animate ? 0 : 0.62, layer)
+        // Initial coverage rest values so the very first paint (before the rAF loop
+        // runs / when static) already shows the field at its rest state.
+        const initial = coverageState(animate ? 0 : staticRestP, layer, variant)
 
         const style: CSSProperties = {
           position: 'absolute',
@@ -538,13 +332,10 @@ export default function HeroClouds({ progressRef, active = true }: HeroCloudsPro
           left: layer.left,
           width: layer.width,
           height: 'auto',
-          // opacity is driven imperatively by the rAF loop; seed it here.
           opacity: initial.opacity,
           filter: filterVal,
           display: 'block',
           willChange: animate ? 'transform, opacity' : 'auto',
-          // Seed the coverage CSS vars consumed by the keyframes (and the static
-          // transform below).
           // @ts-expect-error — CSS custom properties are valid inline styles.
           '--cov-scale': initial.scale.toFixed(3),
           '--cov-ty': `${initial.translateY.toFixed(2)}vh`,
@@ -554,7 +345,6 @@ export default function HeroClouds({ progressRef, active = true }: HeroCloudsPro
                 animation: `${animName} ${layer.duration}s ease-in-out ${layer.delay}s infinite`,
               }
             : {
-                // Static (reduced-motion): compose flip + coverage rest transform.
                 transform: `${layer.flipX ? 'scaleX(-1) ' : ''}translate3d(${initial.translateX.toFixed(2)}vw, ${initial.translateY.toFixed(2)}vh, 0) scale(${initial.scale.toFixed(3)})`,
               }),
         }

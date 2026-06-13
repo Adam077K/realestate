@@ -384,6 +384,18 @@ export default function Hero() {
         </div>
       </div>
 
+      {/* 2b. HeroClouds FRONT layer — soft clouds that drift IN FRONT of the building
+            (z-[2]) and over/around the wordmark (z-[3]). Mounted at z-[3] just OVER the
+            wordmark group but BELOW the headline stack (z-[4]), so at rest it does NOT
+            obscure the headline (the front field is near-invisible at p≈0 and blooms in
+            only as the user scrolls — reference frames 7 / 9 / 10). Shares the same
+            progressRef + active gate as the back field. */}
+      {mounted && (
+        <div className="absolute inset-0 z-[3]" aria-hidden="true">
+          <HeroClouds progressRef={progressRef} active={motionOk} variant="front" />
+        </div>
+      )}
+
       {/* 6. Text stack — CYCLING slot-roll headline -> subhead -> CTA pill, as a single
             clean vertical FLOW in the UPPER-CENTER of the hero (above the building's
             resting top). Each piece reserves its own space (no absolute stacking on top of
