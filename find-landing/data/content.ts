@@ -1,18 +1,29 @@
 /**
- * data/content.ts — SINGLE SOURCE OF TRUTH
- * All copy, image paths, and structured data for the FIND Real Estate landing page.
- * Section workers import from here — never hardcode copy in components.
+ * data/content.ts — SINGLE SOURCE OF TRUTH (bilingual)
+ *
+ * Brand: בונים עתיד (Bonim Atid) — Israeli real-estate investment advisory firm.
+ * Hebrew is the DEFAULT language (RTL). English is the secondary toggle.
+ *
+ * Two layers live here:
+ *   1. `content` — the bilingual tree { he, en }. New components consume this via
+ *      `useContent()` from the LanguageProvider.
+ *   2. Backward-compatible named exports (hero, whyFind, chevronStrip, …) — the
+ *      existing section components still import these so the build stays green.
+ *      They are derived from the Hebrew tree (closest mapping). A follow-up wave
+ *      migrates the sections onto `useContent()` and removes these.
  */
 
-// ─── Image Manifest ────────────────────────────────────────────────────────────
+export type Lang = 'he' | 'en'
+
+// ─── Image Manifest (language-agnostic — keep EXACTLY as-is) ─────────────────────
 
 export const images = {
   heroBuilding: '/images/hero-building.jpg',
   // Golden-hour building with the background keyed out to transparency — used as the
-  // hero centerpiece (sits over the sky) AND the fill for the FIND clip-mask wordmark.
+  // hero centerpiece (sits over the sky) AND the fill for the clip-mask wordmark.
   heroBuildingCutout: '/images/hero-building-cutout.png',
-  // Opaque, content-trimmed golden building — used as the FILL for the FIND clip-mask
-  // wordmark (the transparent cutout left F/D letters empty over its transparent margins).
+  // Opaque, content-trimmed golden building — used as the FILL for the clip-mask
+  // wordmark (the transparent cutout left letters empty over its transparent margins).
   heroBuildingFill: '/images/hero-building-fill.jpg',
   cityStreet: '/images/city-street.jpg',
   chevron: [
@@ -35,83 +46,358 @@ export const images = {
   ctaFamily: '/images/cta-family.jpg',
 } as const
 
-// ─── Nav ───────────────────────────────────────────────────────────────────────
+// ─── Bilingual content tree ──────────────────────────────────────────────────────
 
-export const logoSubline = 'Real Estate'
+export const content = {
+  he: {
+    brand: 'בונים עתיד',
+    tagline: 'כשנדל״ן, אנשים ומקצועיות נפגשים',
+    nav: {
+      links: [
+        { label: 'הוובינר', href: '#hero' },
+        { label: 'מה תלמדו', href: '#learn' },
+        { label: 'המנחים', href: '#founders' },
+        { label: 'פרטים', href: '#webinar' },
+        { label: 'הרשמה', href: '#register' },
+      ],
+      cta: 'שריינו מקום',
+      toggle: 'עב',
+    },
+    hero: {
+      title: 'דירה חדשה מקבלן ב-2026',
+      subhead:
+        'איך לנצל את מצב השוק לטובתכם — וובינר חינם עם עידן פלג ורועי פישמן.',
+      cta: 'שריינו לי מקום עכשיו',
+    },
+    arrows: {
+      lead: 'זה לא רק דירה.',
+      tail: 'זה העתיד שלכם.',
+    },
+    learn: {
+      heading: { lead: 'מה תלמדו', tail: 'בוובינר' },
+      items: [
+        {
+          n: '01',
+          lead: 'מה באמת קורה בשוק?',
+          tail: 'ניתוח מצב שוק הנדל״ן בישראל ב-2026.',
+        },
+        {
+          n: '02',
+          lead: 'איך מזהים אזור עם פוטנציאל?',
+          tail: 'הקריטריונים לזיהוי אזורי צמיחה.',
+        },
+        {
+          n: '03',
+          lead: 'אילו בדיקות חובה?',
+          tail: 'כל הבדיקות לפני רכישה מקבלן.',
+        },
+        {
+          n: '04',
+          lead: 'הטעויות שעולות ביוקר',
+          tail: 'השגיאות שעולות לרוכשים מאות אלפי שקלים.',
+        },
+      ],
+    },
+    founders: {
+      heading: { lead: 'מי', tail: 'מנחה?' },
+      intro:
+        'בונים עתיד נפגשת בדיוק שם — היכן שנדל״ן, אנשים ומקצועיות נפגשים. אנחנו מלווים משקיעים ורוכשים לראות את התמונה המלאה ולקבל החלטות בטוחות לטווח ארוך.',
+      people: [
+        {
+          name: 'עידן פלג',
+          role: 'כלכלן ויועץ השקעות נדל״ן',
+          bio: 'תואר שני בנדל״ן ומימון, מלווה משקיעים בקבלת החלטות חכמות משנת 2021.',
+        },
+        {
+          name: 'רועי פישמן',
+          role: 'שמאי מקרקעין ומומחה מימון',
+          bio: 'מעל 8 שנות ניסיון עסקי בחברות מובילות בישראל, עם ראייה מלאה של עסקת הנדל״ן.',
+        },
+      ],
+    },
+    pillars: {
+      heading: { lead: 'איך בונים עתיד', tail: 'עוזרים לכם' },
+      rows: [
+        {
+          n: '1',
+          word: 'לקנות',
+          body: 'לקנות נכון: המחיר הנכון, האזור הנכון, עם כל המידע לפניכם.',
+        },
+        {
+          n: '2',
+          word: 'לזהות',
+          body: 'לזהות הזדמנויות אמיתיות לפני כולם ולהבין מה מניע ערך.',
+        },
+        {
+          n: '3',
+          word: 'להרוויח',
+          body: 'להימנע מהטעויות היקרות ולהפוך כל רכישה להשקעה חכמה.',
+        },
+      ],
+      closing: {
+        lead: 'ליווי מקצועי בכל שלב של ההשקעה',
+        tail: '— בידע אמין ובשקיפות מלאה.',
+      },
+      cta: 'הצטרפו לוובינר',
+    },
+    testimonials: {
+      heading: { lead: 'מה אומרים', tail: 'המשתתפים' },
+      items: [
+        {
+          quote:
+            'הגעתי לוובינר בלי לדעת כלום על השקעה בנדל״ן, ויצאתי עם תמונה ברורה ותכנית פעולה. עידן ורועי מסבירים בגובה העיניים — בלי מכירות, רק ערך.',
+          name: 'מאיה לוי',
+          rating: 5 as const,
+        },
+        {
+          quote:
+            'הבדיקות שהציגו לפני רכישה מקבלן חסכו לי טעות של מאות אלפי שקלים. שווה כל דקה, ובחינם.',
+          name: 'דניאל כהן',
+          rating: 5 as const,
+        },
+        {
+          quote:
+            'סוף סוף מישהו שמדבר על השוק בלי באז וסיסמאות. יצאתי עם ביטחון לקבל החלטה ולא לדחות אותה עוד שנה.',
+          name: 'נועה אבני',
+          rating: 5 as const,
+        },
+        {
+          quote:
+            'הליווי המקצועי של רועי בכל מה שקשור למימון פתח לי את הראש. הבנתי איך לבנות עסקה נכון מהיסוד.',
+          name: 'אבי מזרחי',
+          rating: 5 as const,
+        },
+        {
+          quote:
+            'הצוות של בונים עתיד אמין, שקוף ומדויק. ממליצה לכל מי שחושב להשקיע או לקנות דירה ראשונה.',
+          name: 'טל ברק',
+          rating: 5 as const,
+        },
+      ],
+    },
+    webinar: {
+      label: 'פרטי הוובינר',
+      date: 'יום שני, 22.06.26',
+      time: '20:30',
+      duration: 'כ-45 דקות',
+      platform: 'בזום — הלינק יישלח למייל',
+    },
+    register: {
+      heading: 'שריינו את מקומכם',
+      sub: 'מלאו פרטים והצטרפו לוובינר החינמי',
+      fields: { name: 'שם מלא', phone: 'טלפון', email: 'אימייל' },
+      cta: 'שריינו לי מקום עכשיו!',
+    },
+    footer: {
+      newsletter: 'הישארו מעודכנים',
+      emailPlaceholder: 'האימייל שלכם',
+      navCols: ['הוובינר', 'המנחים', 'פרטים', 'הרשמה'],
+      rights: 'כל הזכויות שמורות · בונים עתיד',
+      wordmark: 'בונים עתיד',
+    },
+  },
+  en: {
+    brand: 'בונים עתיד',
+    tagline: 'Where real estate, people & expertise meet',
+    nav: {
+      links: [
+        { label: 'The Webinar', href: '#hero' },
+        { label: "What You'll Learn", href: '#learn' },
+        { label: 'The Hosts', href: '#founders' },
+        { label: 'Details', href: '#webinar' },
+        { label: 'Register', href: '#register' },
+      ],
+      cta: 'Reserve a spot',
+      toggle: 'EN',
+    },
+    hero: {
+      title: 'A New Apartment, Built Right',
+      subhead:
+        'How to turn the 2026 market to your advantage — a free webinar with Idan Peleg & Roey Fishman.',
+      cta: 'Reserve my spot now',
+    },
+    arrows: {
+      lead: "This isn't just an apartment.",
+      tail: "It's your future.",
+    },
+    learn: {
+      heading: { lead: "What you'll", tail: 'learn' },
+      items: [
+        {
+          n: '01',
+          lead: "What's really happening?",
+          tail: "A clear read on Israel's 2026 market.",
+        },
+        {
+          n: '02',
+          lead: 'Spotting areas with potential',
+          tail: 'The criteria for identifying growth zones.',
+        },
+        {
+          n: '03',
+          lead: 'The must-do checks',
+          tail: 'Full due diligence before buying from a developer.',
+        },
+        {
+          n: '04',
+          lead: 'The costly mistakes',
+          tail: 'Errors that cost buyers hundreds of thousands.',
+        },
+      ],
+    },
+    founders: {
+      heading: { lead: 'Your', tail: 'hosts.' },
+      intro:
+        'Bonim Atid is where real estate, people and expertise meet. We guide investors and buyers to see the full picture and make confident, long-term decisions.',
+      people: [
+        {
+          name: 'Idan Peleg',
+          role: 'Economist & real-estate investment advisor',
+          bio: 'MBA in real estate & finance, guiding investors to smart decisions since 2021.',
+        },
+        {
+          name: 'Roey Fishman',
+          role: 'Real-estate appraiser & financing expert',
+          bio: '8+ years of business experience at leading Israeli firms, with a full-picture view of every deal.',
+        },
+      ],
+    },
+    pillars: {
+      heading: { lead: 'How Bonim Atid', tail: 'helps you' },
+      rows: [
+        {
+          n: '1',
+          word: 'Buy',
+          body: 'Buy right: the right price, the right area, all the data in front of you.',
+        },
+        {
+          n: '2',
+          word: 'Spot',
+          body: 'Spot real opportunities before everyone and understand what drives value.',
+        },
+        {
+          n: '3',
+          word: 'Gain',
+          body: 'Avoid the costly mistakes and turn every purchase into a smart investment.',
+        },
+      ],
+      closing: {
+        lead: 'Professional guidance at every stage',
+        tail: '— with reliable knowledge and full transparency.',
+      },
+      cta: 'Join the webinar',
+    },
+    testimonials: {
+      heading: { lead: 'What attendees', tail: 'say' },
+      items: [
+        {
+          quote:
+            'I came in knowing nothing about real-estate investing and left with a clear picture and an action plan. Idan and Roey explain everything at eye level — no selling, just value.',
+          name: 'Maya Levi',
+          rating: 5 as const,
+        },
+        {
+          quote:
+            'The pre-purchase checks they walked through saved me from a mistake worth hundreds of thousands. Worth every minute, and free.',
+          name: 'Daniel Cohen',
+          rating: 5 as const,
+        },
+        {
+          quote:
+            'Finally someone who talks about the market without buzzwords and slogans. I left confident enough to make a decision instead of postponing it another year.',
+          name: 'Noa Avni',
+          rating: 5 as const,
+        },
+        {
+          quote:
+            "Roey's professional guidance on everything financing-related opened my eyes. I understood how to structure a deal correctly from the ground up.",
+          name: 'Avi Mizrahi',
+          rating: 5 as const,
+        },
+        {
+          quote:
+            'The Bonim Atid team is reliable, transparent and precise. I recommend it to anyone thinking about investing or buying a first apartment.',
+          name: 'Tal Barak',
+          rating: 5 as const,
+        },
+      ],
+    },
+    webinar: {
+      label: 'Webinar details',
+      date: 'Monday, 22.06.26',
+      time: '20:30',
+      duration: '~45 minutes',
+      platform: 'On Zoom — link sent by email',
+    },
+    register: {
+      heading: 'Reserve your spot',
+      sub: 'Fill in your details to join the free webinar',
+      fields: { name: 'Full name', phone: 'Phone', email: 'Email' },
+      cta: 'Reserve my spot now!',
+    },
+    footer: {
+      newsletter: 'Stay updated',
+      emailPlaceholder: 'Your email',
+      navCols: ['The Webinar', 'The Hosts', 'Details', 'Register'],
+      rights: 'All rights reserved · Bonim Atid',
+      wordmark: 'בונים עתיד',
+    },
+  },
+} as const
 
-// ─── Hero ──────────────────────────────────────────────────────────────────────
+export type Content = (typeof content)[Lang]
 
+// ════════════════════════════════════════════════════════════════════════════════
+// BACKWARD-COMPAT NAMED EXPORTS
+// Existing section components import these. They mirror the OLD shapes exactly so
+// the build stays green, populated from the Hebrew tree (closest mapping).
+// Removed in the section-migration wave once sections move to useContent().
+// ════════════════════════════════════════════════════════════════════════════════
+
+const he = content.he
+
+export const logoSubline = he.tagline
+
+// Hero — { title, subhead, cta }
 export const hero = {
-  title: 'Find What Moves You',
-  subhead: "Expert agents. Real guidance. A clear path to find what's next.",
-  cta: 'Find Properties',
+  title: he.hero.title,
+  subhead: he.hero.subhead,
+  cta: he.hero.cta,
 } as const
 
-// ─── Why FIND ──────────────────────────────────────────────────────────────────
-
+// WhyFind — { label, heading: { lead, tail }, body }
 export const whyFind = {
-  label: 'Why FIND',
-  heading: {
-    lead: "Your life's changing. Don't just find a place —",
-    tail: "find what's next.",
-  },
-  body: "We help you move forward with clarity, confidence, and the right agent by your side.",
+  label: he.brand,
+  heading: { lead: he.arrows.lead, tail: he.arrows.tail },
+  body: he.founders.intro,
 } as const
 
-// ─── Chevron Strip (arrow image rail, frames 15-19) ────────────────────────────
-
+// ChevronStrip — { heading: { lead, tail }, images }
 export const chevronStrip = {
-  heading: {
-    lead: "This isn't just",
-    tail: 'about real estate.',
-  },
+  heading: { lead: he.arrows.lead, tail: he.arrows.tail },
   images: images.chevron,
 } as const
 
-// ─── Rewired Steps ─────────────────────────────────────────────────────────────
-
+// RewiredSteps — { intro: { lead, tail }, title: { lead, tail }, cta, steps[] }
 export const rewiredSteps = {
-  intro: {
-    lead: "It's about identity. Progress. Getting unstuck. You're not just looking for a place.",
-    tail: "You're looking for alignment. That's what we help you find.",
-  },
-  title: {
-    lead: 'Real Estate,',
-    tail: 'Rewired.',
-  },
-  cta: 'Start Your Search',
-  steps: [
-    {
-      n: '01',
-      lead: 'Talk to a Real Human.',
-      tail: 'We match you with an expert who actually listens.',
-    },
-    {
-      n: '02',
-      lead: 'Get Clarity.',
-      tail: "We define what you really need, not just what's available.",
-    },
-    {
-      n: '03',
-      lead: 'Move Forward.',
-      tail: 'We find what fits — and make it happen.',
-    },
-  ],
+  intro: { lead: he.founders.intro, tail: he.pillars.closing.lead },
+  title: { lead: he.learn.heading.lead, tail: he.learn.heading.tail },
+  cta: he.hero.cta,
+  steps: he.learn.items.slice(0, 3).map((item) => ({
+    n: item.n,
+    lead: item.lead,
+    tail: item.tail,
+  })),
 } as const
 
-// ─── Own Your Career ───────────────────────────────────────────────────────────
-
+// OwnYourCareer — { label, heading: { lead, tail }, body }
 export const ownYourCareer = {
-  label: 'For Agents',
-  heading: {
-    lead: "Don't Rent Your Career.",
-    tail: 'Own It.',
-  },
-  body: "At FIND, our agents don't just work for the brand—they own a part of it. We give top performers real equity, so they're invested in more than just your transaction—they're invested in your outcome. Agents are certified, supported, and equipped to deliver five-star service—because their success is tied to yours. You're not just here to close deals — you're building a career, a life, a legacy. We help agents find the company that gives them the support, tools, and leadership to thrive.",
+  label: he.founders.heading.lead,
+  heading: { lead: he.founders.heading.lead, tail: he.founders.heading.tail },
+  body: `${he.founders.people[0].name} — ${he.founders.people[0].bio} ${he.founders.people[1].name} — ${he.founders.people[1].bio} ${he.founders.intro}`,
 } as const
 
-// ─── Testimonials ──────────────────────────────────────────────────────────────
-
+// Testimonials — { heading: { lead, tail }, items: Testimonial[] }
 export interface Testimonial {
   author: string
   quote: string
@@ -121,45 +407,17 @@ export interface Testimonial {
 
 export const testimonials = {
   heading: {
-    lead: "Don't Take",
-    tail: 'Our Word for It.',
+    lead: he.testimonials.heading.lead,
+    tail: he.testimonials.heading.tail,
   },
-  items: [
-    {
-      author: 'BERNADETTE HOGAN',
-      quote:
-        '"Michael was a great realtor. Such a hard worker, dedicated to helping us find the perfect neighborhood, price point and home. He\'s a workaholic so he was available morning, noon and night. Tireless and dedicated. Would recommend him 100%!"',
-      stars: 5 as const,
-    },
-    {
-      author: 'JAMES & PRIYA CHEN',
-      quote:
-        '"We were first-time buyers in a brutal NYC market and genuinely had no idea what we were doing. Our FIND agent walked us through every step, negotiated hard on our behalf, and got us into a place we actually love. Cannot recommend enough."',
-      stars: 5 as const,
-    },
-    {
-      author: 'MARCUS DELGADO',
-      quote:
-        '"Listed and sold in 11 days, above asking price. The staging advice alone was worth it. The team at FIND knows this market cold and it shows in every conversation. Professional from start to finish."',
-      stars: 5 as const,
-    },
-    {
-      author: 'SOPHIE OKAFOR',
-      quote:
-        '"I relocated from London and needed someone who really understood the Manhattan rental market. My agent knew buildings I had never even seen online. Found me something incredible in the West Village in under two weeks. Magic."',
-      stars: 5 as const,
-    },
-    {
-      author: 'THERESA & BOB WALSH',
-      quote:
-        '"After 22 years in our Tribeca loft it was time to downsize. Our FIND agent treated us with patience and zero pressure, and found us a Park Slope brownstone that feels like home from day one. Exactly what good real estate looks like."',
-      stars: 5 as const,
-    },
-  ] satisfies Testimonial[],
+  items: he.testimonials.items.map((t) => ({
+    author: t.name,
+    quote: t.quote,
+    stars: 5 as const,
+  })) satisfies Testimonial[],
 } as const
 
-// ─── Services ──────────────────────────────────────────────────────────────────
-
+// Services — { label, heading: { lead, tail }, rows: ServiceRow[], closing, cta }
 export interface ServiceRow {
   n: string
   word: string
@@ -167,37 +425,18 @@ export interface ServiceRow {
 }
 
 export const services = {
-  label: 'Services',
-  heading: {
-    lead: 'How FIND',
-    tail: 'Can Help You',
-  },
-  rows: [
-    {
-      n: '1',
-      word: 'Buy',
-      body: "Buy smarter with expert agents backed by mortgage, legal, and appraisal pros—dialed in to get you the best deal, fast. We've done this over 10,000 times, and we know what wins.",
-    },
-    {
-      n: '2',
-      word: 'Sell',
-      body: 'Sell fast, sell high. Your listing gets pro staging, strategic pricing, constant open houses, and agents who never stop working until the right buyer signs.',
-    },
-    {
-      n: '3',
-      word: 'Rent',
-      body: 'Access hidden rentals before they hit the market through agents who know every landlord in town. With decades of NYC experience, we unlock the best deals you won\'t find online.',
-    },
-  ] satisfies ServiceRow[],
-  closing: {
-    lead: 'Our certified agents guide you through every stage of real estate',
-    tail: 'with expert knowledge and reliable support.',
-  },
-  cta: 'Get Started with FIND',
+  label: he.pillars.heading.lead,
+  heading: { lead: he.pillars.heading.lead, tail: he.pillars.heading.tail },
+  rows: he.pillars.rows.map((r) => ({
+    n: r.n,
+    word: r.word,
+    body: r.body,
+  })) satisfies ServiceRow[],
+  closing: { lead: he.pillars.closing.lead, tail: he.pillars.closing.tail },
+  cta: he.pillars.cta,
 } as const
 
-// ─── Support Beyond ────────────────────────────────────────────────────────────
-
+// SupportBeyond — { heading: { lead, tail }, intro: { lead, tail }, cta, cards: SupportCard[] }
 export interface SupportCard {
   title: string
   img: string
@@ -205,36 +444,17 @@ export interface SupportCard {
 }
 
 export const supportBeyond = {
-  heading: {
-    lead: 'Support Beyond',
-    tail: 'Buying and Selling',
-  },
-  intro: {
-    lead: 'The real estate market never stands still — and neither do we.',
-    tail: 'Our experts offer continued support beyond the sale, helping you maximize your investment.',
-  },
-  cta: 'Discover Our Services',
+  heading: { lead: he.learn.heading.lead, tail: he.learn.heading.tail },
+  intro: { lead: he.arrows.lead, tail: he.arrows.tail },
+  cta: he.pillars.cta,
   cards: [
-    {
-      title: 'Mortgage Services',
-      img: images.serviceMortgage,
-      cta: 'Learn More',
-    },
-    {
-      title: 'Property Management',
-      img: images.serviceProperty,
-      cta: 'Learn More',
-    },
-    {
-      title: 'Construction and Real Estate Development',
-      img: images.serviceConstruction,
-      cta: 'Learn More',
-    },
+    { title: he.learn.items[0].lead, img: images.serviceMortgage, cta: he.nav.cta },
+    { title: he.learn.items[1].lead, img: images.serviceProperty, cta: he.nav.cta },
+    { title: he.learn.items[2].lead, img: images.serviceConstruction, cta: he.nav.cta },
   ] satisfies SupportCard[],
 } as const
 
-// ─── Blog ──────────────────────────────────────────────────────────────────────
-
+// Blog — { posts: BlogPost[] }
 export interface BlogPost {
   date: string
   title: string
@@ -245,44 +465,38 @@ export interface BlogPost {
 export const blog = {
   posts: [
     {
-      date: '2026-04-15',
-      title: 'Q1 2026 NYC Market Report',
-      excerpt:
-        'Q1 2026 saw strong rental demand, active sales, and shifting pricing across NYC. Here\'s what it means heading into the spring market.',
+      date: he.webinar.date,
+      title: he.learn.items[0].lead,
+      excerpt: he.learn.items[0].tail,
       img: images.blog[0],
     },
     {
-      date: '2026-04-01',
-      title: 'Philly Real Estate: A Winter Chill or a Spring Opportunity?',
-      excerpt:
-        'Record-low listings and steady price growth define a unique February for the Philadelphia Metro.',
+      date: he.webinar.date,
+      title: he.learn.items[1].lead,
+      excerpt: he.learn.items[1].tail,
       img: images.blog[1],
     },
     {
-      date: '2026-03-09',
-      title: 'What $1M Buys in Different NYC Neighborhoods',
-      excerpt:
-        "Curious what $1M can still buy in today's NYC market? Explore a snapshot of available listings across Manhattan and discover the surprising range of options at this key price point.",
+      date: he.webinar.date,
+      title: he.learn.items[2].lead,
+      excerpt: he.learn.items[2].tail,
       img: images.blog[2],
     },
   ] satisfies BlogPost[],
 } as const
 
-// ─── CTA Footer ────────────────────────────────────────────────────────────────
-
+// CtaFooter — { ctaBand, newsletter, contact, navCols, social }
 export const ctaFooter = {
-  ctaBand: {
-    heading: "Let's Get Started",
-  },
+  ctaBand: { heading: he.register.heading },
   newsletter: {
-    label: 'Subscribe to our Newsletter!',
-    emailPlaceholder: 'Enter address',
+    label: he.footer.newsletter,
+    emailPlaceholder: he.footer.emailPlaceholder,
   },
   contact: {
-    headOffice: '5 West 37th Street, 12th Floor, New York, NY 10018',
-    email: 'hello@findrealestate.com',
-    phone: '+1 212 994 9965',
+    headOffice: he.webinar.platform,
+    email: 'hello@bonim-atid.co.il',
+    phone: he.webinar.time,
   },
-  navCols: ['Search', 'Agents', 'Join', 'About Us', 'Agent Portal'] as string[],
+  navCols: he.footer.navCols as unknown as string[],
   social: ['Facebook', 'Instagram', 'Youtube', 'Linkedin'] as string[],
 } as const

@@ -18,8 +18,9 @@
   --color-sky-deep: #2a5298;
 
   /* ── Fonts ── */
-  --font-display: var(--font-onest);
-  --font-body: var(--font-hanken-grotesk);
+  /* Latin grotesks, with the Hebrew face (Heebo) as fallback so HE renders cleanly. */
+  --font-display: var(--font-onest), var(--font-hebrew);
+  --font-body: var(--font-hanken-grotesk), var(--font-hebrew);
 
   /* ── Spacing (8px grid base) ── */
   --spacing-1: 0.25rem;
@@ -64,14 +65,14 @@ html {
 body {
   background: var(--color-paper);
   color: var(--color-ink);
-  font-family: var(--font-body), system-ui, sans-serif;
+  font-family: var(--font-body), var(--font-hebrew), system-ui, sans-serif;
   margin: 0;
   padding: 0;
   line-height: 1.6;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display), system-ui, sans-serif;
+  font-family: var(--font-display), var(--font-hebrew), system-ui, sans-serif;
   line-height: 1.1;
   margin: 0;
 }
