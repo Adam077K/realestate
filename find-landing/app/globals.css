@@ -18,9 +18,14 @@
   --color-sky-deep: #2a5298;
 
   /* ── Fonts ── */
-  /* Latin grotesks, with the Hebrew face (Heebo) as fallback so HE renders cleanly. */
+  /* Latin grotesks, with the Hebrew face (Rubik) as fallback so HE renders cleanly.
+     Onest/Hanken carry no Hebrew glyphs, so Hebrew text falls through to Rubik —
+     a geometric, premium Hebrew display/body face. */
   --font-display: var(--font-onest), var(--font-hebrew);
   --font-body: var(--font-hanken-grotesk), var(--font-hebrew);
+  /* Hebrew-first stack for giant display type (hero headline, pillar words, footer
+     wordmark) where we want Rubik's strong Hebrew letterforms to lead. */
+  --font-hebrew-display: var(--font-hebrew), var(--font-onest), system-ui, sans-serif;
 
   /* ── Spacing (8px grid base) ── */
   --spacing-1: 0.25rem;
@@ -75,6 +80,15 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display), var(--font-hebrew), system-ui, sans-serif;
   line-height: 1.1;
   margin: 0;
+}
+
+/* RTL / Hebrew display headings: lead with Rubik and tighten tracking so giant
+   Hebrew type reads strong and compact. */
+:root[dir='rtl'] h1,
+:root[dir='rtl'] h2,
+:root[dir='rtl'] h3 {
+  font-family: var(--font-hebrew-display);
+  letter-spacing: -0.015em;
 }
 
 /* ── Utility: hairline border ── */

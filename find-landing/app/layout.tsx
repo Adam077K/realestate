@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Onest, Hanken_Grotesk, Heebo } from 'next/font/google'
+import { Onest, Hanken_Grotesk, Rubik } from 'next/font/google'
 import './globals.css'
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider'
 import { LanguageProvider } from '@/components/providers/LanguageProvider'
@@ -19,10 +19,12 @@ const hankenGrotesk = Hanken_Grotesk({
   weight: ['300', '400', '500', '600', '700', '800'],
 })
 
-// Hebrew face: Heebo — a clean, modern Hebrew sans that pairs well with the Latin
-// grotesks. Exposed as --font-hebrew and used as the fallback in both the display
-// and body font stacks so Hebrew text renders cleanly in every section.
-const heebo = Heebo({
+// Hebrew face: Rubik — a geometric, modern Hebrew sans with strong native Hebrew
+// letterforms. Reads premium at giant display sizes (hero headline, pillar words,
+// footer wordmark) and pairs cleanly with the Onest/Hanken Latin grotesks. Exposed
+// as --font-hebrew and used as the fallback in both the display and body stacks so
+// Hebrew renders crisply everywhere. Full weight range for tight display headings.
+const rubik = Rubik({
   subsets: ['hebrew', 'latin'],
   variable: '--font-hebrew',
   display: 'swap',
@@ -50,7 +52,7 @@ export default function RootLayout({
     <html
       lang="he"
       dir="rtl"
-      className={`${onest.variable} ${hankenGrotesk.variable} ${heebo.variable}`}
+      className={`${onest.variable} ${hankenGrotesk.variable} ${rubik.variable}`}
     >
       <body>
         <LanguageProvider>

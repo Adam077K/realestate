@@ -201,6 +201,65 @@ export const content = {
       rights: 'כל הזכויות שמורות · בונים עתיד',
       wordmark: 'בונים עתיד',
     },
+
+    // ── New site sections (real Bonim Atid content) ──────────────────────────
+    stats: [
+      { value: '16+', label: 'שנות ניסיון משולב' },
+      { value: '46M+', label: '₪ שווי עסקאות בשנה האחרונה' },
+      { value: '2,000+', label: 'משקיעים בקהילה שלנו' },
+    ],
+    headline2: 'עסקאות נדל״ן יוצאות דופן מצריכות מומחיות יוצאת דופן.',
+    partners: {
+      heading: 'השותפים שלנו לדרך',
+      logos: ['AVIV', 'אקרו נדל״ן', 'תדהר', 'גרופיניטי', 'שיכון ובינוי', 'KEDEM', 'KTV', 'arad'],
+    },
+    advantages: {
+      heading: { lead: 'גלו את', tail: 'היתרונות שלנו' },
+      items: [
+        {
+          title: 'מבינים נדל״ן, וגם אנשים',
+          desc: 'אנחנו מלווים אתכם בגובה העיניים — מקשיבים לצרכים שלכם ומתאימים את העסקה אליכם, לא להפך.',
+        },
+        {
+          title: '100% מקצועיות, 0% משחקים',
+          desc: 'כל המלצה נשענת על נתונים, בדיקות עומק ושקיפות מלאה. בלי לחץ מכירתי ובלי הבטחות באוויר.',
+        },
+        {
+          title: 'לא רק יודעים — מיישמים',
+          desc: 'מהשיחה הראשונה ועד החתימה אנחנו לצדכם, מתרגמים את הידע לעסקה אמיתית ומשתלמת.',
+        },
+        {
+          title: 'אין הפתעות, יש ודאות',
+          desc: 'אתם יודעים מראש כל מספר וכל שלב. ליווי משפטי וכלכלי שמסיר את אי-הוודאות מהעסקה.',
+        },
+        {
+          title: 'פוקוס מלא על נדל״ן בישראל',
+          desc: 'אנחנו חיים ונושמים את שוק הנדל״ן הישראלי, מכירים כל אזור ויודעים איפה ההזדמנויות.',
+        },
+      ],
+    },
+    process: {
+      heading: { lead: 'איך', tail: 'זה עובד?' },
+      steps: [
+        { n: '01', title: 'שיחה ראשונית', desc: 'שיחת היכרות קצרה כדי להבין מה אתם מחפשים ומה מתאים לכם.' },
+        { n: '02', title: 'פגישה במשרד או בזום', desc: 'פגישת עומק שבה נציג הזדמנויות רלוונטיות ונבנה יחד אסטרטגיה.' },
+        { n: '03', title: 'בחירה ושריון דירה', desc: 'בוחרים את הנכס הנכון עבורכם ומבצעים שריון מסודר ובטוח.' },
+        { n: '04', title: 'ליווי משפטי ע״י עו״ד הקבוצה', desc: 'עורך הדין של הקבוצה בודק את החוזה ומגן על האינטרסים שלכם.' },
+        { n: '05', title: 'חתימה על עסקה משתלמת', desc: 'חותמים על העסקה בביטחון מלא, עם כל המידע לפניכם.' },
+      ],
+    },
+    buyerGroups: {
+      heading: { lead: 'קבוצות הקונים', tail: 'שלנו' },
+      groups: [
+        { city: 'חולון', note: 'פרויקט מגורים חדש במיקום מבוקש, בתנאי קבוצת רכישה אטרקטיביים.', img: images.serviceMortgage },
+        { city: 'פתח תקווה', note: 'דירות חדשות מקבלן בלב אזור צמיחה, עם פוטנציאל השבחה גבוה.', img: images.serviceProperty },
+        { city: 'בת ים', note: 'נדל״ן מול הים בתנופת התחדשות עירונית — הזדמנות לטווח ארוך.', img: images.serviceConstruction },
+      ],
+    },
+    hitech: {
+      heading: 'רבים מלקוחותינו עובדים בחברות הייטק המובילות',
+      logos: ['monday', 'Microsoft', 'intel', 'amazon', 'Payoneer', 'logz.io', 'WIX', 'Playtika'],
+    },
   },
   en: {
     brand: 'בונים עתיד',
@@ -352,6 +411,65 @@ export const content = {
       navCols: ['The Webinar', 'The Hosts', 'Details', 'Register'],
       rights: 'All rights reserved · Bonim Atid',
       wordmark: 'בונים עתיד',
+    },
+
+    // ── New site sections (real Bonim Atid content) ──────────────────────────
+    stats: [
+      { value: '16+', label: 'years of combined experience' },
+      { value: '46M+', label: 'deal value in the past year' },
+      { value: '2,000+', label: 'investors in our community' },
+    ],
+    headline2: 'Exceptional real-estate deals demand exceptional expertise.',
+    partners: {
+      heading: 'Our partners',
+      logos: ['AVIV', 'Acro', 'Tidhar', 'Groupinity', 'Shikun & Binui', 'KEDEM', 'KTV', 'arad'],
+    },
+    advantages: {
+      heading: { lead: 'Discover our', tail: 'advantages' },
+      items: [
+        {
+          title: 'We understand real estate, and people',
+          desc: 'We guide you at eye level — listening to your needs and shaping the deal around you, not the other way around.',
+        },
+        {
+          title: '100% professionalism, 0% games',
+          desc: 'Every recommendation rests on data, deep due diligence and full transparency. No sales pressure, no empty promises.',
+        },
+        {
+          title: 'We don\u2019t just know \u2014 we execute',
+          desc: 'From the first call to the signature we are by your side, turning knowledge into a real, rewarding deal.',
+        },
+        {
+          title: 'No surprises, only certainty',
+          desc: 'You know every number and every step in advance. Legal and financial guidance that removes the uncertainty.',
+        },
+        {
+          title: 'Fully focused on Israeli real estate',
+          desc: 'We live and breathe the Israeli market, know every area and know exactly where the opportunities are.',
+        },
+      ],
+    },
+    process: {
+      heading: { lead: 'How it', tail: 'works' },
+      steps: [
+        { n: '01', title: 'Initial call', desc: 'A short intro call to understand what you are looking for and what fits you.' },
+        { n: '02', title: 'Meeting in office or on Zoom', desc: 'A deep-dive meeting where we present relevant opportunities and build a strategy together.' },
+        { n: '03', title: 'Choosing & reserving an apartment', desc: 'You choose the right property and we secure an orderly, safe reservation.' },
+        { n: '04', title: 'Legal guidance by the group\u2019s attorney', desc: 'The group\u2019s attorney reviews the contract and protects your interests.' },
+        { n: '05', title: 'Signing a rewarding deal', desc: 'You sign with full confidence, with all the information in front of you.' },
+      ],
+    },
+    buyerGroups: {
+      heading: { lead: 'Our buyer', tail: 'groups' },
+      groups: [
+        { city: 'Holon', note: 'A new residential project in a sought-after location, on attractive buyer-group terms.', img: images.serviceMortgage },
+        { city: 'Petah Tikva', note: 'Brand-new developer apartments in the heart of a growth zone, with high upside.', img: images.serviceProperty },
+        { city: 'Bat Yam', note: 'Seafront real estate in an urban-renewal surge \u2014 a long-term opportunity.', img: images.serviceConstruction },
+      ],
+    },
+    hitech: {
+      heading: 'Many of our clients work at leading tech companies',
+      logos: ['monday', 'Microsoft', 'intel', 'amazon', 'Payoneer', 'logz.io', 'WIX', 'Playtika'],
     },
   },
 } as const
