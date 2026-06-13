@@ -3,10 +3,12 @@
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
-// Chevron: true right-pointing arrowhead. Flat left edge, single point at right.
-// Panels overlap into one ascending directional band (see ChevronStrip).
+// Chevron: true ❯ shape — pointed right tip, concave V-notch on the left.
+// Panels overlap into one continuous ❯❯❯❯ chain (see ChevronStrip).
+// The notch vertex at 42% 50% lets the previous arrow's tip nest inside it,
+// producing the characteristic white V-gaps visible in the reference (frames 16/18).
 export const CHEVRON_CLIP_PATH =
-  'polygon(0% 0%, 78% 0%, 100% 50%, 78% 100%, 0% 100%)'
+  'polygon(0% 0%, 58% 0%, 100% 50%, 58% 100%, 0% 100%, 42% 50%)'
 
 export const RECT_CLIP_PATH = 'none'
 
@@ -33,6 +35,8 @@ export interface MaskedImageProps {
   priority?: boolean
   /** Object-fit style for the image */
   objectFit?: 'cover' | 'contain' | 'fill'
+  /** Object-position — controls which part of the image is visible within the clip shape */
+  objectPosition?: string
 }
 
 export default function MaskedImage({
@@ -46,6 +50,7 @@ export default function MaskedImage({
   className,
   priority = false,
   objectFit = 'cover',
+  objectPosition = 'center',
 }: MaskedImageProps) {
   const clipPath =
     shape === 'chevron' ? CHEVRON_CLIP_PATH : RECT_CLIP_PATH
@@ -62,7 +67,7 @@ export default function MaskedImage({
           fill
           quality={quality}
           priority={priority}
-          style={{ objectFit }}
+          style={{ objectFit, objectPosition }}
           sizes="(max-width: 768px) 100vw, 50vw"
         />
       ) : (
@@ -73,7 +78,7 @@ export default function MaskedImage({
           height={height ?? 600}
           quality={quality}
           priority={priority}
-          style={{ objectFit, width: '100%', height: 'auto' }}
+          style={{ objectFit, objectPosition, width: '100%', height: 'auto' }}
         />
       )}
     </div>

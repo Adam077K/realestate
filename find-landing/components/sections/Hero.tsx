@@ -3,24 +3,30 @@
 /**
  * Hero — Signature pinned scroll experience for FIND Real Estate.
  *
- * Layers (back → front):
+ * Layers (back -> front):
  *   1. Painted sky (CSS gradient, zero JS dependency — instant LCP)
- *   2. HeroClouds R3F canvas (dynamic import, client-only, skipped on mobile / no-WebGL / !motionOk)
- *   3. Building photo (next/image, rises + scales on scrub)
- *   4. Masked "FIND / Real Estate" SVG wordmark (building photo fills the letterforms)
+ *   2. HeroClouds R3F canvas (soft white puffs; dynamic import, client-only,
+ *      skipped on mobile / no-WebGL / !motionOk)
+ *   3. Building CUTOUT (transparent PNG, next/image, object-contain so the full
+ *      silhouette reads; rises from bottom + scales, then shrinks/aligns to the
+ *      wordmark during the morph)
+ *   4. Masked "F]ND / Real Estate" SVG wordmark — the SAME cutout fills the
+ *      letterforms, so the morph reads as the building INJECTING into the type
  *   5. Headline block ("Find What Moves You" + subhead + pill CTA)
  *
- * Scroll timeline (pinned +=300%, scrub 1.1):
- *   p 0.00–0.08  static hold, frame_001 look
- *   p 0.08–0.30  clouds drift; building rises+scales; headline fades up + lifts
- *   p 0.30–0.55  cross-dissolve: real building opacity→0, masked SVG opacity→1 (frame_011)
- *   p 0.55–0.80  wordmark holds, micro scale 1→1.05
- *   p 0.80–1.00  wordmark + clouds drift up + fade → unpin, next section revealed
+ * Scroll timeline (pinned +=320%, scrub 1.1):
+ *   p 0.00-0.08  static hold, frame_001 look
+ *   p 0.08-0.34  clouds drift+part; building rises through them; headline lifts+fades
+ *   p 0.34-0.56  INJECTION: building scales/aligns down toward wordmark while the
+ *                masked wordmark fades up in the same spot (morph, not a flat swap)
+ *   p 0.56-0.80  FIND BEAT — wordmark held centred in the clouds (frame_011),
+ *                micro scale-breath
+ *   p 0.80-1.00  wordmark + clouds drift up + fade -> pin releases -> Why FIND flows in
  *
  * Fallbacks:
- *   !motionOk  → static composed end-state (sky + masked wordmark), no pin, no canvas
- *   mobile     → skip R3F canvas; simplified GSAP cross-fade still runs
- *   no-WebGL   → skip R3F canvas only; GSAP timeline still runs
+ *   !motionOk  -> static composed end-state (sky + cutout-filled wordmark), no pin, no canvas
+ *   mobile     -> skip R3F canvas; simplified GSAP cross-fade still runs (cutout)
+ *   no-WebGL   -> skip R3F canvas only; GSAP timeline still runs
  */
 
 import dynamic from 'next/dynamic'
@@ -55,7 +61,7 @@ function detectWebGL(): boolean {
 }
 
 // ─── SVG clip-mask wordmark dimensions ───────────────────────────────────────
-// Glyph paths occupy a 186×60 box (the FIND_GLYPH_PATHS coordinate space).
+// Glyph paths occupy a 186x60 box (the FIND_GLYPH_PATHS coordinate space).
 // We add 28px below for "Real Estate" text — total logical height = 88.
 const MASK_VB_W = 186
 const MASK_VB_H = 88
@@ -103,9 +109,10 @@ export default function Hero() {
       const wordmark = wordmarkRef.current
       if (!buildingWrap || !headline || !buildingImg || !wordmark) return
 
-      // Initialise animated layers to their resting state.
-      gsap.set(wordmark, { opacity: 0 })
+      // Initialise animated layers to their resting state (frame_001).
+      gsap.set(wordmark, { opacity: 0, scale: 0.92, y: 24 })
       gsap.set(buildingImg, { opacity: 1 })
+      gsap.set(buildingWrap, { y: '0%', scale: 1 })
 
       // Enable GPU compositing hints.
       gsap.set([buildingWrap, headline, wordmark], { willChange: 'transform, opacity' })
@@ -115,7 +122,7 @@ export default function Hero() {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: '+=300%',
+          end: '+=320%',
           pin: true,
           scrub: 1.1,
           anticipatePin: 1,
@@ -125,32 +132,55 @@ export default function Hero() {
         },
       })
 
-      // p 0–0.08  static hold (frame_001 look)
+      // p 0-0.08  static hold (frame_001 look)
       tl.to({}, { duration: 0.08 })
 
-      // p 0.08–0.30  headline fades + lifts; building rises and scales
+      // p 0.08-0.34  headline lifts + fades; building rises through the clouds and scales up
       tl.to(
         headline,
-        { opacity: 0, y: -56, duration: 0.22, ease: 'power2.in' },
+        { opacity: 0, y: -64, duration: 0.26, ease: 'power2.in' },
         '<'
       )
       tl.to(
         buildingWrap,
-        { y: '-14%', scale: 1.25, duration: 0.22, ease: 'power1.inOut' },
+        { y: '-16%', scale: 1.28, duration: 0.26, ease: 'power1.inOut' },
         '<'
       )
 
-      // p 0.30–0.55  cross-dissolve: real building → masked wordmark (frame_011)
-      tl.to(buildingImg, { opacity: 0, duration: 0.25, ease: 'power1.in' }, 0.30)
-      tl.to(wordmark, { opacity: 1, duration: 0.25, ease: 'power1.out' }, 0.30)
-
-      // p 0.55–0.80  wordmark holds, micro-scale breath
-      tl.to(wordmark, { scale: 1.05, duration: 0.25, ease: 'sine.inOut' }, 0.55)
-
-      // p 0.80–1.00  everything drifts up and fades; unpins automatically
+      // p 0.34-0.56  INJECTION / morph — the cutout building scales + lifts toward
+      // the wordmark's centred resting size while the masked wordmark fades up in the
+      // same place. Aligning the two transforms makes the building visually flow INTO
+      // the letterforms (a morph) rather than a flat fade-swap.
       tl.to(
-        [wordmark, buildingWrap],
-        { y: '-22%', opacity: 0, duration: 0.20, ease: 'power2.in' },
+        buildingWrap,
+        { y: '-34%', scale: 0.62, duration: 0.22, ease: 'power2.inOut' },
+        0.34
+      )
+      tl.to(
+        buildingImg,
+        { opacity: 0, duration: 0.20, ease: 'power1.in' },
+        0.36
+      )
+      tl.to(
+        wordmark,
+        { opacity: 1, scale: 1, y: 0, duration: 0.22, ease: 'power2.out' },
+        0.34
+      )
+
+      // p 0.56-0.80  FIND BEAT — held centred in the clouds (frame_011), micro breath
+      tl.to(wordmark, { scale: 1.045, duration: 0.24, ease: 'sine.inOut' }, 0.56)
+
+      // p 0.80-1.00  wordmark drifts up + fades; clouds lift away (HeroClouds reacts to
+      // the same progress) -> the pin releases and Why FIND flows in beneath. Seamless
+      // injection/hand-off, no hard cut.
+      tl.to(
+        wordmark,
+        { y: '-26%', scale: 1.12, opacity: 0, duration: 0.20, ease: 'power2.in' },
+        0.80
+      )
+      tl.to(
+        buildingWrap,
+        { y: '-46%', opacity: 0, duration: 0.20, ease: 'power2.in' },
         0.80
       )
 
@@ -173,7 +203,7 @@ export default function Hero() {
       >
         <SkyGradient />
         <div className="relative z-10 flex flex-col items-center px-4">
-          <FindWordmarkSVG buildingSrc={images.heroBuilding} />
+          <FindWordmarkSVG buildingSrc={images.heroBuildingCutout} />
         </div>
       </section>
     )
@@ -201,7 +231,9 @@ export default function Hero() {
         </div>
       )}
 
-      {/* 3. Building image wrapper — rises + scales on scrub */}
+      {/* 3. Building CUTOUT (transparent PNG) — rises from the bottom, then shrinks
+            + aligns toward the wordmark during the injection. object-contain shows the
+            whole silhouette cleanly over the sky/clouds (no white box, no crop). */}
       <div
         ref={buildingWrapRef}
         className="absolute bottom-0 left-1/2 z-[2] w-full max-w-3xl -translate-x-1/2"
@@ -210,25 +242,27 @@ export default function Hero() {
         {/* Inner wrapper holds opacity for the cross-dissolve */}
         <div ref={buildingImgRef} aria-hidden="true">
           <Image
-            src={images.heroBuilding}
-            alt="Luxury penthouse building at dusk"
-            width={1200}
-            height={900}
+            src={images.heroBuildingCutout}
+            alt="Golden-hour residential building"
+            width={1998}
+            height={1338}
             priority
             quality={90}
-            className="w-full h-auto object-cover object-top select-none"
+            className="h-auto w-full select-none object-contain"
             sizes="(max-width: 768px) 100vw, 80vw"
           />
         </div>
       </div>
 
-      {/* 4. Masked "FIND / Real Estate" SVG wordmark — fades in at mid-scroll */}
+      {/* 4. Masked "F]ND / Real Estate" SVG wordmark — the SAME cutout fills the
+            letterforms, so the building flows into the type. Fades up at mid-scroll. */}
       <div
         ref={wordmarkRef}
         className="absolute inset-0 z-[3] flex items-center justify-center px-4"
+        style={{ transformOrigin: 'center center' }}
         aria-hidden="true"
       >
-        <FindWordmarkSVG buildingSrc={images.heroBuilding} />
+        <FindWordmarkSVG buildingSrc={images.heroBuildingCutout} />
       </div>
 
       {/* 5. Headline block — fades + lifts as scroll begins */}
@@ -302,9 +336,11 @@ function SkyGradient() {
   )
 }
 
-// ─── Building-filled "FIND / Real Estate" SVG wordmark ────────────────────────
-// The hero building photo is rendered inside an SVG <image> element and clipped to
-// the "FIND" glyph letterforms via a <clipPath>. "Real Estate" is plain dark text below.
+// ─── Building-filled "F]ND / Real Estate" SVG wordmark ────────────────────────
+// The transparent building CUTOUT is rendered inside an SVG <image> element and
+// clipped to the "FIND" glyph letterforms via a <clipPath>. Because it is the same
+// asset as the hero building layer, the injection morph reads seamlessly.
+// "Real Estate" is plain dark text below.
 interface FindWordmarkSVGProps {
   buildingSrc: string
 }
@@ -333,19 +369,18 @@ function FindWordmarkSVG({ buildingSrc }: FindWordmarkSVGProps) {
           </clipPath>
         </defs>
 
-        {/* Building photo clipped to the FIND letterforms.
-            xMidYMax favours the warm-lit brick + window band (brighter than the
-            dark roofline); the filter lifts brightness/contrast so the letterforms
-            read with high contrast against the pale sky (frame_011). */}
+        {/* Building cutout clipped to the FIND letterforms. xMidYMid slice centres on
+            the warm-lit window band; the filter lifts brightness/contrast so the
+            letterforms read with high contrast against the pale sky (frame_011). */}
         <image
           href={buildingSrc}
-          x={0}
-          y={0}
-          width={MASK_VB_W}
-          height={60}
-          preserveAspectRatio="xMidYMax slice"
+          x={-8}
+          y={-14}
+          width={MASK_VB_W + 16}
+          height={88}
+          preserveAspectRatio="xMidYMid slice"
           clipPath="url(#findMask)"
-          style={{ filter: 'brightness(1.18) contrast(1.08) saturate(1.12)' }}
+          style={{ filter: 'brightness(1.16) contrast(1.06) saturate(1.1)' }}
         />
 
         {/* "Real Estate" sub-line in display font, dark, below the glyphs */}
