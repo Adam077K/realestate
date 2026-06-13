@@ -11,8 +11,9 @@ import Pill from '@/components/ui/Pill'
  * Webinar details — id="webinar". "The Pass" concept.
  *
  * A premium, dark "save the date" moment. The event DATE is the hero: the day's
- * numeral (e.g. 22.06) is rendered colossal, gradient-filled (warm sky palette),
- * clip-revealed on scroll, layered over a faded ghost numeral for depth. The
+ * numeral (e.g. 22.06) is rendered colossal, filled with a refined monochrome
+ * white→gray gradient, clip-revealed on scroll, layered over a faded ghost
+ * numeral for depth. The
  * logistics (full date / time / duration / platform) are woven into an elegant
  * boarding-pass rail — labelled rows on a single drawn hairline — instead of four
  * identical squares. A perforated divider sells the ticket/pass motif, and a CTA
@@ -150,15 +151,15 @@ export default function SupportBeyond() {
       className="relative w-full overflow-hidden bg-[var(--color-dark)] text-[var(--color-paper)]"
       aria-labelledby="webinar-heading"
     >
-      {/* Atmospheric warm glow anchored to the date side (tasteful accent, not neon). */}
+      {/* Atmospheric neutral glow anchored to the date side (subtle, monochrome). */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
         style={{
           background:
             dir === 'rtl'
-              ? 'radial-gradient(120% 90% at 88% 28%, rgba(232,133,90,0.16), transparent 58%)'
-              : 'radial-gradient(120% 90% at 12% 28%, rgba(232,133,90,0.16), transparent 58%)',
+              ? 'radial-gradient(120% 90% at 88% 28%, rgba(255,255,255,0.08), transparent 58%)'
+              : 'radial-gradient(120% 90% at 12% 28%, rgba(255,255,255,0.08), transparent 58%)',
         }}
       />
 
@@ -198,7 +199,7 @@ export default function SupportBeyond() {
                 style={{
                   fontSize: 'clamp(5.5rem, 19vw, 16rem)',
                   backgroundImage:
-                    'linear-gradient(135deg, var(--color-sky-peach) 0%, var(--color-sky-orange) 42%, var(--color-sky-rose) 100%)',
+                    'linear-gradient(135deg, #ffffff 0%, #d4d4d4 48%, #8a8a8a 100%)',
                   WebkitBackgroundClip: 'text',
                   backgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
@@ -222,7 +223,7 @@ export default function SupportBeyond() {
               {/* The drawn hairline that the rows hang from. */}
               <span
                 aria-hidden="true"
-                className="wb-rail-line absolute inset-y-1 start-0 w-px bg-gradient-to-b from-[var(--color-sky-orange)] via-[rgba(255,255,255,0.28)] to-transparent"
+                className="wb-rail-line absolute inset-y-1 start-0 w-px bg-gradient-to-b from-[rgba(255,255,255,0.55)] via-[rgba(255,255,255,0.22)] to-transparent"
                 style={{ willChange: 'transform' }}
               />
 
@@ -236,7 +237,7 @@ export default function SupportBeyond() {
                     {/* Node dot on the rail. */}
                     <span
                       aria-hidden="true"
-                      className="absolute top-7 h-1.5 w-1.5 rounded-full bg-[var(--color-sky-orange)] md:top-8"
+                      className="absolute top-7 h-1.5 w-1.5 rounded-full bg-[rgba(255,255,255,0.6)] md:top-8"
                       style={{ insetInlineStart: 'calc(-1.75rem - 3px)' }}
                     />
                     <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-[rgba(255,255,255,0.42)]">

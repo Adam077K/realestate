@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Onest, Hanken_Grotesk, Rubik } from 'next/font/google'
+import { Onest, Hanken_Grotesk, Assistant } from 'next/font/google'
 import './globals.css'
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider'
 import { LanguageProvider } from '@/components/providers/LanguageProvider'
@@ -19,12 +19,15 @@ const hankenGrotesk = Hanken_Grotesk({
   weight: ['300', '400', '500', '600', '700', '800'],
 })
 
-// Hebrew face: Rubik — a geometric, modern Hebrew sans with strong native Hebrew
-// letterforms. Reads premium at giant display sizes (hero headline, pillar words,
-// footer wordmark) and pairs cleanly with the Onest/Hanken Latin grotesks. Exposed
-// as --font-hebrew and used as the fallback in both the display and body stacks so
-// Hebrew renders crisply everywhere. Full weight range for tight display headings.
-const rubik = Rubik({
+// Hebrew face: Assistant — the de-facto premium modern Hebrew sans on high-end
+// Israeli sites. Its native Hebrew letterforms are more refined and humanist than
+// Rubik's geometric build: open apertures, even rhythm, and a wide weight range
+// (300–800) that reads crisp at giant display sizes (hero headline, pillar words,
+// footer wordmark) and stays comfortable at body sizes. Pairs cleanly with the
+// Onest/Hanken Latin grotesks. Exposed as --font-hebrew; it backs both the display
+// and body stacks and leads the Hebrew-display stack so Hebrew renders polished
+// everywhere headings, body, giant words, footer wordmark and buttons appear.
+const assistant = Assistant({
   subsets: ['hebrew', 'latin'],
   variable: '--font-hebrew',
   display: 'swap',
@@ -52,7 +55,7 @@ export default function RootLayout({
     <html
       lang="he"
       dir="rtl"
-      className={`${onest.variable} ${hankenGrotesk.variable} ${rubik.variable}`}
+      className={`${onest.variable} ${hankenGrotesk.variable} ${assistant.variable}`}
     >
       <body>
         <LanguageProvider>

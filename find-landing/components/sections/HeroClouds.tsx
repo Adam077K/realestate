@@ -160,6 +160,20 @@ const smooth = (n: number) => {
 }
 
 /**
+ * Full-screen near-white cover intensity for the FRONT field, 0..1. Mirrors the
+ * `cover` curve in coverageState('front'): ramps to a near-full envelope by p≈0.84
+ * (the whole page briefly washes near-white — reference frame_011), then THINS as the
+ * next section emerges UP through the clouds (frame_012). Drives the dedicated soft
+ * near-white veil so the cover is continuous (no sky gaps between PNGs) and the reveal
+ * happens promptly right after the wordmark disappears.
+ */
+function frontCover(p: number) {
+  const bloom = smooth(clamp01((p - 0.45) / 0.39))
+  const lift = smooth(clamp01((p - 0.84) / 0.16))
+  return clamp01(bloom - lift * 0.82)
+}
+
+/**
  * Coverage ramp for a layer at a given scroll progress + variant.
  * Returns opacity / scale / translateY(vh) / translateX(vw) deltas to layer on top
  * of the layer's base position. Higher `coverage` => stronger response, accelerating
@@ -175,15 +189,24 @@ function coverageState(p: number, layer: CloudLayer, variant: 'back' | 'front') 
   const ramp = clamp01(early * 0.28 + beat * 0.85) * layer.coverage
 
   if (variant === 'front') {
-    // At rest near-invisible (headline readable). Bloom in on scroll, capped below
-    // full so the wordmark still reads through the mist. Faster front ramp (smaller
-    // early warm-up; beat dominates) keeps the headline clear at rest.
-    const frontRamp = clamp01(early * 0.16 + beat * 0.95) * layer.coverage
-    const FRONT_PEAK = 0.74 // softest enveloping veil, never a hard wipe
+    // FRONT field arc (tight, reference frames 7 -> 11 -> 12):
+    //   rest (p≈0)     : near-invisible — headline fully readable.
+    //   p 0.45 -> 0.84 : blooms in fast, ramping to a DENSE near-opaque FULL viewport
+    //                    cover (the page is briefly enveloped in soft near-white cloud).
+    //   p 0.84 -> 1.0  : the cover THINS / lifts as the next section emerges UP through
+    //                    the clouds (so it does not block the reveal).
+    // `cover` is the enveloping intensity 0..1 used by both the PNG layers and the
+    // dedicated near-white full-screen veil (rendered separately as the `cover-veil`).
+    const bloom = smooth(clamp01((p - 0.45) / 0.39)) // 0 at p=0.45, 1 by p=0.84
+    const lift = smooth(clamp01((p - 0.84) / 0.16)) // 0 until 0.84, 1 by p=1.0
+    const cover = clamp01(bloom - lift * 0.82) // ramp to ~1, then thin to ~0.18
+    const frontRamp = cover * layer.coverage
+    // Near-opaque at peak so the field reads as a dense soft cover (frame_011).
+    const FRONT_PEAK = 0.97
     const opacity = clamp01(layer.baseOpacity + (FRONT_PEAK - layer.baseOpacity) * frontRamp)
-    const scale = 1 + frontRamp * 0.5 // swell as it rolls across the centre
-    const translateY = -frontRamp * 16 // gentle upward climb over the wordmark
-    const translateX = layer.driftX * frontRamp // strong inward sweep toward centre
+    const scale = 1 + frontRamp * 0.62 // swell large so puffs overlap into a wash
+    const translateY = -frontRamp * 14 // gentle upward climb, then lifts off on reveal
+    const translateX = layer.driftX * frontRamp // inward sweep toward centre
     return { opacity, scale, translateY, translateX }
   }
 
@@ -202,6 +225,9 @@ export default function HeroClouds({
 }: HeroCloudsProps) {
   const fieldRef = useRef<HTMLDivElement>(null)
   const layerRefs = useRef<Array<HTMLImageElement | null>>([])
+  // Dedicated near-white full-screen cover veil (front variant only) — guarantees a
+  // continuous dense cover at peak (no sky gaps between PNGs), then thins on reveal.
+  const veilRef = useRef<HTMLDivElement>(null)
   const rafRef = useRef<number | null>(null)
   // Resolve reduced-motion only on the client to avoid an SSR mismatch.
   const [reducedMotion, setReducedMotion] = useState(false)
@@ -245,6 +271,13 @@ export default function HeroClouds({
         el.style.setProperty('--cov-scale', scale.toFixed(3))
         el.style.setProperty('--cov-ty', `${translateY.toFixed(2)}vh`)
         el.style.setProperty('--cov-tx', `${translateX.toFixed(2)}vw`)
+      }
+      // FRONT veil — soft near-white full-screen cover. Ramps to a dense envelope by
+      // p≈0.84 (frame_011) then thins as the next section emerges (frame_012).
+      const veil = veilRef.current
+      if (veil) {
+        // Peak ~0.94 keeps it dense-but-soft (cloud texture still reads through the PNGs).
+        veil.style.opacity = (frontCover(p) * 0.94).toFixed(3)
       }
     }
 
@@ -364,6 +397,28 @@ export default function HeroClouds({
           />
         )
       })}
+
+      {/* FRONT cover veil — a soft near-white wash that fills the WHOLE viewport at the
+          end of the hero so the page is briefly enveloped in cloud (frame_011), then
+          thins as the next section emerges up through it (frame_012). A faint top-light
+          gradient + blur keeps it reading as cloud, not a flat panel. Front variant only;
+          its opacity is driven each frame by frontCover(p). */}
+      {variant === 'front' && (
+        <div
+          ref={veilRef}
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: '-6%',
+            opacity: animate ? frontCover(0) * 0.94 : frontCover(staticRestP) * 0.94,
+            background:
+              'radial-gradient(120% 90% at 50% 30%, rgba(255,255,255,0.78) 0%, rgba(248,251,255,0.94) 46%, rgba(255,255,255,0.99) 100%)',
+            filter: 'blur(6px)',
+            willChange: animate ? 'opacity' : 'auto',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
     </div>
   )
 }

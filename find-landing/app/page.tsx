@@ -19,8 +19,8 @@ export default function Home() {
       <main>
         <Hero />
         <Stats />
-        <ChevronStrip />
         <RewiredSteps />
+        <ChevronStrip />
         <OwnYourCareer />
         <Partners />
         <Services />

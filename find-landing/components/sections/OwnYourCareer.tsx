@@ -1,36 +1,32 @@
 'use client'
 
 import { useRef } from 'react'
+import Image from 'next/image'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useContent } from '@/components/providers/LanguageProvider'
 import TwoToneHeading from '@/components/ui/TwoToneHeading'
 import SectionLabel from '@/components/ui/SectionLabel'
-import { images } from '@/data/content'
 
 /**
  * "The Hosts" — id="founders".
  *
- * Meet-the-two-hosts block. The previous asymmetric-image layout is repurposed:
- * a label + heading + intro at the top, then TWO host blocks, each with a
- * portrait, display name, muted role, and bio. The two blocks are vertically
- * offset (the second sits lower) to keep the editorial asymmetry.
+ * Meet-the-two-hosts block using the REAL founder portraits
+ * (`c.founders.people[i].img`: עידן פלג / רועי פישמן — professional head-and-torso
+ * portraits on a light ground). Each host is presented as a tasteful portrait card:
+ * a framed photo above the display name, muted role, and bio.
  *
- * RTL-correct: text uses text-start; the offset spacer and grid order mirror via
- * `dir` on <html>. Reveal uses GPU transforms (opacity + clip-path + y) and is
- * gated on motionOk, with a static fallback (full opacity, no clip) when off.
+ * RTL-correct: text uses text-start; the second card is offset lower for editorial
+ * asymmetry (mirrors with `dir` on <html>). Reveal uses GPU transforms (opacity +
+ * clip-path + y) and is gated on motionOk, with a static fallback (full opacity,
+ * no clip) when off. Photos use next/image (webp) with object-cover framing.
  */
-
-// Tasteful portrait-ish imagery for each host. agentPortrait reads as a person;
-// chevron[0] is the agent panel from the strip — both portrait-leaning frames.
-const HOST_IMAGES = [images.agentPortrait, images.chevron[0]] as const
-
 export default function OwnYourCareer() {
   const sectionRef = useRef<HTMLElement>(null)
   const headingRef = useRef<HTMLDivElement>(null)
   const introRef = useRef<HTMLParagraphElement>(null)
-  const personRefs = useRef<(HTMLDivElement | null)[]>([])
+  const personRefs = useRef<(HTMLElement | null)[]>([])
   const { motionOk } = useSmoothScroll()
   const c = useContent()
 
@@ -70,8 +66,8 @@ export default function OwnYourCareer() {
         })
       }
 
-      // Each host block — image clip-path reveal + text rise
-      const people = personRefs.current.filter(Boolean) as HTMLDivElement[]
+      // Each host card — image clip-path reveal + text rise
+      const people = personRefs.current.filter(Boolean) as HTMLElement[]
       people.forEach((person, i) => {
         const imageWrap = person.querySelector('.host-image')
         const textBlock = person.querySelectorAll('.host-text')
@@ -132,44 +128,53 @@ export default function OwnYourCareer() {
         {c.founders.intro}
       </p>
 
-      {/* Two host blocks — second offset lower for editorial asymmetry */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 lg:gap-24 max-w-6xl mx-auto">
+      {/* Two host cards — second offset lower for editorial asymmetry */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 lg:gap-24 max-w-5xl mx-auto">
         {c.founders.people.map((person, i) => (
-          <div
+          <figure
             key={person.name}
             ref={(el) => {
               personRefs.current[i] = el
             }}
-            className={i === 1 ? 'md:mt-24 lg:mt-32' : undefined}
+            className={i === 1 ? 'group md:mt-24 lg:mt-32 m-0' : 'group m-0'}
           >
-            {/* Portrait */}
-            <div
-              className="host-image relative overflow-hidden rounded-sm"
-              style={{
-                clipPath: motionOk ? 'inset(100% 0 0 0)' : undefined,
-                aspectRatio: '3/4',
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={HOST_IMAGES[i] ?? HOST_IMAGES[0]}
-                alt={`${person.name} — ${person.role}`}
-                className="w-full h-full object-cover"
-                loading="lazy"
+            {/* Portrait — tasteful framed card */}
+            <div className="relative">
+              {/* Soft offset backing plate for a premium, framed feel */}
+              <span
+                aria-hidden="true"
+                className="absolute -inset-x-3 -bottom-3 top-6 rounded-sm bg-[var(--color-ink)]/[0.04]"
               />
+              <div
+                className="host-image relative overflow-hidden rounded-sm bg-[var(--color-ink)]/[0.03] ring-1 ring-[var(--color-ink)]/10 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.45)]"
+                style={{
+                  clipPath: motionOk ? 'inset(100% 0 0 0)' : undefined,
+                  aspectRatio: '4 / 5',
+                }}
+              >
+                <Image
+                  src={person.img}
+                  alt={`${person.name} — ${person.role}`}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 480px"
+                  className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.03] motion-reduce:transform-none motion-reduce:transition-none"
+                />
+              </div>
             </div>
 
             {/* Name + role + bio */}
-            <h3 className="host-text font-[var(--font-display)] text-[clamp(1.5rem,3vw,2.25rem)] leading-tight tracking-[-0.02em] text-[var(--color-ink)] mt-6 text-start">
-              {person.name}
-            </h3>
-            <p className="host-text text-xs md:text-sm font-medium tracking-wide uppercase text-[var(--color-muted)] mt-2 text-start">
-              {person.role}
-            </p>
-            <p className="host-text text-[var(--color-ink)]/80 text-[clamp(0.95rem,1.4vw,1.0625rem)] leading-relaxed mt-4 max-w-md text-start">
-              {person.bio}
-            </p>
-          </div>
+            <figcaption className="mt-8 text-start">
+              <h3 className="host-text font-[var(--font-display)] text-[clamp(1.5rem,3vw,2.25rem)] leading-tight tracking-[-0.02em] text-[var(--color-ink)]">
+                {person.name}
+              </h3>
+              <p className="host-text text-xs md:text-sm font-medium tracking-wide uppercase text-[var(--color-muted)] mt-2">
+                {person.role}
+              </p>
+              <p className="host-text text-[var(--color-ink)]/80 text-[clamp(0.95rem,1.4vw,1.0625rem)] leading-relaxed mt-4 max-w-md">
+                {person.bio}
+              </p>
+            </figcaption>
+          </figure>
         ))}
       </div>
     </section>
