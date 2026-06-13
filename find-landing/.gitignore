@@ -31,3 +31,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# QA visual capture output (regenerate via tests/visual-capture.mjs)
+qa-screens/
