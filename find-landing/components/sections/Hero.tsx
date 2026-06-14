@@ -460,11 +460,12 @@ export default function Hero() {
           <p
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(0.58rem, 2.6vw, 1.4rem)',
+              fontSize: 'clamp(0.82rem, 2.2vw, 1.4rem)',
               fontWeight: 300,
               lineHeight: 1.65,
               letterSpacing: '0.005em',
-              whiteSpace: 'nowrap',
+              whiteSpace: 'normal',
+              maxWidth: 'clamp(280px, 72vw, 860px)',
               color: '#000000',
               textAlign: 'center',
               marginTop: 'clamp(0.6rem, 1.6vh, 1.2rem)',
@@ -690,10 +691,11 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
           className="font-light"
           style={{
             fontFamily: 'var(--font-body)',
-            fontSize: 'clamp(0.58rem, 2.6vw, 1.4rem)',
+            fontSize: 'clamp(0.82rem, 2.2vw, 1.4rem)',
             lineHeight: 1.65,
             color: '#000000',
-            whiteSpace: 'nowrap',
+            whiteSpace: 'normal',
+            maxWidth: 'clamp(280px, 72vw, 860px)',
             textShadow: '0 1px 8px rgba(255,255,255,0.55)',
           }}
         >

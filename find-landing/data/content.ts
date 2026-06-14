@@ -75,15 +75,15 @@ export const content = {
       toggle: 'עב',
     },
     hero: {
-      title: 'דירה חדשה מקבלן ב-2026',
+      title: 'וובינר חינם: איך קונים דירה מקבלן נכון ב-2026',
       // Headline cycles through these on scroll (dice/scramble effect).
       cycle: [
-        'דירה חדשה מקבלן ב-2026',
+        'וובינר חינם: איך קונים דירה מקבלן נכון ב-2026',
         'איך לנצל את המצב בשוק לטובתנו?',
         'מה חובה לבדוק לפני עסקה?',
       ],
       subhead:
-        'איך לנצל את מצב השוק לטובתכם - וובינר חינם עם עידן פלג ורועי פישמן.',
+        'יום שני 22.6 · 20:30 · בזום — עם עידן פלג ורועי פישמן. מה חובה לדעת לפני שקונים.',
       cta: 'הרשמה לוובינר',
     },
     arrows: {
@@ -367,14 +367,14 @@ export const content = {
       toggle: 'EN',
     },
     hero: {
-      title: 'Buy from a developer,\nget it right',
+      title: 'Free webinar: how to buy new-build property right in 2026',
       cycle: [
-        'Buy from a developer,\nget it right',
+        'Free webinar: how to buy new-build property right in 2026',
         'How to turn the market\nto your advantage?',
         'What to check before\nsigning any deal?',
       ],
       subhead:
-        'A free webinar on navigating Israel\'s 2026 market - with Idan Peleg & Roey Fishman.',
+        'Mon 22.6 · 20:30 · on Zoom — with Idan Peleg & Roey Fishman.',
       cta: 'Register for the webinar',
     },
     arrows: {
