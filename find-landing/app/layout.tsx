@@ -38,6 +38,10 @@ export const metadata: Metadata = {
   title: 'בונים עתיד — וובינר השקעות נדל״ן',
   description:
     'איך לנצל את מצב השוק לטובתכם — וובינר חינם עם עידן פלג ורועי פישמן.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
   openGraph: {
     title: 'בונים עתיד — וובינר השקעות נדל״ן',
     description:

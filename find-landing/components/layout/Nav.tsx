@@ -77,6 +77,7 @@ export default function Nav() {
                   'hover:text-[var(--color-dark)] hover:bg-[rgba(17,17,17,0.05)]',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink)] focus-visible:ring-offset-2'
                 )}
+                style={{ textShadow: '0 1px 6px rgba(255,255,255,0.5)' }}
               >
                 {link.label}
               </Link>
@@ -85,7 +86,7 @@ export default function Nav() {
         </ul>
 
         {/* Trailing edge: language toggle + CTA (left in RTL) */}
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-3 md:gap-5">
           <button
             type="button"
             onClick={() => setLang(otherLang)}

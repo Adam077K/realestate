@@ -292,14 +292,14 @@ export const content = {
       toggle: 'EN',
     },
     hero: {
-      title: 'A New Apartment, Built Right',
+      title: 'Buy from a developer,\nget it right',
       cycle: [
-        'A new apartment from a developer, 2026',
-        'How to turn the market to your advantage?',
-        'What you must check before a deal?',
+        'Buy from a developer,\nget it right',
+        'How to turn the market\nto your advantage?',
+        'What to check before\nsigning any deal?',
       ],
       subhead:
-        'How to turn the 2026 market to your advantage — a free webinar with Idan Peleg & Roey Fishman.',
+        'A free webinar on navigating Israel\'s 2026 market — with Idan Peleg & Roey Fishman.',
       cta: 'Reserve my spot now',
     },
     arrows: {

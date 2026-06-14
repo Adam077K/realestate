@@ -69,11 +69,12 @@ export function BrandWordmarkMask({ fillSrc, className }: BrandWordmarkMaskProps
 
   return (
     <svg
-      viewBox="0 0 600 160"
+      viewBox="0 0 720 175"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label="בונים עתיד"
       className={className}
+      overflow="visible"
       preserveAspectRatio="xMidYMid meet"
     >
       <defs>
@@ -86,7 +87,7 @@ export function BrandWordmarkMask({ fillSrc, className }: BrandWordmarkMaskProps
             direction="rtl"
             fontFamily="var(--font-hebrew), system-ui, sans-serif"
             fontWeight="800"
-            fontSize="130"
+            fontSize="138"
             letterSpacing="-2"
           >
             בונים עתיד
@@ -97,8 +98,8 @@ export function BrandWordmarkMask({ fillSrc, className }: BrandWordmarkMaskProps
         href={fillSrc}
         x="0"
         y="0"
-        width="600"
-        height="160"
+        width="720"
+        height="175"
         preserveAspectRatio="xMidYMid slice"
         clipPath={`url(#${clipId})`}
       />

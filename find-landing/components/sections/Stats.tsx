@@ -33,7 +33,7 @@ export default function Stats() {
       gsap.from('.stat-item', {
         y: 28,
         opacity: 0,
-        stagger: 0.12,
+        stagger: 0.18,
         duration: 0.8,
         ease: 'power3.out',
         scrollTrigger: { trigger: '.stats-grid', start: 'top 85%' },
@@ -62,6 +62,7 @@ export default function Stats() {
         Starts cloud-white (matching the veil) → fades to transparent.
         Much lighter than v1 (was dark bg → gradient was covering a big jump).
       */}
+      {/* P3-D: taller + softer bridge gradient to fully dissolve seam */}
       <div
         aria-hidden="true"
         style={{
@@ -69,9 +70,9 @@ export default function Stats() {
           top: 0,
           left: 0,
           right: 0,
-          height: '120px',
+          height: '220px',
           background:
-            'linear-gradient(to bottom, rgba(240,247,255,0.85) 0%, rgba(238,242,247,0) 100%)',
+            'linear-gradient(to bottom, rgba(240,247,255,0.60) 0%, rgba(238,242,247,0) 100%)',
           pointerEvents: 'none',
           zIndex: 1,
         }}
@@ -86,8 +87,12 @@ export default function Stats() {
             >
               {/* Large display number — dark on light for WCAG contrast */}
               <span
-                className="font-[var(--font-display)] font-light leading-none tracking-[-0.03em] text-[clamp(2.75rem,7vw,5rem)] tabular-nums"
-                style={{ color: 'var(--color-ink)' }}
+                className="font-[var(--font-display)] font-light leading-none tracking-[-0.03em]"
+                style={{
+                  color: 'var(--color-ink)',
+                  fontSize: 'clamp(3.5rem,9vw,6.5rem)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
               >
                 {stat.value}
               </span>

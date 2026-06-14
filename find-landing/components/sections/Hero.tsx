@@ -178,12 +178,11 @@ export default function Hero() {
         },
       })
 
-      // p 0.00–0.46  BUILDING PANS UP — constant size, translateY 0 → -panPx.
-      // Reveals progressively lower floors: penthouse → mid-section → ground/base.
-      // pan2.out easing: faster at start, settles gently at end.
+      // p 0.00–0.50  BUILDING PANS UP — constant size, translateY 0 → -panPx.
+      // Extended to 0.50 (was 0.46) so wordmark emerges mid-pan — fills narrative void.
       tl.to(
         buildingWrap,
-        { y: -panPx, duration: 0.46, ease: 'power2.out' },
+        { y: -panPx, duration: 0.50, ease: 'power2.out' },
         0
       )
 
@@ -231,9 +230,10 @@ export default function Hero() {
         tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.22)
       }
 
-      // p 0.40–0.48  outline wordmark strokes in over the panned building
-      tl.set(wordmark, { scale: 1, y: 0 }, 0.40)
-      tl.to(outline, { opacity: 1, duration: 0.08, ease: 'power1.out' }, 0.40)
+      // p 0.32–0.40  outline wordmark strokes in — moved from 0.40 to 0.32 to overlap
+      // the building pan, filling the narrative dead zone and creating "wordmark emerges from building"
+      tl.set(wordmark, { scale: 1, y: 0 }, 0.32)
+      tl.to(outline, { opacity: 1, duration: 0.08, ease: 'power1.out' }, 0.32)
 
       // p ~0.50  HARD CUT: fill→1, outline→0, buildingImg→0 (steps(1)).
       tl.to(fill,        { opacity: 1, duration: 0.015, ease: 'steps(1)' }, 0.50)
@@ -251,11 +251,12 @@ export default function Hero() {
         0.58
       )
 
-      // p 0.55–0.75  Nav fades out over the cloud veil, restores after pin.
+      // p 0.30–0.75  Nav fades out early — before building dominates the frame (moved from 0.55→0.30).
+      // Also restore after pin. Contrast issue solved by fading nav away sooner.
       const nav = document.querySelector<HTMLElement>('nav, header[role="banner"]') ??
                   document.querySelector<HTMLElement>('[data-hero-nav]')
       if (nav) {
-        tl.to(nav, { opacity: 0, duration: 0.20, ease: 'power2.in' }, 0.55)
+        tl.to(nav, { opacity: 0, duration: 0.20, ease: 'power2.in' }, 0.30)
         tl.to(nav, { opacity: 1, duration: 0.10, ease: 'power2.out' }, 0.75)
       }
 
@@ -271,23 +272,26 @@ export default function Hero() {
     [motionOk, mounted, cycle.length, slotHeightPx]
   )
 
-  // ── Reduced-motion: static composed end-state ─────────────────────────────
-  // Shows persistent veil look: sky + static clouds at peak + first headline + wordmark.
+  // ── Reduced-motion: clean composed fallback ──────────────────────────────
+  // Sky gradient + soft cloud veil + headline + subhead + CTA. No animation.
+  // White veil separates building from copy so neither layer collides visually.
   if (!motionOk) {
     return (
       <section
         id="hero"
         aria-label="Hero"
-        className="relative flex min-h-screen w-full items-center justify-center overflow-hidden"
+        className="relative flex min-h-screen w-full flex-col items-center overflow-hidden"
+        style={{ paddingTop: 'clamp(10vh, 14vh, 18vh)' }}
       >
         <SkyGradient />
-        {/* Building — wide, roofline at ~46vh from top (open sky above) */}
+        {/* Building — pushed lower so sky is open above */}
         <div
           className="absolute left-1/2 z-[2]"
           style={{
-            top: 'clamp(34vh, 46vh, 52vh)',
+            top: 'clamp(46vh, 52vh, 58vh)',
             width: 'min(125vw, 1800px)',
             transform: 'translateX(-50%)',
+            backgroundColor: '#e8c49a',
           }}
           aria-hidden="true"
         >
@@ -303,12 +307,20 @@ export default function Hero() {
             sizes="(max-width: 768px) 125vw, 1800px"
           />
         </div>
+        {/* Cloud layer behind the veil */}
         {mounted && (
           <div className="absolute inset-0 z-[1]" aria-hidden="true">
             <HeroClouds progressRef={progressRef} active={false} />
           </div>
         )}
-        <div className="relative z-10 flex w-full flex-col items-center px-6 text-center gap-8">
+        {/* White veil — separates building + clouds from readable copy */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 z-[3] pointer-events-none"
+          style={{ background: 'rgba(255,255,255,0.80)' }}
+        />
+        {/* Copy stack — headline + subhead + CTA fully over sky */}
+        <div className="relative z-[4] flex w-full flex-col items-center px-6 text-center gap-6">
           <h1
             className="font-bold text-[var(--color-ink)] leading-[0.95]"
             style={{
@@ -319,10 +331,23 @@ export default function Hero() {
           >
             {cycle[0]}
           </h1>
-          <BrandWordmarkMask
-            fillSrc={images.heroBuildingFill}
-            className="block h-auto w-full max-w-[clamp(360px,86vw,1100px)]"
-          />
+          <p
+            className="font-light text-[var(--color-ink)]"
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
+              lineHeight: 1.6,
+              opacity: 0.78,
+              maxWidth: '640px',
+            }}
+          >
+            {c.hero.subhead}
+          </p>
+          <div>
+            <Pill variant="dark" href="#register" withArrow>
+              {c.hero.cta}
+            </Pill>
+          </div>
         </div>
       </section>
     )
@@ -363,11 +388,13 @@ export default function Hero() {
         ref={buildingOuterRef}
         className="absolute left-1/2 z-[2]"
         style={{
-          top: 'clamp(34vh, 46vh, 52vh)',
+          top: 'clamp(46vh, 52vh, 58vh)',
           width: 'min(125vw, 1800px)',
           transform: 'translateX(-50%)',
           margin: 0,
           padding: 0,
+          // P1-D: fill warm sky color below the building during pan so no gap shows on mobile
+          backgroundColor: '#e8c49a',
         }}
         aria-hidden="true"
       >
@@ -402,9 +429,11 @@ export default function Hero() {
         <div
           className="relative mx-auto w-full"
           style={{
-            maxWidth: 'clamp(320px, 80vw, 1000px)',
-            paddingLeft: 'clamp(16px, 4vw, 64px)',
-            paddingRight: 'clamp(16px, 4vw, 64px)',
+            maxWidth: 'clamp(520px, 94vw, 1380px)',
+            paddingLeft: 'clamp(8px, 1.5vw, 24px)',
+            paddingRight: 'clamp(8px, 1.5vw, 24px)',
+            // P2-G: nudge wordmark up slightly so it reads mid-sky, not low-building
+            marginTop: '-5vh',
           }}
         >
           {/* Outline — thin white stroke over the panned building */}
@@ -440,7 +469,7 @@ export default function Hero() {
           Roofline clamp min = 34vh → 7vh breathing room on mobile. Both clear. */}
       <div
         className="absolute inset-0 z-[4] flex flex-col items-center justify-start px-6 text-center"
-        style={{ paddingTop: 'clamp(8vh, 10vh, 14vh)' }}
+        style={{ paddingTop: 'clamp(10vh, 14vh, 18vh)' }}
       >
         {/* Cycling headline */}
         <div ref={headlineRef} className="flex w-full flex-col items-center">
@@ -458,12 +487,13 @@ export default function Hero() {
           style={{ marginTop: 'clamp(2rem, 4.5vh, 3.5rem)' }}
         >
           <p
-            className="max-w-xl font-light text-[var(--color-ink)]"
+            className="font-light text-[var(--color-ink)]"
             style={{
               fontFamily: 'var(--font-body)',
               fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
               lineHeight: 1.6,
               opacity: 0.78,
+              maxWidth: '640px',
             }}
           >
             {c.hero.subhead}
@@ -477,16 +507,15 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Scroll nudge — fades out with headline (gone by p~0.30). */}
+      {/* Scroll nudge — fades out with headline (gone by p~0.30).
+          Positioned with explicit inline style for RTL-safe centering (P3-A).
+          English "Scroll" label removed — vertical line alone reads clearly (P3-E). */}
       <div
         ref={scrollNudgeRef}
-        className="pointer-events-none absolute bottom-8 left-1/2 z-[4] -translate-x-1/2 flex flex-col items-center gap-2"
+        className="pointer-events-none z-[4] flex flex-col items-center gap-2"
         aria-hidden="true"
-        style={{ opacity: 0.45 }}
+        style={{ position: 'absolute', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', opacity: 0.45 }}
       >
-        <span className="text-[var(--color-ink)] text-[0.6rem] tracking-[0.25em] uppercase font-light">
-          Scroll
-        </span>
         <div className="w-px h-8 bg-[var(--color-ink)] opacity-50" />
       </div>
     </section>
@@ -553,6 +582,8 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
                 paddingTop: '0.15em',
                 paddingBottom: '0.15em',
                 boxSizing: 'border-box',
+                // P2-E: soft white halo lifts headline off building facade
+                textShadow: '0 2px 14px rgba(255,255,255,0.50)',
               }}
             >
               {line}
@@ -565,7 +596,8 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
 )
 
 // ─── Sky gradient ─────────────────────────────────────────────────────────────
-// Warm pastel sunset sky. Top: cool blue → mid neutral → bottom warm peach.
+// Cinematic late-afternoon sky. Warm amber/peach band pushed into 44-75% range
+// so warmth reads ABOVE the roofline, not hidden under the building.
 function SkyGradient() {
   return (
     <div
@@ -573,7 +605,7 @@ function SkyGradient() {
       className="absolute inset-0 z-0"
       style={{
         background:
-          'linear-gradient(to bottom, #b8cedf 0%, #cad9e8 15%, #dde6ee 30%, #d4c4b0 55%, #ddb998 75%, #e8c49a 100%)',
+          'linear-gradient(to bottom, #8cb4cf 0%, #a5c3dc 14%, #bdd1e4 28%, #c4b5a8 44%, #d4a07a 60%, #e0b28a 75%, #ecbf94 88%, #f2c89e 100%)',
       }}
     />
   )
@@ -583,11 +615,12 @@ function SkyGradient() {
 function BrandWordmarkOutline() {
   return (
     <svg
-      viewBox="0 0 600 160"
+      viewBox="0 0 720 175"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label="בונים עתיד"
       className="block h-auto w-full"
+      overflow="visible"
       preserveAspectRatio="xMidYMid meet"
     >
       <text
@@ -598,7 +631,7 @@ function BrandWordmarkOutline() {
         direction="rtl"
         fontFamily="var(--font-hebrew), system-ui, sans-serif"
         fontWeight="800"
-        fontSize="130"
+        fontSize="138"
         letterSpacing="-2"
         fill="none"
         stroke="#ffffff"
