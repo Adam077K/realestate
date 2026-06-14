@@ -3,67 +3,36 @@
 /**
  * Hero — Signature pinned scroll experience for בונים עתיד (Bonim Atid).
  *
- * Reference arc (docs/reference-video-screenshots-2):
- *   frame_001  REST    — only the UPPER portion of the building is visible, sitting
- *                         FLUSH at the very bottom of the viewport. The cycling
- *                         headline sits ABOVE the building. Clouds wrap the base.
- *   frame_004  scroll  — the building has GROWN bigger (the REVEAL: more of it visible,
- *                         lower floors appearing), still flush to the bottom, reaching up
- *                         toward / past the headline (revealed roughly to its MIDDLE).
- *   frame_007  scroll  — the building fills most of the frame; the "בונים עתיד"
- *                         wordmark OUTLINE strokes on over it.
- *   frame_010  end     — the building IMAGE FILLS the wordmark letters, floating in
- *                         the clouds (image-inside-text via <BrandWordmarkMask>).
+ * Building: hero-tower-v2.png — SQUARE 1024×1024 green-terraced glass tower.
+ * Because the image is square (not portrait), we render it at min(78vw, 880px)
+ * wide so the upper terraces show flush at viewport bottom at rest. REST_SCALE 0.80
+ * means only the upper band is visible. GROWN_SCALE 1.9 lets the building dominate.
  *
- * CRITICAL anchoring rule (Adam's repeated complaint — "it floats mid-air with a gap"):
- *   The building GROWS IN PLACE from a BOTTOM anchor. It is positioned
- *   `bottom:0; left:50%; transform-origin:center bottom` inside an `overflow:hidden`
- *   section. We animate SCALE ONLY (≈0.86 → ≈1.5) — never translateY upward. Its
- *   base always sits at (or clipped below) the viewport bottom, so there is ALWAYS
- *   zero gap between the building base and the bottom of the screen. The growth itself
- *   is the "rising" that reaches up to cover the headline.
+ * Two-layer building wrapper (CRITICAL — DO NOT COLLAPSE):
+ *   OUTER  — absolute bottom-0 left-1/2, translateX(-50%). NEVER touched by GSAP.
+ *   INNER  — buildingWrapRef. GSAP animates SCALE ONLY via transform-origin center
+ *            bottom. Never translateY → base always flush to viewport bottom.
  *
- * Layers (back -> front):
- *   1. Painted sky (CSS gradient, zero JS dependency — instant LCP)
- *   2. HeroClouds — pure CSS/DOM puffs; visible through the ENTIRE pin (the wordmark
- *      beat floats IN the clouds). UNTOUCHED here — driven by the shared progressRef.
- *   3. Building CUTOUT (transparent PNG) — bottom-anchored; scales UP from the bottom
- *      so it grows to cover the headline, then cross-dissolves out as the wordmark fills
- *   4. Wordmark OUTLINE — thin white stroke of "בונים עתיד" over the grown building
- *   5. Wordmark FILL — the building image clipped to the Hebrew letters (end-state)
- *   6. Headline block — a CYCLING slot-roll headline (3 sentences from c.hero.cycle)
- *      + subhead + pill CTA. Bilingual via useContent(), centered, RTL/LTR-correct.
+ * progressRef: plain useRef<number>, written by ScrollTrigger onUpdate, read by
+ * HeroClouds' rAF loop. Zero React re-renders per scroll tick.
  *
- * Scroll timeline (pinned +=230%, scrub 1.1) — TIGHT, no long lingering:
- *   p 0.00-0.44  the building GROWS / REVEALS (scale up, bottom-anchored) — more of the
- *                image is pulled up into view (lower floors appear) until roughly the
- *                MIDDLE of the building is reached (frame_004 -> 007). Meanwhile the
- *                headline (vertically + horizontally CENTERED) CYCLES through its 3
- *                sentences via a vertical slot-roll, then fades.
- *   p 0.18-0.40  headline + subhead + CTA fade out as the reveal rises over them.
- *   p 0.42-0.50  the "בונים עתיד" wordmark appears FIRST as a thin LIGHT OUTLINE over the
- *                mid-revealed building (frame_007), held briefly.
- *   p ~0.50      INSTANT SWAP — the outline SNAPS (steps(1), near-zero duration) to the
- *                image-FILLED wordmark (building image inside the letters, frame_010);
- *                the outline + full building cut out in the same instant. NOT a fade.
- *   p 0.52-0.60  BRIEF image-filled brand beat (micro-breath). Prompt — the front cloud
- *                field is already blooming (bloom starts at p≈0.45).
- *   p 0.60-0.80  CLOUD SCREEN BRIDGE — the foreground cloud field blooms to a dense
- *                near-opaque SHEET across the whole viewport (frame_011) and the
- *                image-filled wordmark drifts up + fades INTO it. The cloud sheet is
- *                continuous with the next section.
- *   p 0.80-1.00  the cover thins as the pin releases and the NEXT section emerges UP
- *                through the SAME clouds (frame_012) — a continuous cloud bridge. Prompt,
- *                right after the wordmark disappears.
+ * Motion timeline (scrub: true, pin +=230%):
+ *   p 0.00       REST: building REST_SCALE, headline/subhead/CTA visible
+ *   p 0.00–0.46  building grows REST→GROWN (power2.out)
+ *   p 0.00–0.30  headline slot-roll cycles 3 Hebrew sentences (dice-roll modifier)
+ *   p 0.16–0.34  subhead+CTA fade+lift out (power3.in)
+ *   p 0.22–0.40  headline fade+lift out (power3.in)
+ *   p 0.40–0.48  outline wordmark strokes in (power1.out)
+ *   p ~0.50      HARD CUT: outline→0, fill→1, building→0 (steps(1), dur 0.015)
+ *   p 0.50–0.58  brand micro-breath scale 1→1.04→settle (back.out)
+ *   p 0.45–0.78  cloud bloom (driven by HeroClouds progressRef) overlaps grow+swap
+ *   p 0.58–0.72  wordmark lifts into cloud bloom + fades (power2.in)
+ *   p 0.78–1.00  veil thins to residual ~0.18 — bridge to next section
  *
- * Fallbacks:
- *   !motionOk  -> static composed end-state (sky + BrandWordmarkMask + clouds); the
- *                 headline shows only the FIRST sentence statically; no pin/cycle.
+ * Reduced motion: static composed end-state — sky + static clouds + first headline
+ * sentence + image-filled wordmark. No pin, no rAF.
  *
- * RTL: the hero is fully centered, so it reads identically in dir=rtl and dir=ltr.
- * The slot-roll track translates vertically (direction-agnostic) and each line is
- * center-aligned, so it is correct in both Hebrew (RTL) and English (LTR).
- *
+ * RTL: hero is fully centered → reads identically in dir=rtl and dir=ltr.
  * GPU: transform/opacity only; will-change toggled around the pin; clouds untouched.
  */
 
@@ -79,26 +48,16 @@ import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 
-// ─── Dynamic import: HeroClouds (CSS/DOM) only runs client-side ───────────────
-
+// Dynamic import — HeroClouds (CSS/DOM) is client-only
 const HeroClouds = dynamic(() => import('./HeroClouds'), { ssr: false })
 
 // ─── Tuning constants ──────────────────────────────────────────────────────────
-// Building scale: the cutout is a TALL PORTRAIT glass tower (1023×1537, AR ≈ 0.666 W/H).
-// The OUTER wrapper renders it at `min(96vw, 1240px)` wide, so the FULL image is far
-// TALLER than the viewport. Because it is bottom-anchored (transform-origin center
-// bottom) inside an overflow:hidden section, only its UPPER portion is visible at rest —
-// the rest of the image is clipped below the fold. That visible top slice fills the lower
-// ~40–45% of the viewport (frame_001 — the rest proportion the founder shared: large,
-// horizontally centred, bottom-flush, top ~2 floors only).
-//
-// REST → GROWN: we SCALE UP from the bottom anchor (no translateY → zero floating gap).
-// Growing the building pulls MORE of the image up into view, progressively revealing the
-// lower floors until roughly the MIDDLE of the building image is reached at the grown
-// state (frame_007). The base stays flush at / clipped below the viewport bottom the
-// whole time, so there is never a floating gap.
-const BUILDING_REST_SCALE = 0.86
-const BUILDING_GROWN_SCALE = 1.5
+// Square 1024×1024 image rendered at min(78vw, 880px) wide.
+// REST_SCALE 0.80: only upper terraces visible flush at viewport bottom.
+// GROWN_SCALE 1.9: building swells to dominate the frame.
+// Larger range than old portrait (0.86→1.5) because square is shorter in portrait space.
+const BUILDING_REST_SCALE = 0.80
+const BUILDING_GROWN_SCALE = 1.9
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
@@ -106,8 +65,7 @@ export default function Hero() {
   const { motionOk } = useSmoothScroll()
   const c = useContent()
 
-  // 3-sentence cycle for the headline slot-roll. Guard length so the component is
-  // resilient even if content is trimmed (always falls back to the title).
+  // 3-sentence slot-roll cycle. Guard against empty content.
   const cycle: readonly string[] =
     c.hero.cycle && c.hero.cycle.length > 0 ? c.hero.cycle : [c.hero.title]
 
@@ -121,16 +79,13 @@ export default function Hero() {
   const outlineRef = useRef<HTMLDivElement>(null)
   const fillRef = useRef<HTMLDivElement>(null)
 
-  // Shared progress value written by ScrollTrigger onUpdate, read by HeroClouds
-  // each frame. A plain ref avoids React re-renders on every scroll tick.
+  // Shared scroll progress — written by ScrollTrigger onUpdate, read by HeroClouds' rAF.
+  // Plain ref: zero React re-renders per scroll tick.
   const progressRef = useRef<number>(0)
 
-  // Client-side mount gate — set after first hydration.
+  // Client-side mount gate — set after first hydration
   const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
 
   // ── Pinned, scrubbed master timeline (motionOk only) ─────────────────────
   useGsapContext(
@@ -146,43 +101,37 @@ export default function Hero() {
       const wordmark = wordmarkRef.current
       const outline = outlineRef.current
       const fill = fillRef.current
-      if (
-        !buildingWrap ||
-        !headline ||
-        !slotTrack ||
-        !subCta ||
-        !buildingImg ||
-        !wordmark ||
-        !outline ||
-        !fill
-      ) {
-        return
-      }
 
-      // Initialise animated layers to their resting state (frame_001).
-      // The building sits SMALL + bottom-anchored (only upper portion visible);
-      // the wordmark group is hidden; the slot-roll shows the FIRST sentence.
-      gsap.set(wordmark, { opacity: 1, scale: 0.96, y: 18 })
+      if (
+        !buildingWrap || !headline || !slotTrack || !subCta ||
+        !buildingImg || !wordmark || !outline || !fill
+      ) return
+
+      // ── REST state (p = 0) ───────────────────────────────────────────────
+      gsap.set(buildingWrap, { scale: BUILDING_REST_SCALE })
+      gsap.set(buildingImg, { opacity: 1 })
+      gsap.set(wordmark, { opacity: 1, scale: 0.96, y: 20 })
       gsap.set(outline, { opacity: 0 })
       gsap.set(fill, { opacity: 0 })
-      gsap.set(buildingImg, { opacity: 1 })
-      // SCALE ONLY from the bottom anchor — no translateY (that caused the float).
-      gsap.set(buildingWrap, { scale: BUILDING_REST_SCALE })
       gsap.set(slotTrack, { yPercent: 0 })
       gsap.set([headline, subCta], { opacity: 1, y: 0 })
 
-      // Enable GPU compositing hints.
-      gsap.set([buildingWrap, headline, slotTrack, subCta, wordmark, outline, fill], {
-        willChange: 'transform, opacity',
-      })
+      // Enable GPU compositing during the pin
+      gsap.set(
+        [buildingWrap, headline, slotTrack, subCta, wordmark, outline, fill],
+        { willChange: 'transform, opacity' }
+      )
 
+      // ── Master scrubbed timeline ─────────────────────────────────────────
+      // scrub: true — Lenis already smooth-scrolls position; stacking scrub:1+
+      // double-smooths and makes the scroll feel laggy on trackpad.
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
           end: '+=230%',
           pin: true,
-          scrub: 1.1,
+          scrub: true,
           anticipatePin: 1,
           onUpdate: (self) => {
             progressRef.current = self.progress
@@ -190,22 +139,16 @@ export default function Hero() {
         },
       })
 
-      // p 0.00-0.44  building GROWS in place (scale up, bottom-anchored). The growth
-      // is the "rising" / REVEAL — its base stays flush at the viewport bottom the whole
-      // time and MORE of the image is pulled up into view (lower floors appear) until
-      // roughly the MIDDLE of the building image is reached (frame_007). No translateY →
-      // zero floating gap. Eased so the reveal accelerates smoothly into the mid-point.
-      tl.fromTo(
+      // p 0.00–0.46  BUILDING GROWS 0.80 → 1.9, origin center-bottom.
+      // Scale-only: base stays flush to viewport bottom. No translateY → no float.
+      tl.to(
         buildingWrap,
-        { scale: BUILDING_REST_SCALE },
-        { scale: BUILDING_GROWN_SCALE, duration: 0.44, ease: 'power1.inOut' },
+        { scale: BUILDING_GROWN_SCALE, duration: 0.46, ease: 'power2.out' },
         0
       )
 
-      // p 0.00-0.30  CYCLING headline slot-roll. The track holds N stacked lines; we
-      // step yPercent so each sentence rolls up and the next rolls in. One sentence
-      // per ≈0.10 of progress. With M lines the track moves -100*(M-1)/M to land on
-      // the last line. Each line occupies 1/M of the track height.
+      // p 0.00–0.30  Headline slot-roll — dice-roll step modifier.
+      // Each sentence snaps in with a cubic ease for tactile slot resolve.
       const lineCount = cycle.length
       if (lineCount > 1) {
         const endYPercent = -100 * ((lineCount - 1) / lineCount)
@@ -214,24 +157,21 @@ export default function Hero() {
           { yPercent: 0 },
           {
             yPercent: endYPercent,
-            duration: 0.11 * (lineCount - 1),
+            duration: 0.30,
             ease: 'none',
-            // Snap-roll feel: hold each line, then a quick premium roll to the next.
             modifiers: {
               yPercent: (raw: string) => {
-                // Map raw continuous yPercent to a stepped + eased "dice roll":
-                // segment within [0, lineCount-1], ease the fractional part so each
-                // sentence settles with a tactile slot/dice resolve.
                 const m = lineCount
                 const total = m - 1
                 const pos = (parseFloat(raw) / endYPercent) * total // 0..total
                 const idx = Math.min(Math.floor(pos), total - 1)
                 const frac = pos - idx
+                // Cubic ease-in-out per slot
                 const eased =
                   frac < 0.5
                     ? 4 * frac * frac * frac
                     : 1 - Math.pow(-2 * frac + 2, 3) / 2
-                const stepped = (idx + eased) / total // 0..1
+                const stepped = (idx + eased) / total
                 return `${stepped * endYPercent}`
               },
             },
@@ -240,57 +180,46 @@ export default function Hero() {
         )
       }
 
-      // p 0.20-0.40  headline group fades + lifts as the building reveal rises over it.
-      tl.to(headline, { opacity: 0, y: -64, duration: 0.16, ease: 'power2.in' }, 0.24)
+      // p 0.16–0.34  subhead+CTA: exits first (building reaches them sooner)
+      tl.to(subCta, { opacity: 0, y: -40, duration: 0.18, ease: 'power3.in' }, 0.16)
 
-      // p 0.16-0.34  subhead + CTA fade out a touch earlier (they sit lower, the
-      // growing building reaches them first).
-      tl.to(subCta, { opacity: 0, y: -40, duration: 0.16, ease: 'power2.in' }, 0.18)
+      // p 0.22–0.40  headline: fades+lifts slightly later
+      tl.to(headline, { opacity: 0, y: -64, duration: 0.18, ease: 'power3.in' }, 0.22)
 
-      // p 0.42-0.50  wordmark OUTLINE appears FIRST — a thin LIGHT STROKE of "בונים עתיד"
-      // over the now mid-revealed building (frame_007). It snaps on (short, no long
-      // fade) and settles into place so it is unmistakably the outline beat.
-      tl.set(wordmark, { scale: 1, y: 0 }, 0.42)
-      tl.to(outline, { opacity: 1, duration: 0.06, ease: 'power1.out' }, 0.42)
+      // p 0.40–0.48  outline wordmark strokes in over grown building
+      tl.set(wordmark, { scale: 1, y: 0 }, 0.40)
+      tl.to(outline, { opacity: 1, duration: 0.08, ease: 'power1.out' }, 0.40)
 
-      // p ~0.50  INSTANT outline → image-fill SWAP. NOT a gradual cross-dissolve: we hold
-      // the outline for a short beat, then SNAP — within ~0.015 of progress — the fill on
-      // and the outline + the full building off, using `steps(1)` so it reads as a single
-      // near-instant transform from light-outline letters to image-filled letters
-      // (frame_010). The tiny non-zero durations + stepped ease guarantee a hard cut at
-      // the scrub mid-point rather than a slow blend.
-      tl.to(fill, { opacity: 1, duration: 0.015, ease: 'steps(1)' }, 0.5)
-      tl.to(outline, { opacity: 0, duration: 0.015, ease: 'steps(1)' }, 0.5)
-      tl.to(buildingImg, { opacity: 0, duration: 0.015, ease: 'steps(1)' }, 0.5)
+      // p ~0.50  HARD CUT: outline→0, fill→1, building→0 (all steps(1), dur 0.015).
+      // Stillness window ~0.485–0.515 amplifies the perceived snap.
+      tl.to(fill,        { opacity: 1, duration: 0.015, ease: 'steps(1)' }, 0.50)
+      tl.to(outline,     { opacity: 0, duration: 0.015, ease: 'steps(1)' }, 0.50)
+      tl.to(buildingImg, { opacity: 0, duration: 0.015, ease: 'steps(1)' }, 0.50)
 
-      // p 0.52-0.58  BRIEF brand beat — image-filled wordmark micro-breath. Short hold
-      // only; the front cloud field (HeroClouds, same progressRef) is already ramping
-      // toward FULL COVER (its bloom begins at p≈0.45), so we move on PROMPTLY.
-      tl.to(wordmark, { scale: 1.04, duration: 0.06, ease: 'sine.inOut' }, 0.52)
+      // p 0.50–0.58  brand micro-breath: 1 → 1.04 → settle with spring feel
+      tl.to(wordmark, { scale: 1.04, duration: 0.04, ease: 'power2.out' }, 0.50)
+      tl.to(wordmark, { scale: 1.02, duration: 0.04, ease: 'back.out(1.2)' }, 0.54)
 
-      // p 0.60-0.72  CLOUD SCREEN BRIDGE — the wordmark drifts UP + fades INTO the dense
-      // cloud cover as the front field reaches its near-opaque full-viewport sheet
-      // (frame_011). It is gone BEFORE the reveal so the next section emerges from clean,
-      // continuous cloud (frame_012) — the cloud sheet IS the bridge into the next
-      // section. Prompt, no long lingering.
+      // p 0.58–0.72  wordmark lifts into the cloud bloom + fades
       tl.to(
         wordmark,
-        { y: '-22%', scale: 1.1, opacity: 0, duration: 0.12, ease: 'power2.in' },
-        0.6
+        { y: '-20%', scale: 1.08, opacity: 0, duration: 0.14, ease: 'power2.in' },
+        0.58
       )
 
-      // Clean up will-change after pin completes.
+      // Clean up will-change after the pin completes
       return () => {
-        gsap.set([buildingWrap, headline, slotTrack, subCta, wordmark, outline, fill], {
-          willChange: 'auto',
-        })
+        gsap.set(
+          [buildingWrap, headline, slotTrack, subCta, wordmark, outline, fill],
+          { willChange: 'auto' }
+        )
       }
     },
-    // Re-run when motionOk or mounted resolves — both set once, so this fires twice max.
+    // Re-run when motionOk or mounted resolves — both set once, fires twice max.
     [motionOk, mounted, cycle.length]
   )
 
-  // ── Reduced-motion fallback: static composed end-state ───────────────────
+  // ── Reduced-motion: static composed end-state ─────────────────────────────
   if (!motionOk) {
     return (
       <section
@@ -305,7 +234,6 @@ export default function Hero() {
           </div>
         )}
         <div className="relative z-10 flex w-full flex-col items-center px-4">
-          {/* Static first sentence above the end-state wordmark. */}
           <h1
             className="mb-8 text-center font-bold text-[var(--color-ink)] leading-[0.95]"
             style={{
@@ -316,7 +244,6 @@ export default function Hero() {
           >
             {cycle[0]}
           </h1>
-          {/* End-state: the בונים עתיד wordmark filled with the golden building. */}
           <BrandWordmarkMask
             fillSrc={images.heroBuildingFill}
             className="block h-auto w-full max-w-[clamp(360px,86vw,1100px)]"
@@ -335,45 +262,32 @@ export default function Hero() {
       className="relative w-full overflow-hidden"
       style={{ height: '100svh' }}
     >
-      {/* 1. Sky gradient — zero JS, instant paint (contributes to LCP) */}
+      {/* 1. Sky gradient — zero JS, instant LCP */}
       <SkyGradient />
 
-      {/* 2. HeroClouds — visible through the ENTIRE pin (the wordmark beat floats IN
-            the clouds). `active` gates drift + scroll parallax only. UNTOUCHED. */}
+      {/* 2. HeroClouds BACK — behind building + wordmark. Visible throughout pin. */}
       {mounted && (
         <div className="absolute inset-0 z-[1]" aria-hidden="true">
-          <HeroClouds progressRef={progressRef} active={motionOk} />
+          <HeroClouds progressRef={progressRef} active={motionOk} variant="back" />
         </div>
       )}
 
-      {/* 3. Building CUTOUT (transparent PNG) — BOTTOM-ANCHORED, scales from the bottom.
-            At rest (BUILDING_REST_SCALE) only its upper portion shows at the very bottom
-            (frame_001). On scroll it GROWS (scale up, transform-origin center bottom) so
-            it rises to cover the headline (frame_004 -> 007) — its base never leaves the
-            viewport bottom (the section clips it), so there is zero floating gap. Then it
-            cross-dissolves out as the wordmark fills.
-
-            TWO-LAYER wrapper pattern to avoid GSAP clobbering the CSS centering:
-            - OUTER: owns left/translateX centering — never touched by GSAP.
-            - INNER (buildingWrapRef): owns scale via GSAP — transform-origin center bottom.
-            GSAP only sets `scale` on the inner element, so the outer `translateX(-50%)`
-            is never overwritten. */}
-      {/* Outer: centering only — no GSAP ref, no transform to clobber */}
+      {/* 3. Building CUTOUT — BOTTOM-ANCHORED, SCALE-only animation.
+          TWO-LAYER wrapper: OUTER centres (GSAP never touches it);
+          INNER (buildingWrapRef) is the GSAP scale target, transform-origin center bottom.
+          At REST_SCALE 0.80 only upper terraces show flush at viewport bottom.
+          GROWING to 1.9 pulls the lower floors up into view.
+          No translateY → zero floating gap at all times. */}
+      {/* OUTER: centering only */}
       <div
         className="absolute bottom-0 left-1/2 z-[2]"
         style={{
-          // Portrait glass tower (1023×1537). Rendered WIDE so the full image is much
-          // taller than the viewport — only its UPPER portion (top ~2 floors) shows at
-          // rest, filling the lower ~40–45% of the viewport flush to the bottom
-          // (frame_001). Horizontally centred via translateX(-50%).
-          width: 'min(96vw, 1240px)',
+          width: 'min(78vw, 880px)',
           transform: 'translateX(-50%)',
         }}
         aria-hidden="true"
       >
-        {/* Inner: GSAP scale target — transform-origin center bottom keeps the base
-            flush as the building grows. Initial scale matches BUILDING_REST_SCALE so
-            there is no full-size flash before GSAP initialises. */}
+        {/* INNER: GSAP scale target. transform-origin center bottom keeps base flush. */}
         <div
           ref={buildingWrapRef}
           style={{
@@ -381,26 +295,25 @@ export default function Hero() {
             transform: `scale(${BUILDING_REST_SCALE})`,
           }}
         >
-          {/* Opacity wrapper for the cross-dissolve */}
+          {/* Opacity wrapper for the hard-cut cross-dissolve */}
           <div ref={buildingImgRef}>
             <Image
               src={images.heroBuildingCutout}
-              alt="Modern glass residential tower"
-              width={1023}
-              height={1537}
+              alt="Modern glass residential tower with green terraces"
+              width={1024}
+              height={1024}
               priority
               quality={90}
               className="h-auto w-full select-none object-contain"
-              sizes="(max-width: 768px) 96vw, 1240px"
+              sizes="(max-width: 768px) 78vw, 880px"
             />
           </div>
         </div>
       </div>
 
-      {/* 4 + 5. Wordmark group — OUTLINE (thin white stroke over the building,
-            frame_007) then FILL (building image clipped to the בונים עתיד glyphs via
-            <BrandWordmarkMask>, frame_010). Both share one transform group so they stay
-            co-located through the cross-dissolve. */}
+      {/* 4 + 5. Wordmark group — OUTLINE (p 0.40–0.50) then FILL (p 0.50+).
+          Both share one transform container so they co-locate through the
+          cross-dissolve, micro-breath, and lift-into-clouds beats. */}
       <div
         ref={wordmarkRef}
         className="absolute inset-0 z-[3] flex items-center justify-center px-4"
@@ -408,11 +321,11 @@ export default function Hero() {
         aria-hidden="true"
       >
         <div className="relative w-full" style={{ maxWidth: 'clamp(360px, 86vw, 1100px)' }}>
-          {/* Outline (white stroke) — sits over the grown building */}
+          {/* Outline — thin white stroke over the grown building */}
           <div ref={outlineRef} className="absolute inset-0">
             <BrandWordmarkOutline />
           </div>
-          {/* Fill (building image inside the Hebrew letters) */}
+          {/* Fill — building image clipped to Hebrew letters */}
           <div ref={fillRef}>
             <BrandWordmarkMask
               fillSrc={images.heroBuildingFill}
@@ -422,40 +335,28 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* 2b. HeroClouds FRONT layer — soft clouds that drift IN FRONT of the building
-            (z-[2]) and over/around the wordmark (z-[3]). Mounted at z-[3] just OVER the
-            wordmark group but BELOW the headline stack (z-[4]), so at rest it does NOT
-            obscure the headline (the front field is near-invisible at p≈0 and blooms in
-            only as the user scrolls — reference frames 7 / 9 / 10). Shares the same
-            progressRef + active gate as the back field. */}
+      {/* 6. HeroClouds FRONT — blooms in over building + wordmark (p 0.45+).
+          z-[3] overlaps wordmark group; stays under headline z-[4].
+          Near-invisible at rest — headline fully legible. */}
       {mounted && (
         <div className="absolute inset-0 z-[3]" aria-hidden="true">
           <HeroClouds progressRef={progressRef} active={motionOk} variant="front" />
         </div>
       )}
 
-      {/* 6. Text stack — CYCLING slot-roll headline -> subhead -> CTA pill, as a single
-            clean vertical FLOW in the VERTICAL + HORIZONTAL MIDDLE of the hero. The
-            container fills the section (inset-0) and centers its children both axes, so the
-            whole stack sits in the middle at rest (frame_001). Each piece reserves its own
-            flow space (no absolute stacking), so there is NO overlap. headlineRef and
-            subCtaRef stay as separate children so the timeline can fade the subhead/CTA
-            slightly earlier than the headline as the building rises. Centered -> identical
-            in RTL (he) and LTR (en); the slot-roll track is direction-agnostic. */}
-      <div
-        className="absolute inset-0 z-[4] flex flex-col items-center justify-center px-6 text-center"
-      >
-        {/* Cycling headline. The SlotRollHeadline clip window is exactly one line tall and
-            occupies real flow height, so the subhead + CTA sit cleanly below it. */}
+      {/* 7. Text stack — vertically + horizontally centred. Direction-agnostic RTL. */}
+      <div className="absolute inset-0 z-[4] flex flex-col items-center justify-center px-6 text-center">
+        {/* Cycling headline */}
         <div ref={headlineRef} className="flex w-full flex-col items-center">
           <SlotRollHeadline ref={slotTrackRef} lines={cycle} />
         </div>
 
-        {/* Subhead + CTA — separate group, fades slightly earlier than the headline. */}
+        {/* Subhead + CTA — fades slightly earlier than headline */}
         <div ref={subCtaRef} className="mt-5 flex w-full flex-col items-center sm:mt-7">
           <p
-            className="max-w-xl font-[var(--font-body)] font-light text-[var(--color-ink)]"
+            className="max-w-xl font-light text-[var(--color-ink)]"
             style={{
+              fontFamily: 'var(--font-body)',
               fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
               lineHeight: 1.6,
               opacity: 0.78,
@@ -463,7 +364,6 @@ export default function Hero() {
           >
             {c.hero.subhead}
           </p>
-
           <div className="mt-7 sm:mt-8">
             <Pill variant="dark" href="#register" withArrow>
               {c.hero.cta}
@@ -472,7 +372,7 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Scroll nudge — visible at rest only. Direction-agnostic (centered). */}
+      {/* Scroll nudge — visible at rest (centered, direction-agnostic) */}
       <div
         className="pointer-events-none absolute bottom-8 left-1/2 z-[4] -translate-x-1/2 flex flex-col items-center gap-2"
         aria-hidden="true"
@@ -488,9 +388,8 @@ export default function Hero() {
 }
 
 // ─── Slot-roll headline ──────────────────────────────────────────────────────
-// A fixed-height viewport that clips a vertical track of N stacked sentences. The
-// track is animated (yPercent) by the parent timeline so each line rolls up and the
-// next rolls in. Center-aligned + direction-agnostic → correct in RTL and LTR.
+// Fixed-height viewport clips a vertical track of N stacked sentences.
+// Center-aligned and direction-agnostic — correct in RTL (Hebrew) and LTR (English).
 
 interface SlotRollHeadlineProps {
   lines: readonly string[]
@@ -498,14 +397,12 @@ interface SlotRollHeadlineProps {
 
 const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
   function SlotRollHeadline({ lines }, trackRef) {
-    // One display line height drives the slot window. clamp keeps it responsive.
     const lineHeightCss = 'clamp(2.5rem, 8vw, 7.5rem)'
 
     return (
       <div
         className="w-full overflow-hidden"
         style={{ height: lineHeightCss }}
-        // The full first sentence is announced to AT; visual cycling is decorative.
         aria-label={lines[0]}
       >
         <div ref={trackRef} className="flex flex-col will-change-transform">
@@ -532,8 +429,8 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
 )
 
 // ─── Sky gradient ─────────────────────────────────────────────────────────────
-// Matches frame_001: pale blue upper, soft cream/warm peach lower horizon.
-// Inline stops — does NOT reference the over-saturated sunset CSS vars.
+// Pastel sunset: pale blue top → warm peach bottom horizon.
+// Uses inline stops — NOT the over-saturated --color-sky-* CSS tokens.
 function SkyGradient() {
   return (
     <div
@@ -547,10 +444,10 @@ function SkyGradient() {
   )
 }
 
-// ─── "בונים עתיד" outline beat ──────────────────────────────────────────────────
-// Thin white stroke of the Hebrew wordmark, no fill (frame_007). Shares the same
-// viewBox + type metrics as <BrandWordmarkMask> so the outline and the image-fill
-// occupy the same letterforms and cross-dissolve cleanly. RTL via direction="rtl".
+// ─── "בונים עתיד" outline wordmark ──────────────────────────────────────────
+// Thin white stroke, no fill — the outline beat (p 0.40–0.50) before the hard cut.
+// Shares the same viewBox + metrics as BrandWordmarkMask so both letterforms
+// register exactly during the cross-dissolve.
 function BrandWordmarkOutline() {
   return (
     <svg
