@@ -43,7 +43,7 @@
 
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
-import { forwardRef, useRef, useState, useEffect } from 'react'
+import { forwardRef, useRef, useState, useEffect, useCallback } from 'react'
 
 import Pill from '@/components/ui/Pill'
 import { BrandWordmarkMask } from '@/components/layout/Logo'
@@ -92,14 +92,32 @@ export default function Hero() {
   const outlineRef = useRef<HTMLDivElement>(null)
   const fillRef = useRef<HTMLDivElement>(null)
   const scrollNudgeRef = useRef<HTMLDivElement>(null)
+  const buildingOuterRef = useRef<HTMLDivElement>(null)
 
   // Shared scroll progress — written by ScrollTrigger onUpdate, read by HeroClouds' rAF.
   // Plain ref: zero React re-renders per scroll tick.
   const progressRef = useRef<number>(0)
 
+  // Slot height in pixels — measured by SlotRollHeadline's ResizeObserver.
+  // Stored as state so useGsapContext dependency array triggers a re-run once measured.
+  const [slotHeightPx, setSlotHeightPx] = useState<number>(0)
+
   // Client-side mount gate — set after first hydration
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
+
+  const handleSlotHeight = useCallback((px: number) => {
+    setSlotHeightPx(px)
+  }, [])
+
+  // Issue B — set building outer translateY after mount to avoid SSR hydration mismatch.
+  // Mobile (< 768px) needs more nudge than desktop to cover transparent PNG bottom pixels.
+  useEffect(() => {
+    const el = buildingOuterRef.current
+    if (!el) return
+    const nudge = window.innerWidth < 768 ? 8 : 4
+    el.style.transform = `translateX(-50%) translateY(${nudge}px)`
+  }, [mounted])
 
   // ── Pinned, scrubbed master timeline (motionOk only) ─────────────────────
   useGsapContext(
@@ -121,6 +139,10 @@ export default function Hero() {
         !buildingWrap || !headline || !slotTrack || !subCta ||
         !buildingImg || !wordmark || !outline || !fill
       ) return
+
+      // Wait until the slot height is measured (ResizeObserver fires after mount).
+      // slotHeightPx === 0 means the component hasn't rendered slots yet.
+      if (slotHeightPx === 0) return
 
       // Responsive rest scale: lower at desktop so headline has clean sky above.
       const restScale = getBuildingRestScale()
@@ -167,39 +189,53 @@ export default function Hero() {
         0
       )
 
-      // P1.2 — Headline slot-roll settle window.
-      // Slot cycling starts at p≈0.04 so first sentence is stable for ~first 800ms
-      // of pin (scrub maps ~3.5% pin to the settle delay at normal scroll speed).
-      // Dice-roll step modifier for tactile slot resolve.
+      // ISSUE A FIX — Clean masked vertical roll.
+      // The track translates by PIXEL MULTIPLES of the measured slotHeightPx.
+      // This guarantees that at every progress position the clip window shows
+      // exactly ONE slot — no partial bleed from an adjacent sentence.
+      //
+      // Each slot transition is a discrete step (GSAP modifiers snaps to the
+      // nearest slot boundary using a sharp cubic ease-in-out that resolves
+      // quickly). Within each step the track moves exactly slotHeightPx up,
+      // so the outgoing sentence exits through the TOP of the clip while the
+      // incoming one enters from BELOW — a clean mechanical roll, not a fade.
+      //
+      // Settle window: slot cycling starts at p=0.04 so sentence 1 is fully
+      // stable from p=0 to p=0.04 (the first thing the user sees at rest).
       const lineCount = cycle.length
       if (lineCount > 1) {
-        const endYPercent = -100 * ((lineCount - 1) / lineCount)
-        // Delay slot start to ~p 0.04 so sentence 1 reads cleanly at rest.
+        const totalSlots = lineCount - 1
+        // Total pixel travel: last slot is at -slotHeightPx * totalSlots.
+        const endY = -(slotHeightPx * totalSlots)
+
         tl.fromTo(
           slotTrack,
-          { yPercent: 0 },
+          { y: 0 },
           {
-            yPercent: endYPercent,
+            y: endY,
             duration: 0.24,  // spans p 0.04–0.28
             ease: 'none',
             modifiers: {
-              yPercent: (raw: string) => {
-                const m = lineCount
-                const total = m - 1
-                const pos = (parseFloat(raw) / endYPercent) * total // 0..total
-                const idx = Math.min(Math.floor(pos), total - 1)
+              y: (raw: string) => {
+                // raw comes in as "Npx" from GSAP's internal representation.
+                const rawPx = parseFloat(raw)
+                // Map raw px → slot index (0..totalSlots) in progress space.
+                const progress = rawPx / endY           // 0..1 across the tween
+                const pos = progress * totalSlots       // 0..totalSlots (float)
+                const idx = Math.min(Math.floor(pos), totalSlots - 1)
                 const frac = pos - idx
-                // Cubic ease-in-out per slot
+                // Sharp cubic ease-in-out within each slot so the roll snaps
+                // cleanly: slow at extremes (slot settled), fast in the middle.
                 const eased =
                   frac < 0.5
                     ? 4 * frac * frac * frac
                     : 1 - Math.pow(-2 * frac + 2, 3) / 2
-                const stepped = (idx + eased) / total
-                return `${stepped * endYPercent}`
+                const resultPx = -((idx + eased) * slotHeightPx)
+                return `${resultPx}px`
               },
             },
           },
-          0.04  // settle window: first sentence stable from p=0 to p=0.04
+          0.04  // settle window: sentence 1 stable from p=0 to p=0.04
         )
       }
 
@@ -255,8 +291,9 @@ export default function Hero() {
         if (nav) gsap.set(nav, { opacity: 1 })
       }
     },
-    // Re-run when motionOk or mounted resolves — both set once, fires twice max.
-    [motionOk, mounted, cycle.length]
+    // Re-run when motionOk or mounted resolves, and when slotHeightPx is measured.
+    // slotHeightPx starts at 0 (guard inside bails), then resolves once ResizeObserver fires.
+    [motionOk, mounted, cycle.length, slotHeightPx]
   )
 
   // ── Reduced-motion: static composed end-state ─────────────────────────────
@@ -321,12 +358,19 @@ export default function Hero() {
           No translateY → zero floating gap at all times.
           P2.5: bottom-0, no padding/margin on outer. object-bottom on img. */}
       {/* OUTER: centering only. bottom-0 + no bottom spacing = flush base.
-          P2.5: translateY(2px) nudges down to kill any sub-pixel gap from transparent
-          PNG bottom pixels (the building base may not fill all of the 1024×1024 frame). */}
+          Issue B: The hero-tower-v2.png has transparent pixels at its bottom edge
+          (the building base doesn't fill the full 1024×1024 frame).
+          translateY pushes the wrapper below the viewport bottom so those transparent
+          pixels are clipped by the pinned section's overflow-hidden.
+          Responsive: mobile needs more nudge than desktop because the render width
+          is smaller relative to the PNG, so the transparent band is proportionally larger. */}
       <div
+        ref={buildingOuterRef}
         className="absolute bottom-0 left-1/2 z-[2]"
         style={{
           width: 'min(78vw, 880px)',
+          // Default 4px nudge (overwritten to 8px on mobile by useEffect above).
+          // Section overflow-hidden clips any overflow below viewport.
           transform: 'translateX(-50%) translateY(4px)',
           margin: 0,
           padding: 0,
@@ -405,9 +449,13 @@ export default function Hero() {
 
       {/* 7. Text stack — vertically + horizontally centred. Direction-agnostic RTL. */}
       <div className="absolute inset-0 z-[4] flex flex-col items-center justify-center px-6 text-center">
-        {/* Cycling headline */}
+        {/* Cycling headline — onSlotHeight wires measured px to GSAP context. */}
         <div ref={headlineRef} className="flex w-full flex-col items-center">
-          <SlotRollHeadline ref={slotTrackRef} lines={cycle} />
+          <SlotRollHeadline
+            ref={slotTrackRef}
+            lines={cycle}
+            onSlotHeight={handleSlotHeight}
+          />
         </div>
 
         {/* Subhead + CTA — fades slightly earlier than headline */}
@@ -448,35 +496,91 @@ export default function Hero() {
 }
 
 // ─── Slot-roll headline ──────────────────────────────────────────────────────
-// Fixed-height viewport clips a vertical track of N stacked sentences.
-// Center-aligned and direction-agnostic — correct in RTL (Hebrew) and LTR (English).
+// Clean masked vertical roll: overflow-hidden clip window sized to the TALLEST
+// rendered slot (measured in pixels, accounts for wrapping on narrow viewports).
+// GSAP moves the track by px (not yPercent) so exactly ONE sentence occupies the
+// clip at every scroll position — zero bleed from adjacent slots.
+//
+// slotHeightPx: measured once on mount + on resize. Written to a CSS custom prop
+// on the clip container; the clip container's height tracks it. GSAP receives the
+// pixel value through a ref so the GSAP timeline can use it (not yPercent).
+//
+// onSlotHeight callback: Hero's GSAP context reads the resolved px height before
+// building its translate animation, so both are in sync.
 
 interface SlotRollHeadlineProps {
   lines: readonly string[]
+  onSlotHeight?: (px: number) => void
 }
 
 const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
-  function SlotRollHeadline({ lines }, trackRef) {
-    const lineHeightCss = 'clamp(2.5rem, 8vw, 7.5rem)'
+  function SlotRollHeadline({ lines, onSlotHeight }, trackRef) {
+    const clipRef = useRef<HTMLDivElement>(null)
+    const itemRefs = useRef<Array<HTMLSpanElement | null>>([])
+    // null = unmeasured; number = measured slot height in px
+    const [clipPx, setClipPx] = useState<number | null>(null)
+
+    const measureSlots = useCallback(() => {
+      // Measure BEFORE setting height on items — items must be height:auto so their
+      // content wraps naturally and the scroll height reflects the true wrapped height.
+      let max = 0
+      for (const el of itemRefs.current) {
+        if (!el) continue
+        // scrollHeight gives the full content height (incl. wrapped lines) regardless
+        // of the element's own height, so it works even if height is already constrained.
+        const h = el.scrollHeight
+        if (h > max) max = h
+      }
+      if (max > 0) {
+        setClipPx(max)
+        onSlotHeight?.(max)
+      }
+    }, [onSlotHeight])
+
+    useEffect(() => {
+      // Initial measure after mount.
+      measureSlots()
+      // Re-measure when the component width changes (viewport resize).
+      const ro = new ResizeObserver(measureSlots)
+      if (clipRef.current) ro.observe(clipRef.current)
+      return () => ro.disconnect()
+    }, [measureSlots])
 
     return (
       <div
+        ref={clipRef}
         className="w-full overflow-hidden"
-        style={{ height: lineHeightCss }}
+        // Clip height = one slot height (measured). Before measurement: auto
+        // (allows natural wrapping so measureSlots() reads correct scrollHeight).
+        style={clipPx != null ? { height: clipPx } : undefined}
         aria-label={lines[0]}
       >
         <div ref={trackRef} className="flex flex-col will-change-transform">
           {lines.map((line, i) => (
             <span
               key={`${i}-${line}`}
+              ref={(node) => { itemRefs.current[i] = node }}
               aria-hidden={i === 0 ? undefined : 'true'}
-              className="flex shrink-0 items-center justify-center font-bold text-[var(--color-ink)]"
+              className="flex shrink-0 items-center justify-center font-bold text-[var(--color-ink)] w-full text-center"
               style={{
-                height: lineHeightCss,
+                // BEFORE measurement: height auto so content wraps naturally and
+                // scrollHeight gives the true wrapped height for measurement.
+                // AFTER measurement: height = clipPx so each slot takes exactly
+                // the same space and GSAP's pixel translate cleanly moves between them.
+                height: clipPx != null ? clipPx : 'auto',
+                // Minimum height keeps the slot from collapsing to 0 before measurement.
+                minHeight: 'clamp(2.5rem, 8vw, 7.5rem)',
                 fontFamily: 'var(--font-hebrew-display)',
                 fontSize: 'clamp(2.5rem, 8vw, 7.5rem)',
-                lineHeight: 0.95,
+                lineHeight: 1.1,
                 letterSpacing: '-0.02em',
+                // Allow wrapping on narrow viewports.
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+                // Vertical breathing room inside each slot.
+                paddingTop: '0.15em',
+                paddingBottom: '0.15em',
+                boxSizing: 'border-box',
               }}
             >
               {line}
