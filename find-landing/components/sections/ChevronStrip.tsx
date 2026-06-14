@@ -128,7 +128,7 @@ export default function ChevronStrip() {
         dir="ltr" pins the directional visual motif regardless of page direction.
       */}
       <div className="overflow-hidden px-4" dir="ltr">
-        <div className="chevron-arrow-row flex items-stretch justify-center gap-[clamp(0px,0.15vw,4px)]">
+        <div className="chevron-arrow-row flex items-stretch justify-center">
           {chevronImages.map((src, i) => {
             const meta =
               IMAGE_META[i] ?? {
@@ -146,6 +146,7 @@ export default function ChevronStrip() {
                 style={{
                   width: 'clamp(180px, 21vw, 290px)',
                   height: 'clamp(240px, 30vw, 420px)',
+                  marginInlineStart: i === 0 ? undefined : 'clamp(-24px, -1.8vw, -14px)',
                 }}
               >
                 {/* clip-path on MaskedImage contains the image scale within the chevron shape */}
