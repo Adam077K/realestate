@@ -65,8 +65,8 @@ import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 const HeroClouds = dynamic(() => import('./HeroClouds'), { ssr: false })
 
 // ─── Tuning constants ──────────────────────────────────────────────────────────
-const BUILDING_PAN_VH = 48
-const BUILDING_PAN_VH_MOBILE = 35
+const BUILDING_PAN_VH = 78
+const BUILDING_PAN_VH_MOBILE = 42
 
 function getBuildingPanVH(): number {
   if (typeof window === 'undefined') return BUILDING_PAN_VH
@@ -143,7 +143,7 @@ export default function Hero() {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: '+=560%',
+          end: '+=720%',
           pin: true,
           scrub: 0.8,
           anticipatePin: 1,
@@ -153,44 +153,45 @@ export default function Hero() {
         },
       })
 
-      // p 0.12–0.44  BUILDING PANS UP — starts after a brief REST hold
-      tl.to(buildingWrap, { y: -panPx, duration: 0.32, ease: 'power2.inOut' }, 0.12)
+      // p 0.12–0.50  BUILDING PANS UP — longer rise reveals full building base
+      tl.to(buildingWrap, { y: -panPx, duration: 0.38, ease: 'power2.inOut' }, 0.12)
 
-      // p 0.18–0.34  COPY GROUP FADES OUT — headline+subhead+CTA together, as building rises over them
-      tl.to(copyGroup, { opacity: 0, y: -40, duration: 0.16, ease: 'power3.in' }, 0.18)
+      // p 0.18–0.36  COPY GROUP FADES OUT — headline+subhead+CTA together, as building rises over them
+      tl.to(copyGroup, { opacity: 0, y: -40, duration: 0.18, ease: 'power3.in' }, 0.18)
 
       // p 0.10–0.18  Scroll nudge fades shortly after first scroll input
       if (scrollNudge) {
         tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.10)
       }
 
-      // p 0.40–0.44  Wordmark settles to final position as building tops out
-      tl.to(wordmark, { scale: 1, y: 0, duration: 0.04, ease: 'power1.out' }, 0.40)
+      // p 0.46–0.50  Wordmark settles to final position as building tops out
+      tl.to(wordmark, { scale: 1, y: 0, duration: 0.04, ease: 'power1.out' }, 0.46)
 
       // A8 — OUTLINE DRAW + SHORT WINDOW:
-      // p 0.44–0.48  outline fades in + stroke draws (strokeDashoffset 1→0)
-      tl.to(outline, { opacity: 1, duration: 0.04, ease: 'power2.out' }, 0.44)
+      // p 0.50–0.55  outline fades in + stroke draws (strokeDashoffset 1→0)
+      // Building must be FULLY revealed (base in view) BEFORE this fires
+      tl.to(outline, { opacity: 1, duration: 0.05, ease: 'power2.out' }, 0.50)
       if (outline) {
         tl.to(outline.querySelectorAll('.wordmark-outline-text'), {
           strokeDashoffset: 0,
-          duration: 0.08,
+          duration: 0.09,
           ease: 'power2.inOut',
           stagger: 0.01,
-        }, 0.44)
+        }, 0.50)
       }
 
-      // p 0.48–0.56  OUTLINE HOLDS briefly. Very subtle scale.
-      tl.to(outline, { scale: 1.02, duration: 0.08, ease: 'power1.inOut' }, 0.48)
+      // p 0.55–0.58  OUTLINE HOLDS briefly. Very subtle scale.
+      tl.to(outline, { scale: 1.02, duration: 0.03, ease: 'power1.inOut' }, 0.55)
 
-      // p 0.56–0.62  CROSS-DISSOLVE:
+      // p 0.58–0.64  CROSS-DISSOLVE:
       //   buildingImg: 1→0  (building photo fades)
       //   outline:     scale back + 1→0
       //   fill:        0→1  (image inside the letters appears)
-      tl.to(buildingImg, { opacity: 0, duration: 0.06, ease: 'sine.inOut' }, 0.56)
-      tl.to(outline,     { opacity: 0, scale: 1,       duration: 0.06, ease: 'power1.inOut' }, 0.56)
-      tl.to(fill,        { opacity: 1,                 duration: 0.06, ease: 'power1.inOut' }, 0.58)
+      tl.to(buildingImg, { opacity: 0, duration: 0.06, ease: 'sine.inOut' }, 0.58)
+      tl.to(outline,     { opacity: 0, scale: 1,       duration: 0.06, ease: 'power1.inOut' }, 0.58)
+      tl.to(fill,        { opacity: 1,                 duration: 0.06, ease: 'power1.inOut' }, 0.60)
 
-      // p 0.62–0.86  IMAGE-FILL WORDMARK HOLDS — long defining beat (A8: extended hold)
+      // p 0.64–0.86  IMAGE-FILL WORDMARK HOLDS — long defining beat (A8: extended hold)
 
       // p 0.86–0.94  WORDMARK LIFTS + FADES into the rising white mask
       tl.to(wordmark, { y: '-18%', scale: 1.06, opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.86)
@@ -285,10 +286,10 @@ export default function Hero() {
               fontFamily: 'var(--font-hebrew-display)',
               fontSize: 'clamp(1.92rem, 5.2vw, 4.8rem)',
               letterSpacing: '-0.03em',
-              color: '#ffffff',
+              color: '#000000',
               whiteSpace: 'pre-line',
               textWrap: 'balance',
-              textShadow: '0 2px 16px rgba(10,18,40,0.35)',
+              textShadow: '0 1px 12px rgba(255,255,255,0.6)',
             }}
           >
             {c.hero.title}
@@ -299,15 +300,15 @@ export default function Hero() {
               fontFamily: 'var(--font-body)',
               fontSize: 'clamp(0.92rem, 1.6vw, 1.28rem)',
               lineHeight: 1.65,
-              color: '#ffffff',
+              color: '#000000',
               maxWidth: '560px',
-              textShadow: '0 1px 10px rgba(10,18,40,0.30)',
+              textShadow: '0 1px 8px rgba(255,255,255,0.55)',
             }}
           >
             {c.hero.subhead}
           </p>
           <div>
-            <Pill variant="dark" href="#register" withArrow className="text-xs px-5 py-2.5 min-h-[36px]">
+            <Pill variant="dark" href="#register" withArrow className="text-xs px-5 py-2.5 min-h-[36px] !bg-black text-white">
               {c.hero.cta}
             </Pill>
           </div>
@@ -400,7 +401,7 @@ export default function Hero() {
         <div
           className="relative mx-auto w-full"
           style={{
-            maxWidth: 'clamp(437px, 80vw, 1144px)',
+            maxWidth: 'clamp(350px, 64vw, 915px)',
             paddingLeft: 'clamp(8px, 1.5vw, 24px)',
             paddingRight: 'clamp(8px, 1.5vw, 24px)',
           }}
@@ -450,10 +451,10 @@ export default function Hero() {
               fontSize: 'clamp(1.48rem, 4.96vw, 4.8rem)',
               lineHeight: 0.95,
               letterSpacing: '-0.03em',
-              color: '#ffffff',
+              color: '#000000',
               whiteSpace: 'pre-line',
               textWrap: 'balance',
-              textShadow: '0 2px 16px rgba(10,18,40,0.35)',
+              textShadow: '0 1px 12px rgba(255,255,255,0.6)',
             }}
           >
             {c.hero.title}
@@ -467,17 +468,17 @@ export default function Hero() {
               lineHeight: 1.65,
               letterSpacing: '0.005em',
               maxWidth: '560px',
-              color: '#ffffff',
+              color: '#000000',
               textAlign: 'center',
               marginTop: 'clamp(0.6rem, 1.6vh, 1.2rem)',
-              textShadow: '0 1px 10px rgba(10,18,40,0.30)',
+              textShadow: '0 1px 8px rgba(255,255,255,0.55)',
             }}
           >
             {c.hero.subhead}
           </p>
 
           <div style={{ marginTop: 'clamp(1rem, 2.5vh, 1.75rem)' }}>
-            <Pill variant="dark" href="#register" withArrow className="text-xs px-5 py-2.5 min-h-[36px]">
+            <Pill variant="dark" href="#register" withArrow className="text-xs px-5 py-2.5 min-h-[36px] !bg-black text-white">
               {c.hero.cta}
             </Pill>
           </div>
@@ -491,7 +492,7 @@ export default function Hero() {
         aria-hidden="true"
         style={{ position: 'absolute', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', opacity: 0.45 }}
       >
-        <div className="w-px h-8 bg-white opacity-60" />
+        <div className="w-px h-8 bg-black/40" />
       </div>
 
       {/* A9 — Thin high cloud line: always-visible wispy cirrus strip near top of viewport.
