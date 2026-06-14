@@ -28,10 +28,10 @@ export const images = {
   heroBuildingFill: '/images/hero-tower-fill-v3.jpg',
   cityStreet: '/images/city-street.jpg',
   chevron: [
-    '/images/chevron-1.jpg',
-    '/images/chevron-2.jpg',
-    '/images/chevron-3.jpg',
-    '/images/chevron-4.jpg',
+    '/images/chevron-family.png',
+    '/images/chevron-buying.jpeg',
+    '/images/chevron-apartment.jpg',
+    '/images/chevron-planning.avif',
   ] as [string, string, string, string],
   aerialForest: '/images/aerial-forest.jpg',
   agentPortrait: '/images/agent-portrait.jpg',
@@ -84,7 +84,7 @@ export const content = {
       ],
       subhead:
         'איך לנצל את מצב השוק לטובתכם - וובינר חינם עם עידן פלג ורועי פישמן.',
-      cta: 'שריינו לי מקום עכשיו',
+      cta: 'הרשמה לוובינר',
     },
     arrows: {
       lead: 'זה לא רק דירה.',
@@ -347,6 +347,10 @@ export const content = {
         seconds: 'שניות',
       },
     },
+    floatingCta: {
+      label: 'כניסה לוובינר',
+      ariaLabel: 'כניסה לוובינר - לחצו להרשמה',
+    },
   },
   en: {
     brand: 'בונים עתיד',
@@ -371,7 +375,7 @@ export const content = {
       ],
       subhead:
         'A free webinar on navigating Israel\'s 2026 market - with Idan Peleg & Roey Fishman.',
-      cta: 'Reserve my spot now',
+      cta: 'Register for the webinar',
     },
     arrows: {
       lead: "This isn't just an apartment.",
@@ -632,6 +636,10 @@ export const content = {
         minutes: 'Minutes',
         seconds: 'Seconds',
       },
+    },
+    floatingCta: {
+      label: 'Join the webinar',
+      ariaLabel: 'Join the webinar - click to register',
     },
   },
 } as const

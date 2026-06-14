@@ -12,6 +12,7 @@ import Stats from '@/components/sections/Stats'
 import BuyerGroups from '@/components/sections/BuyerGroups'
 import Hitech from '@/components/sections/Hitech'
 import CtaFooter from '@/components/sections/CtaFooter'
+import FloatingWebinarCta from '@/components/ui/FloatingWebinarCta'
 
 export default function Home() {
   return (
@@ -49,6 +50,7 @@ export default function Home() {
         <Hitech />
         <CtaFooter />
       </main>
+      <FloatingWebinarCta />
     </>
   )
 }

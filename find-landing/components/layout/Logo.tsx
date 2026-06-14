@@ -147,6 +147,46 @@ export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmark
           clipPath={`url(#${clipIdSub})`}
         />
       )}
+      {/* Thin black outline rendered ON TOP of the clipped image-fill to give the
+          letterforms a crisp edge. Matches the clip-path text metrics exactly. */}
+      <text
+        x="50%"
+        y={mainY}
+        dominantBaseline="central"
+        textAnchor="middle"
+        direction="rtl"
+        fontFamily="var(--font-hebrew), system-ui, sans-serif"
+        fontWeight="800"
+        fontSize="138"
+        letterSpacing="-2"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="1"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        בונים עתיד
+      </text>
+      {subWord && (
+        <text
+          x="50%"
+          y="80%"
+          dominantBaseline="central"
+          textAnchor="middle"
+          direction="rtl"
+          fontFamily="var(--font-hebrew), system-ui, sans-serif"
+          fontWeight="800"
+          fontSize="69"
+          letterSpacing="-1"
+          fill="none"
+          stroke="#000000"
+          strokeWidth="1"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          {subWord}
+        </text>
+      )}
     </svg>
   )
 }

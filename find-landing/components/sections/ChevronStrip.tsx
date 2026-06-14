@@ -10,14 +10,13 @@ import TwoToneHeading from '@/components/ui/TwoToneHeading'
 import { images } from '@/data/content'
 
 // Per-image alt text and object-position tuning so faces/subjects stay centred
-// within the chevron clip shape. The notch clips the left ~42% of the bounding
-// box, so the visible content lives in the right portion of each panel - we bias
-// object-position rightward so faces/subjects don't get eaten by the notch.
+// within the chevron clip shape. The new images are landscape/square; center
+// positioning keeps the subject visible in the tall crop.
 const IMAGE_META: { alt: string; objectPosition: string }[] = [
-  { alt: 'בונים עתיד - נדל״ן ואנשים', objectPosition: '62% center' },
-  { alt: 'פנים דירה עם נוף לעיר', objectPosition: '58% center' },
-  { alt: 'סלון בתכנון פתוח', objectPosition: '55% center' },
-  { alt: 'בניין חדש מקבלן', objectPosition: '55% center' },
+  { alt: 'משפחה מאושרת בדירה חדשה', objectPosition: 'center center' },
+  { alt: 'רכישת דירה - חוזה ומפתח', objectPosition: 'center center' },
+  { alt: 'פנים דירה מודרנית מוארת', objectPosition: 'center center' },
+  { alt: 'משפחה מתכננת ביחד', objectPosition: 'center center' },
 ]
 
 export default function ChevronStrip() {

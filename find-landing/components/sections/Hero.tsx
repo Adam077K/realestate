@@ -226,8 +226,8 @@ export default function Hero() {
         <div
           className="absolute left-1/2 z-[2]"
           style={{
-            top: 'clamp(58vh, 62vh, 66vh)',
-            width: 'min(85vw, 1240px)',
+            top: 'clamp(55vh, 59vh, 63vh)',
+            width: 'min(78vw, 1140px)',
             transform: 'translateX(-50%)',
           }}
           aria-hidden="true"
@@ -246,7 +246,7 @@ export default function Hero() {
                 display: 'block',
                 filter: 'saturate(1.02) contrast(1.02)',
               }}
-              sizes="(max-width: 768px) 85vw, 1240px"
+              sizes="(max-width: 768px) 78vw, 1140px"
             />
           </div>
           {/* Warm rim light - replaces the old cool blue cast */}
@@ -343,8 +343,8 @@ export default function Hero() {
         ref={buildingOuterRef}
         className="absolute left-1/2 z-[3]"
         style={{
-          top: 'clamp(58vh, 62vh, 66vh)',
-          width: 'min(85vw, 1240px)',
+          top: 'clamp(55vh, 59vh, 63vh)',
+          width: 'min(78vw, 1140px)',
           transform: 'translateX(-50%)',
           margin: 0,
           padding: 0,
@@ -370,7 +370,7 @@ export default function Hero() {
                 display: 'block',
                 filter: 'saturate(1.02) contrast(1.02)',
               }}
-              sizes="(max-width: 768px) 85vw, 1240px"
+              sizes="(max-width: 768px) 78vw, 1140px"
             />
           </div>
 
