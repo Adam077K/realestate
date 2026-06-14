@@ -542,7 +542,7 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
       const vhPx      = window.innerHeight
       const restTopPx = Math.min(0.63 * vhPx, Math.max(0.55 * vhPx, 0.59 * vhPx))
       const buildingH = img.getBoundingClientRect().height
-      const clampedTop = Math.min(restTopPx, vhPx - buildingH)
+      const clampedTop = Math.max(restTopPx, vhPx - buildingH)
       outer.style.top = `${clampedTop}px`
     }
 
