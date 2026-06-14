@@ -216,7 +216,9 @@ export default function Hero() {
       const panPx      = Math.max(0, baseAtRest - vhNow - GROUND_BLEED)
 
       // ── Master scrubbed timeline (pin +=1000%) ──────────────────────────
-      // scrub: 0.8 for smoother premium feel; extended pin for slower constant-velocity flow
+      // P4: scrub:0.8 → scrub:true — removes GSAP's internal smoothing loop that
+      // was fighting Lenis's lerp (double-smoothing = laggy tail). Timeline eases
+      // are already ease:'none' so the motion curve is unchanged.
       // refreshPriority: 1 → this pinned trigger MUST refresh before all other triggers
       // so the pin-spacer (10×vh tall) is accounted for when sibling section triggers
       // compute their start positions. Without this every section below the fold
@@ -228,7 +230,7 @@ export default function Hero() {
           start: 'top top',
           end: '+=1000%',
           pin: true,
-          scrub: 0.8,
+          scrub: true,
           anticipatePin: 1,
           refreshPriority: 1,
           onUpdate: (self) => {
