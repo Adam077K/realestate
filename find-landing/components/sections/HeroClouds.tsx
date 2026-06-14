@@ -229,6 +229,15 @@ function frontVeilIntensity(p: number): number {
 }
 
 /**
+ * Per-layer near-cloud bloom peak — raised so cloud forms stay visible at
+ * p≈0.86–1.0 instead of collapsing to flat white.
+ * baseOpacity (0.03–0.05) → NEAR_PEAK_BLOOM (0.78) gives visble cloud volume.
+ * The PNG tint (saturate(0) brightness(1.7)) keeps them near-white so the
+ * final hand-off into #learn is still a smooth light seam.
+ */
+const NEAR_PEAK_BLOOM = 0.78
+
+/**
  * Per-layer animate state: opacity, scale, translateY (parallax), translateX (bloom drift).
  * filter + mix-blend-mode are set ONCE at mount - never computed here.
  */
@@ -237,8 +246,10 @@ function layerState(p: number, layer: CloudLayer, variant: 'back' | 'front') {
     const veil = frontVeilIntensity(p)
     const fr = veil * layer.coverage
 
-    const NEAR_PEAK = 1.0  // A10: raised to 1.0 for pure-white mask
-    const opacity   = clamp01(layer.baseOpacity + (NEAR_PEAK - layer.baseOpacity) * fr)
+    // A10-v2: bloom to NEAR_PEAK_BLOOM (0.78) so cloud forms stay visible at
+    // peak cover instead of washing flat. The cloud-textured veil background
+    // handles the final near-white wash. Layer PNGs provide cloud volume/structure.
+    const opacity   = clamp01(layer.baseOpacity + (NEAR_PEAK_BLOOM - layer.baseOpacity) * fr)
     const scale     = 1 + fr * 0.55
     const translateY = -p * 22 * layer.parallax + (-fr * 12)
     const translateX = layer.driftX * fr
@@ -484,13 +495,20 @@ export default function HeroClouds({
         )
       })}
 
-      {/* FRONT veil - soft near-white radial wash that fills the WHOLE viewport at
-          the end of the hero, then STAYS at peak (no thin-out). The next section
-          (Stats) has a matching cloud-white gradient at its top so the seam between
-          hero and next section is invisible. blur(6px) keeps it reading as cloud,
-          not a flat scrim. Opacity driven by frontVeilIntensity each rAF frame.
-          NOTE: blur on a simple gradient div (not a promoted+blurred PNG) is safe;
-          only 1 GPU layer with no costly re-composition. */}
+      {/* FRONT veil - cloud-textured rising mask.
+          Composites a wide soft cloud PNG (cloud-7.png) OVER a near-white radial
+          gradient so the veil reads as billowing cloud forms, not a flat white wipe.
+          Layer order (CSS background shorthand, top = first):
+            1. cloud-7.png — wide wispy low mist, center/cover: provides the cloud volume.
+               mix-blend-mode on the div is NOT used (performance); instead we rely on
+               the gradient underneath to wash the cloud toward near-white at the top.
+            2. radial-gradient — tighter alpha ramp: center stays cloudy (lower alpha
+               so PNG shows through), top resolves near-white for a clean seam with #learn.
+          The gradient alpha is tuned so:
+            - center/lower (0–42%): 0.55 → cloud PNG structure remains legible.
+            - top (100%): 0.95 → near-white, seam into white #learn section is invisible.
+          GPU: ONLY `opacity` animates per frame (transform driven by GSAP).
+          No blur, no per-frame filter — kept for perf as before. */}
       {variant === 'front' && (
         <div
           ref={veilRef}
@@ -499,13 +517,16 @@ export default function HeroClouds({
             position: 'absolute',
             inset: '-8%',
             opacity: animate
-              ? frontVeilIntensity(0) * 0.87
-              : frontVeilIntensity(staticRestP) * 0.87,
-            background:
-              'radial-gradient(130% 100% at 50% 40%, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.90) 42%, rgba(255,255,255,0.97) 100%)',
-            // P1: blur removed — mutating filter on a full-screen div every rAF
-            // invalidates the GPU layer cache each tick. The gradient edge is
-            // already soft at these opacities; visual change is imperceptible.
+              ? frontVeilIntensity(0) * 0.90
+              : frontVeilIntensity(staticRestP) * 0.90,
+            // Cloud PNG composited over gradient. PNG at top gives cloud forms;
+            // gradient underneath washes top edge near-white for clean seam into #learn.
+            background: [
+              'url(/images/clouds/cloud-7.png) center/cover no-repeat',
+              'radial-gradient(130% 100% at 50% 40%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.78) 42%, rgba(255,255,255,0.95) 100%)',
+            ].join(', '),
+            // P1: no blur — mutating filter on a full-screen div every rAF
+            // invalidates the GPU layer cache each tick.
             willChange: animate ? 'opacity' : 'auto',
             pointerEvents: 'none',
           }}
