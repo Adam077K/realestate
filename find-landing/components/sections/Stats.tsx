@@ -1,104 +1,95 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef } from 'react'
 import { gsap } from '@/lib/gsap'
-import { useGsapContext } from '@/hooks/useGsapContext'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useContent } from '@/components/providers/LanguageProvider'
 
 /**
  * Stats - id="stats". Mid-page standalone band.
  *
- * Dark surface. Three large display numbers with a confident staggered entrance:
- * each item rises + fades with a slight scale, numbers blur-in from below.
- * Optional count-up is reduced-motion-safe (disabled when motionOk is false).
+ * One-shot reveals use IntersectionObserver (via useScrollReveal), immune to
+ * the Hero pin-spacer math.
  */
-
-/** Parses a stat value string into a numeric base and suffix for count-up. */
-function parseStatValue(raw: string): { base: number; suffix: string } | null {
-  // Match: optional sign, digits, optional decimal, optional suffix chars
-  const m = raw.match(/^([+]?)(\d+(?:\.\d+)?)([\s\S]*)$/)
-  if (!m) return null
-  const prefix = m[1] ?? ''
-  const num = parseFloat(m[2])
-  const suffix = (m[3] ?? '').trim()
-  if (isNaN(num)) return null
-  return { base: num, suffix: (prefix + '{{n}}' + (suffix ? ' ' + suffix : '')).trim() }
-}
-
 export default function Stats() {
   const sectionRef = useRef<HTMLElement>(null)
   const { motionOk } = useSmoothScroll()
   const c = useContent()
 
-  useGsapContext(
+  // One-shot reveals via IntersectionObserver — immune to pin-spacer position math.
+  useScrollReveal(
     sectionRef,
-    () => {
-      if (!motionOk) return
-
-      // Section entrance: the whole band rises as a unit before items stagger
-      // All fromTo + immediateRender:false to prevent hero-pin-spacer false triggers
-      gsap.fromTo(
-        sectionRef.current,
-        { opacity: 0, y: 32 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.7,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 82%' },
-        }
-      )
-
-      // Stat items - stagger rise + scale settle for confident landing
-      gsap.fromTo(
-        '.stat-item',
-        { y: 48, opacity: 0, scale: 0.92 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          stagger: 0.14,
-          duration: 1.0,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.stats-grid', start: 'top 80%' },
-        }
-      )
-
+    [
+      // Section entrance: the whole band rises as a unit
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.18, // 'top 82%'
+        build: () =>
+          gsap.fromTo(
+            sectionRef.current,
+            { opacity: 0, y: 32 },
+            { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', paused: true }
+          ),
+      },
+      // Stat items - stagger rise + scale settle
+      {
+        trigger: '.stats-grid',
+        revealAt: 0.2, // 'top 80%'
+        build: () =>
+          gsap.fromTo(
+            '.stat-item',
+            { y: 48, opacity: 0, scale: 0.92 },
+            {
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              stagger: 0.14,
+              duration: 1.0,
+              ease: 'power3.out',
+              paused: true,
+            }
+          ),
+      },
       // Numbers themselves: blur-rise for extra drama
-      gsap.fromTo(
-        '.stat-number',
-        { yPercent: 18, opacity: 0, filter: 'blur(8px)' },
-        {
-          yPercent: 0,
-          opacity: 1,
-          filter: 'blur(0px)',
-          duration: 1.1,
-          stagger: 0.14,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.stats-grid', start: 'top 80%' },
-        }
-      )
-
+      {
+        trigger: '.stats-grid',
+        revealAt: 0.2, // 'top 80%'
+        build: () =>
+          gsap.fromTo(
+            '.stat-number',
+            { yPercent: 18, opacity: 0, filter: 'blur(8px)' },
+            {
+              yPercent: 0,
+              opacity: 1,
+              filter: 'blur(0px)',
+              duration: 1.1,
+              stagger: 0.14,
+              ease: 'power3.out',
+              paused: true,
+            }
+          ),
+      },
       // Label lines fade up after numbers
-      gsap.fromTo(
-        '.stat-label',
-        { opacity: 0, y: 12 },
-        {
-          opacity: 1,
-          y: 0,
-          stagger: 0.14,
-          duration: 0.7,
-          delay: 0.22,
-          ease: 'power2.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.stats-grid', start: 'top 80%' },
-        }
-      )
-    },
+      {
+        trigger: '.stats-grid',
+        revealAt: 0.2, // 'top 80%'
+        build: () =>
+          gsap.fromTo(
+            '.stat-label',
+            { opacity: 0, y: 12 },
+            {
+              opacity: 1,
+              y: 0,
+              stagger: 0.14,
+              duration: 0.7,
+              delay: 0.22,
+              ease: 'power2.out',
+              paused: true,
+            }
+          ),
+      },
+    ],
     [motionOk]
   )
 
@@ -117,7 +108,6 @@ export default function Stats() {
               className="stat-item flex flex-col items-center text-center gap-4 px-6 py-12 sm:py-6"
               style={{ willChange: 'transform, opacity' }}
             >
-              {/* Large display number */}
               <span
                 className="stat-number font-[var(--font-display)] font-light leading-none tracking-[-0.04em] text-[var(--color-paper)] tabular-nums"
                 style={{
@@ -127,15 +117,11 @@ export default function Stats() {
               >
                 {stat.value}
               </span>
-              {/* Hairline separator */}
               <span
                 className="block w-8 h-px bg-[rgba(255,255,255,0.2)]"
                 aria-hidden="true"
               />
-              {/* Label */}
-              <span
-                className="stat-label text-sm md:text-base leading-snug max-w-[22ch] text-[rgba(255,255,255,0.5)]"
-              >
+              <span className="stat-label text-sm md:text-base leading-snug max-w-[22ch] text-[rgba(255,255,255,0.5)]">
                 {stat.label}
               </span>
             </li>
