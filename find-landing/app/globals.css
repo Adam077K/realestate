@@ -150,6 +150,13 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.01em;
 }
 
+/* ── Scroll-margin: sections land below the fixed navbar (~77px) ── */
+/* Adds breathing room so anchor-linked headings are never clipped by the navbar. */
+section[id],
+[id].reg-band {
+  scroll-margin-top: 5rem; /* 80px — covers 77px navbar with 3px buffer */
+}
+
 /* ── ChevronStrip panel: mobile 2×2 grid → sm+ overlapped flex row ── */
 /* Mobile default: full grid-cell width, taller clamp for 2-column layout */
 .chevron-panel {
