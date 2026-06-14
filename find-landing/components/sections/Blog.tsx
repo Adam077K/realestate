@@ -99,7 +99,7 @@ export default function Blog() {
       {blog.posts.map((post, i) => (
         <article
           key={post.title}
-          className={`blog-row-${i} border-t border-[rgba(17,17,17,0.1)] w-full px-6 md:px-12 lg:px-20 py-12 md:py-16 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 md:gap-16 items-start`}
+          className={`blog-row-${i} group border-t border-[rgba(17,17,17,0.1)] w-full px-6 md:px-12 lg:px-20 py-12 md:py-16 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 md:gap-16 items-start`}
         >
           {/* LEFT — text content */}
           <div className="flex flex-col gap-5 max-w-xl">
@@ -137,7 +137,7 @@ export default function Blog() {
             </div>
           </div>
 
-          {/* RIGHT — image with clip-reveal */}
+          {/* RIGHT — image with clip-reveal + hover zoom */}
           <div
             className="blog-image-wrap w-full md:w-[360px] lg:w-[420px] aspect-[3/2] relative overflow-hidden flex-shrink-0"
             style={{ willChange: 'clip-path' }}
@@ -147,7 +147,7 @@ export default function Blog() {
               alt={post.title}
               fill
               sizes="(max-width: 768px) 100vw, 420px"
-              className="object-cover"
+              className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.04] motion-reduce:transform-none motion-reduce:transition-none"
             />
           </div>
         </article>

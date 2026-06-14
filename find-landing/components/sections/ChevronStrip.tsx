@@ -34,6 +34,22 @@ export default function ChevronStrip() {
       const items = itemRefs.current.filter(Boolean) as HTMLDivElement[]
       if (items.length === 0) return
 
+      // Heading words stagger reveal
+      const headingWords = sectionRef.current?.querySelectorAll('.chevron-heading .tt-word')
+      if (headingWords && headingWords.length > 0) {
+        gsap.from(headingWords, {
+          yPercent: 110,
+          opacity: 0,
+          stagger: 0.05,
+          ease: 'power3.out',
+          duration: 0.85,
+          scrollTrigger: {
+            trigger: '.chevron-heading',
+            start: 'top 84%',
+          },
+        })
+      }
+
       // Left→right "opening" reveal: arrows enter in sequence from the left, each
       // sliding in from a slight leftward offset with a fade. The stagger makes the
       // ❯❯❯❯ chain appear to open rightward (frames 015→019). GPU transforms only
@@ -66,7 +82,7 @@ export default function ChevronStrip() {
       aria-label="בונים עתיד — אודות"
     >
       {/* Heading — centered above the arrow row */}
-      <div className="mb-10 md:mb-14 flex justify-center px-4 text-center">
+      <div className="chevron-heading mb-10 md:mb-14 flex justify-center px-4 text-center">
         <TwoToneHeading lead={c.arrows.lead} tail={c.arrows.tail} as="h2" />
       </div>
 
@@ -98,12 +114,13 @@ export default function ChevronStrip() {
                 ref={(el) => {
                   itemRefs.current[i] = el
                 }}
-                className="relative shrink-0 grow-0 will-change-transform"
+                className="group relative shrink-0 grow-0 will-change-transform"
                 style={{
                   width: 'clamp(150px, 17vw, 230px)',
                   height: 'clamp(320px, 40vw, 560px)',
                 }}
               >
+                {/* clip-path on MaskedImage contains the image scale within the chevron shape */}
                 <MaskedImage
                   shape="chevron"
                   src={src}
@@ -113,6 +130,7 @@ export default function ChevronStrip() {
                   objectFit="cover"
                   objectPosition={meta.objectPosition}
                   priority={i === 0}
+                  imgClassName="transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.06] motion-reduce:transform-none motion-reduce:transition-none"
                 />
               </div>
             )

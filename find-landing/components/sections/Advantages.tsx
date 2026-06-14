@@ -73,7 +73,9 @@ export default function Advantages() {
               key={item.title}
               className={[
                 'adv-card group bg-[var(--color-paper)] p-7 md:p-9 flex flex-col gap-4 text-start',
-                'transition-colors duration-300 hover:bg-[var(--color-paper-warm)]',
+                'transition-[background-color,transform,box-shadow] duration-400 ease-[cubic-bezier(0.32,0.72,0,1)]',
+                'hover:bg-[var(--color-paper-warm)] hover:-translate-y-[2px] hover:shadow-[0_12px_40px_-16px_rgba(0,0,0,0.12)]',
+                'motion-reduce:transition-none motion-reduce:transform-none',
                 i === 0 ? 'md:col-span-2' : '',
               ].join(' ')}
               style={{ willChange: 'transform, opacity' }}

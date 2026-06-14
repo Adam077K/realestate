@@ -31,6 +31,8 @@ export interface MaskedImageProps {
   quality?: number
   /** Additional classes on the wrapper div */
   className?: string
+  /** Additional classes passed directly to the <Image> element (for hover transforms, etc.) */
+  imgClassName?: string
   /** Priority loading (set true for above-the-fold images) */
   priority?: boolean
   /** Object-fit style for the image */
@@ -48,6 +50,7 @@ export default function MaskedImage({
   height,
   quality = 85,
   className,
+  imgClassName,
   priority = false,
   objectFit = 'cover',
   objectPosition = 'center',
@@ -67,6 +70,7 @@ export default function MaskedImage({
           fill
           quality={quality}
           priority={priority}
+          className={imgClassName}
           style={{ objectFit, objectPosition }}
           sizes="(max-width: 768px) 100vw, 50vw"
         />
@@ -78,6 +82,7 @@ export default function MaskedImage({
           height={height ?? 600}
           quality={quality}
           priority={priority}
+          className={imgClassName}
           style={{ objectFit, objectPosition, width: '100%', height: 'auto' }}
         />
       )}

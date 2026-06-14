@@ -179,10 +179,11 @@ function BuyerCard({
   return (
     <div
       aria-hidden={ariaHidden || undefined}
-      className="shrink-0 w-[min(85vw,560px)] sm:w-[min(60vw,520px)] md:w-[440px] lg:w-[480px]"
+      className="group shrink-0 w-[min(85vw,560px)] sm:w-[min(60vw,520px)] md:w-[440px] lg:w-[480px]"
     >
+      {/* Hover: card lifts + shadow deepens; image zooms in subtly */}
       <div
-        className="relative w-full overflow-hidden rounded-2xl ring-1 ring-[var(--color-ink)]/10 shadow-[0_24px_60px_-32px_rgba(0,0,0,0.5)]"
+        className="relative w-full overflow-hidden rounded-2xl ring-1 ring-[var(--color-ink)]/10 shadow-[0_24px_60px_-32px_rgba(0,0,0,0.5)] transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-y-1 group-hover:shadow-[0_32px_72px_-24px_rgba(0,0,0,0.6)] motion-reduce:transition-none motion-reduce:transform-none"
         style={{ aspectRatio: '590 / 348' }}
       >
         <Image
@@ -190,7 +191,7 @@ function BuyerCard({
           alt={alt}
           fill
           sizes="(max-width: 640px) 85vw, (max-width: 768px) 60vw, 480px"
-          className="object-contain"
+          className="object-contain transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.03] motion-reduce:transform-none motion-reduce:transition-none"
           priority={index === 0}
         />
       </div>

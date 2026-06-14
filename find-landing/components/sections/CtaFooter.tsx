@@ -73,6 +73,7 @@ const SOCIAL_ICONS: Record<string, React.FC> = {
  */
 export default function CtaFooter() {
   const footerRef = useRef<HTMLElement>(null)
+  const regBgRef = useRef<HTMLDivElement>(null)
   const motionOk = !useReducedMotion()
   const c = useContent()
   const { dir } = useLang()
@@ -107,6 +108,25 @@ export default function CtaFooter() {
         scrollTrigger: { trigger: '.reg-card', start: 'top 85%' },
       })
 
+      // Subtle parallax on the background image — drifts 8% over section height.
+      // GPU-safe: transform/yPercent only, no top/left.
+      const bg = regBgRef.current
+      if (bg) {
+        gsap.fromTo(
+          bg,
+          { yPercent: -5 },
+          {
+            yPercent: 5,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.reg-band',
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true,
+            },
+          }
+        )
+      }
     },
     [motionOk]
   )
@@ -145,14 +165,23 @@ export default function CtaFooter() {
         className="reg-band relative w-full overflow-hidden"
         aria-labelledby="register-heading"
       >
-        <Image
-          src={images.ctaFamily}
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover object-center"
+        {/* Background image with subtle parallax — container clips overflow,
+            inner div translates ±5% via scrub so content above/below is never exposed */}
+        <div
+          ref={regBgRef}
+          className="absolute inset-0 will-change-transform"
+          style={{ height: '110%', top: '-5%' }}
           aria-hidden="true"
-        />
+        >
+          <Image
+            src={images.ctaFamily}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+            aria-hidden="true"
+          />
+        </div>
         {/* Layered scrim: vertical depth + a directional wash so the form card
             edge reads cleanly against the photo regardless of language side. */}
         <div

@@ -27,11 +27,24 @@ export default function Stats() {
     () => {
       if (!motionOk) return
 
+      // Display numbers — rise from below with a slight scale for impact.
+      // Each number animates independently for a confident, staggered entrance.
       gsap.from('.stat-item', {
-        y: 28,
+        y: 36,
         opacity: 0,
+        scale: 0.95,
         stagger: 0.18,
-        duration: 0.8,
+        duration: 0.9,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: '.stats-grid', start: 'top 85%' },
+      })
+
+      // The large display numbers themselves get a subtle upward blur-rise
+      gsap.from('.stat-number', {
+        yPercent: 12,
+        opacity: 0,
+        duration: 1.1,
+        stagger: 0.18,
         ease: 'power3.out',
         scrollTrigger: { trigger: '.stats-grid', start: 'top 85%' },
       })
@@ -56,9 +69,10 @@ export default function Stats() {
             >
               {/* Large display number — white on dark */}
               <span
-                className="font-[var(--font-display)] font-light leading-none tracking-[-0.03em] text-[var(--color-paper)] tabular-nums"
+                className="stat-number font-[var(--font-display)] font-light leading-none tracking-[-0.03em] text-[var(--color-paper)] tabular-nums"
                 style={{
                   fontSize: 'clamp(2.75rem,7vw,5rem)',
+                  willChange: 'transform, opacity',
                 }}
               >
                 {stat.value}

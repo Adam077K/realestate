@@ -94,7 +94,7 @@ export default function Hitech() {
               <li
                 key={`${logo.name}-${i}`}
                 aria-hidden={motionOk && i >= hitech.logos.length ? true : undefined}
-                className="flex items-center justify-center"
+                className="group flex items-center justify-center"
               >
                 <Image
                   src={logo.img}
@@ -106,9 +106,12 @@ export default function Hitech() {
                     width: 'auto',
                     maxWidth: '130px',
                     objectFit: 'contain',
-                    // Render as uniform white light marks on the dark background
+                    // Render as uniform white light marks on the dark background.
+                    // On hover: brighten to full opacity for a tactile, premium reveal.
                     filter: 'brightness(0) invert(1) opacity(0.75)',
+                    transition: 'filter 0.4s cubic-bezier(0.32, 0.72, 0, 1), transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
                   }}
+                  className="group-hover:[filter:brightness(0)_invert(1)_opacity(1)] group-hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:transform-none"
                 />
               </li>
             ))}

@@ -77,9 +77,9 @@ export default function Partners() {
                   maxWidth: '140px',
                   objectFit: 'contain',
                   filter: 'grayscale(1) opacity(0.55)',
-                  transition: 'filter 0.3s ease',
+                  transition: 'filter 0.45s cubic-bezier(0.32, 0.72, 0, 1), transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
                 }}
-                className="group-hover:[filter:grayscale(0)_opacity(1)] motion-reduce:transition-none"
+                className="group-hover:[filter:grayscale(0)_opacity(1)] group-hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:transform-none"
               />
             </li>
           ))}
