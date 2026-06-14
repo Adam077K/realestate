@@ -68,7 +68,7 @@ export default function BonimNavbar() {
         <div
           aria-hidden="true"
           style={{
-            height: scrolled ? "0px" : "5px",
+            height: scrolled ? "0px" : "4px",
             overflow: "hidden",
             background:
               "linear-gradient(90deg, #2f9e92 0%, #7fd0c7 60%, #bfe6e0 100%)",
@@ -92,7 +92,7 @@ export default function BonimNavbar() {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              height: "96px",
+              height: "77px",
               paddingLeft: "clamp(20px, 3.5vw, 56px)",
               paddingRight: "clamp(20px, 3.5vw, 56px)",
             }}
@@ -110,8 +110,8 @@ export default function BonimNavbar() {
               <div
                 style={{
                   position: "relative",
-                  height: "86px",
-                  width: "290px",
+                  height: "69px",
+                  width: "232px",
                 }}
               >
                 {/* White logo (top/translucent state) */}
@@ -120,7 +120,7 @@ export default function BonimNavbar() {
                   alt="בונים עתיד"
                   fill
                   priority
-                  sizes="290px"
+                  sizes="232px"
                   style={{
                     objectFit: "contain",
                     objectPosition: "right center",
@@ -136,7 +136,7 @@ export default function BonimNavbar() {
                   fill
                   aria-hidden="true"
                   priority
-                  sizes="290px"
+                  sizes="232px"
                   style={{
                     objectFit: "contain",
                     objectPosition: "right center",
@@ -153,7 +153,7 @@ export default function BonimNavbar() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "24px",
+                  gap: "19px",
                   flex: 1,
                   justifyContent: "center",
                 }}
@@ -164,7 +164,7 @@ export default function BonimNavbar() {
                     key={link.label}
                     href={link.href}
                     style={{
-                      fontSize: "20px",
+                      fontSize: "16px",
                       fontWeight: 400,
                       fontFamily: "var(--font-hebrew), sans-serif",
                       textDecoration: "none",
@@ -199,7 +199,7 @@ export default function BonimNavbar() {
                       <span
                         aria-hidden="true"
                         style={{
-                          fontSize: "9px",
+                          fontSize: "7px",
                           opacity: 0.8,
                           display: "inline-block",
                           transform: "translateY(1px)",
@@ -221,9 +221,9 @@ export default function BonimNavbar() {
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
-                    padding: "7px 16px",
+                    padding: "6px 13px",
                     borderRadius: "3px",
-                    fontSize: "16px",
+                    fontSize: "13px",
                     fontWeight: 400,
                     fontFamily: "var(--font-hebrew), sans-serif",
                     border: scrolled
@@ -277,7 +277,7 @@ export default function BonimNavbar() {
                     key={i}
                     style={{
                       display: "block",
-                      width: "22px",
+                      width: "18px",
                       height: "2px",
                       backgroundColor: "currentColor",
                       transition: "transform 300ms ease, opacity 300ms ease",
@@ -324,7 +324,7 @@ export default function BonimNavbar() {
                   tabIndex={menuOpen ? 0 : -1}
                   aria-current={link.active ? "page" : undefined}
                   style={{
-                    fontSize: "16px",
+                    fontSize: "13px",
                     fontWeight: link.active ? 600 : 400,
                     fontFamily: "var(--font-hebrew), sans-serif",
                     color: link.active ? "#2f9e92" : "#3a3a3a",
@@ -352,11 +352,11 @@ export default function BonimNavbar() {
                   tabIndex={menuOpen ? 0 : -1}
                   style={{
                     display: "inline-block",
-                    padding: "10px 20px",
+                    padding: "8px 16px",
                     border: "1px solid #444",
                     borderRadius: "3px",
                     color: "#333",
-                    fontSize: "15px",
+                    fontSize: "12px",
                     fontWeight: 400,
                     fontFamily: "var(--font-hebrew), sans-serif",
                     textDecoration: "none",

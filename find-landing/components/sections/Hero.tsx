@@ -325,7 +325,7 @@ export default function Hero() {
           className="absolute left-1/2 z-[2]"
           style={{
             top: 'clamp(62vh, 66vh, 70vh)',
-            width: 'min(87.5vw, 1260px)',
+            width: 'min(70vw, 1008px)',
             transform: 'translateX(-50%)',
           }}
           aria-hidden="true"
@@ -344,7 +344,7 @@ export default function Hero() {
                 display: 'block',
                 filter: 'saturate(0.96) brightness(0.97) hue-rotate(6deg) contrast(1.03)',
               }}
-              sizes="(max-width: 768px) 88vw, 1260px"
+              sizes="(max-width: 768px) 70vw, 1008px"
             />
           </div>
           <div
@@ -403,7 +403,7 @@ export default function Hero() {
             className="font-bold leading-[0.95]"
             style={{
               fontFamily: 'var(--font-hebrew-display)',
-              fontSize: 'clamp(1.85rem, 6.2vw, 6rem)',
+              fontSize: 'clamp(1.92rem, 5.2vw, 4.8rem)',
               letterSpacing: '-0.03em',
               color: '#ffffff',
             }}
@@ -414,7 +414,7 @@ export default function Hero() {
             className="font-light"
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(1.15rem, 2vw, 1.6rem)',
+              fontSize: 'clamp(0.92rem, 1.6vw, 1.28rem)',
               lineHeight: 1.65,
               color: '#ffffff',
               maxWidth: '560px',
@@ -423,7 +423,7 @@ export default function Hero() {
             {c.hero.subhead}
           </p>
           <div>
-            <Pill variant="dark" href="#register" withArrow>
+            <Pill variant="dark" href="#register" withArrow className="text-xs px-5 py-2.5 min-h-[36px]">
               {c.hero.cta}
             </Pill>
           </div>
@@ -461,7 +461,7 @@ export default function Hero() {
         className="absolute left-1/2 z-[2]"
         style={{
           top: 'clamp(62vh, 66vh, 70vh)',
-          width: 'min(87.5vw, 1260px)',
+          width: 'min(70vw, 1008px)',
           transform: 'translateX(-50%)',
           margin: 0,
           padding: 0,
@@ -486,7 +486,7 @@ export default function Hero() {
                 display: 'block',
                 filter: 'saturate(0.96) brightness(0.97) hue-rotate(6deg) contrast(1.03)',
               }}
-              sizes="(max-width: 768px) 88vw, 1260px"
+              sizes="(max-width: 768px) 70vw, 1008px"
             />
           </div>
 
@@ -559,7 +559,7 @@ export default function Hero() {
         <div
           className="relative mx-auto w-full"
           style={{
-            maxWidth: 'clamp(420px, 78vw, 1100px)',
+            maxWidth: 'clamp(336px, 62vw, 880px)',
             paddingLeft: 'clamp(8px, 1.5vw, 24px)',
             paddingRight: 'clamp(8px, 1.5vw, 24px)',
           }}
@@ -680,7 +680,7 @@ export default function Hero() {
               ref={subheadRef}
               style={{
                 fontFamily: 'var(--font-body)',
-                fontSize: 'clamp(1.15rem, 2vw, 1.6rem)',
+                fontSize: 'clamp(0.92rem, 1.6vw, 1.28rem)',
                 fontWeight: 300,
                 lineHeight: 1.65,
                 letterSpacing: '0.005em',
@@ -692,7 +692,7 @@ export default function Hero() {
               {c.hero.subhead}
             </p>
             <div style={{ marginTop: 'clamp(1rem, 2.5vh, 1.75rem)' }}>
-              <Pill variant="dark" href="#register" withArrow>
+              <Pill variant="dark" href="#register" withArrow className="text-xs px-5 py-2.5 min-h-[36px]">
                 {c.hero.cta}
               </Pill>
             </div>
@@ -816,9 +816,9 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
                 height: clipPx != null ? clipPx : 'auto',
                 // BATCH 5 — CHANGE 3b: mobile floor lowered to 1.85rem; textWrap:balance
                 // for even wrapping on 390px. Keeps lineHeight + letterSpacing intact.
-                minHeight: 'clamp(1.85rem, 6.2vw, 6rem)',
+                minHeight: 'clamp(1.48rem, 4.96vw, 4.8rem)',
                 fontFamily: 'var(--font-hebrew-display)',
-                fontSize: 'clamp(1.85rem, 6.2vw, 6rem)',
+                fontSize: 'clamp(1.48rem, 4.96vw, 4.8rem)',
                 lineHeight: 0.95,
                 letterSpacing: '-0.03em',
                 whiteSpace: 'normal',
