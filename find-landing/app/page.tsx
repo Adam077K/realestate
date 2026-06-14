@@ -1,6 +1,5 @@
 import BonimNavbar from '@/components/layout/BonimNavbar'
 import Hero from '@/components/sections/Hero'
-import Stats from '@/components/sections/Stats'
 import ChevronStrip from '@/components/sections/ChevronStrip'
 import RewiredSteps from '@/components/sections/RewiredSteps'
 import OwnYourCareer from '@/components/sections/OwnYourCareer'
@@ -35,7 +34,6 @@ export default function Home() {
       />
       <main>
         <Hero />
-        <Stats />
         <RewiredSteps />
         <ChevronStrip />
         <OwnYourCareer />

@@ -3,53 +3,62 @@
 /**
  * Hero — Signature pinned scroll experience for בונים עתיד (Bonim Atid).
  *
- * v2 — FOUNDER DIRECTION CHANGES:
+ * BATCH 4 CHANGES:
  *
- * 1. BUILDING — WIDER, HALF AT REST.
- *    Rendered at min(125vw, 1800px) wide so it bleeds off BOTH side edges.
- *    Positioned with top: 0 so the UPPER HALF of the building (penthouse,
- *    upper terraces) is visible at rest, with the lower half extending below
- *    the viewport fold.
+ * 1. HEADLINE CYCLE LONGER — cycle span widened to p0.06–0.55 with plateau holds
+ *    at [0.22–0.38] and [0.72–0.88] within the tween so each sentence stays still
+ *    much longer. Pin extended from +=400% → +=560% (re-budgeted so total feels
+ *    deliberate, not endless).
  *
- * 2. BUILDING MOTION — CONSTANT-SIZE VERTICAL PAN (not a zoom).
- *    No scale animation. On scroll, the building translates UPWARD (negative Y)
- *    at fixed size — reveals progressively lower floors. Reads as "camera
- *    descending the facade". Pan range: 0 → ~-45vh.
+ * 2. SKY LIGHTER BLUE — upper/mid stops lifted: top ~#2e4878 (was #1e2d4a),
+ *    mid transitions raised throughout for a brighter, lighter dusk.
  *
- * 3. SPACING — headline / subhead / CTA rhythm balanced.
- *    Generous, intentional gaps: headline → subhead → CTA.
+ * 3. HEADLINE BIGGER — fontSize clamp(2.4rem,6.5vw,6rem) (was clamp(2rem,5vw,4.5rem)).
  *
- * 4. CLOUDS — PERSIST + COLOR-BRIDGE INTO NEXT SECTION.
- *    Cloud veil STAYS at peak opacity (no thin-out at end). Stats section
- *    gets a cloud-white gradient top so the seam is invisible.
+ * 4. COPY STARTS CENTERED — paddingTop removed; layout uses flexbox justify-center.
+ *    No scroll drift tween. Copy is centered from rest through cycle then fades.
  *
- * Architecture unchanged:
+ * 5. BUILDING ~30% LOWER — outer top clamp(62vh,66vh,70vh) (was clamp(44vh,50vh,56vh))
+ *    so more open sky frames the centered copy at rest.
+ *
+ * 6. COMBINED RISE ~30% LONGER — building pans p0.10–0.72 (was p0.10–0.55), re-budgeted
+ *    in the longer +=560% pin window.
+ *
+ * 7. WORDMARK ~50% LONGER AGAIN — cross-dissolve now p0.73–0.94 + lift at p0.95–0.99.
+ *    Veil bloom delayed to p0.63–0.97.
+ *
+ * 8+9. STATS ON CLOUD SCREEN — stats numbers + labels overlaid on the front cloud
+ *      veil, revealed p0.88–1.0 (after wordmark lifts). Cloud veil (carrying stats)
+ *      pans upward via translateY: +15vh → 0 across p0.90–1.0, creating a rising-
+ *      through-clouds feel. Seamless light→white into RewiredSteps.
+ *      Reduced-motion: static stats fallback rendered inside hero.
+ *
+ * Architecture:
  *   - progressRef (plain useRef<number>) — zero React re-renders per tick.
  *   - Single rAF in HeroClouds, cancelled on unmount.
  *   - GSAP context revert on cleanup.
- *   - @ts-expect-error CSS-var pattern preserved.
- *   - Reduced-motion: static composed end-state (persistent veil look, no pin/rAF).
+ *   - Reduced-motion: static composed end-state with static stats visible.
  *   - RTL: fully centered — reads identically in dir=rtl and dir=ltr.
  *   - GPU: transform/opacity only; will-change toggled around pin.
  *
  * Two-layer building wrapper (CRITICAL — DO NOT COLLAPSE):
- *   OUTER  — absolute top-0 left-1/2, translateX(-50%). NEVER touched by GSAP.
+ *   OUTER  — absolute left-1/2, translateX(-50%). NEVER touched by GSAP.
  *   INNER  — buildingWrapRef. GSAP animates translateY ONLY.
  *
- * Motion timeline (scrub: true, pin +=400% — slower / heavier hero):
- *   p 0.00       REST: building low, copy upper-middle (deep black text), all visible
- *   p 0.00–0.15  copy block drifts DOWN to vertical-center
- *   p 0.06–0.42  headline slot-roll cycles 3 sentences with plateau holds
- *   p 0.10–0.55  building PANS UP concurrently with cycle (combined motion)
- *   p 0.12–0.20  text color #050505 → #ffffff, halo white→dark (building behind copy)
+ * Motion timeline (scrub: true, pin +=560%):
+ *   p 0.00       REST: building low (62–70vh), copy centered, text #050505 + white halo
+ *   p 0.06–0.55  headline slot-roll cycles 3 sentences with long plateau holds
+ *   p 0.10–0.72  building pans up concurrently (-panPx, power2.inOut)
+ *   p 0.12–0.20  text color #050505→#ffffff, halo→dark-shadow (building behind copy)
  *   p 0.38–0.46  subhead+CTA fade+lift out
- *   p 0.43–0.52  headline fade+lift out
- *   p 0.44–0.52  scroll nudge fades
- *   p 0.50–0.55  wordmark drifts to rest position
- *   p 0.55–0.88  PURE CROSS-FADE: building 1→0, outline 0→1→0, fill 0→1 (EXTENDED 50%)
- *   p 0.90–0.98  wordmark lifts into cloud bloom + fades (DELAYED for longer linger)
- *   p 0.50–0.95  cloud bloom (delayed — doesn't wash wordmark early)
- *   p 0.88–1.00  veil STAYS at peak (no thin-out) — bridges into next section
+ *   p 0.48–0.57  headline fade+lift out
+ *   p 0.49–0.57  scroll nudge fades
+ *   p 0.60–0.67  wordmark settles to rest position
+ *   p 0.73–0.87  Building: 1→0; Outline: 0→1→0; Fill: 0→1 (cross-dissolve)
+ *   p 0.95–0.99  wordmark lifts + fades
+ *   p 0.63–0.97  cloud bloom (delayed — doesn't wash wordmark early)
+ *   p 0.88–1.00  stats overlay fades in (over full cloud veil)
+ *   p 0.90–1.00  cloud veil pans up +15vh→0 (rising-through-clouds feel)
  */
 
 import dynamic from 'next/dynamic'
@@ -68,11 +77,8 @@ import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 const HeroClouds = dynamic(() => import('./HeroClouds'), { ssr: false })
 
 // ─── Tuning constants ──────────────────────────────────────────────────────────
-// Building is rendered at constant size — no scale animation.
-// Pan range in vh: building translates from 0 → -BUILDING_PAN_VH on scroll.
-// This reveals progressively lower floors as if the camera descends the facade.
-const BUILDING_PAN_VH = 48  // desktop pan range in viewport-height units
-const BUILDING_PAN_VH_MOBILE = 35  // mobile: smaller pan range (building is taller relative to viewport)
+const BUILDING_PAN_VH = 48
+const BUILDING_PAN_VH_MOBILE = 35
 
 function getBuildingPanVH(): number {
   if (typeof window === 'undefined') return BUILDING_PAN_VH
@@ -85,12 +91,10 @@ export default function Hero() {
   const { motionOk } = useSmoothScroll()
   const c = useContent()
 
-  // 3-sentence slot-roll cycle. Guard against empty content.
   const cycle: readonly string[] =
     c.hero.cycle && c.hero.cycle.length > 0 ? c.hero.cycle : [c.hero.title]
 
   const sectionRef = useRef<HTMLElement>(null)
-  // buildingWrapRef — GSAP animates translateY only (pan motion).
   const buildingWrapRef = useRef<HTMLDivElement>(null)
   const headlineRef = useRef<HTMLDivElement>(null)
   const slotTrackRef = useRef<HTMLDivElement>(null)
@@ -101,22 +105,19 @@ export default function Hero() {
   const fillRef = useRef<HTMLDivElement>(null)
   const scrollNudgeRef = useRef<HTMLDivElement>(null)
   const buildingOuterRef = useRef<HTMLDivElement>(null)
-  // copyBlockRef — inner shift wrapper. GSAP translates Y to drift copy toward
-  // vertical center after the first scroll beat, then holds centered for the full cycle.
-  const copyBlockRef = useRef<HTMLDivElement>(null)
   // textColorRef + subheadRef — GSAP tweens color + filter for black→white swap
-  // when building rises behind copy (~p0.12–0.18).
   const textColorRef = useRef<HTMLDivElement>(null)
   const subheadRef = useRef<HTMLParagraphElement>(null)
+  // statsOverlayRef — fades in p0.88–1.0 after wordmark lifts
+  const statsOverlayRef = useRef<HTMLDivElement>(null)
+  // cloudFrontVeilRef — forwarded to HeroClouds front-variant veil div.
+  // GSAP animates translateY for the cloud-pans-up effect p0.90–1.0.
+  const cloudFrontVeilRef = useRef<HTMLDivElement>(null)
 
-  // Shared scroll progress — written by ScrollTrigger onUpdate, read by HeroClouds' rAF.
-  // Plain ref: zero React re-renders per scroll tick.
+  // Shared scroll progress — plain ref, zero React re-renders per scroll tick.
   const progressRef = useRef<number>(0)
 
-  // Slot height in pixels — measured by SlotRollHeadline's ResizeObserver.
   const [slotHeightPx, setSlotHeightPx] = useState<number>(0)
-
-  // Client-side mount gate
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
@@ -139,10 +140,10 @@ export default function Hero() {
       const outline = outlineRef.current
       const fill = fillRef.current
       const scrollNudge = scrollNudgeRef.current
-
-      const copyBlock = copyBlockRef.current
       const textColor = textColorRef.current
       const subheadEl = subheadRef.current
+      const statsOverlay = statsOverlayRef.current
+      const cloudVeil = cloudFrontVeilRef.current
 
       if (
         !buildingWrap || !headline || !slotTrack || !subCta ||
@@ -159,30 +160,30 @@ export default function Hero() {
       gsap.set(fill, { opacity: 0 })
       gsap.set(slotTrack, { yPercent: 0 })
       gsap.set([headline, subCta], { opacity: 1, y: 0 })
-      if (copyBlock) gsap.set(copyBlock, { y: 0 })
       if (scrollNudge) gsap.set(scrollNudge, { opacity: 0.45 })
-      // Text starts deep black with white halo (state 1: over bright clouds)
       if (textColor) gsap.set(textColor, { color: '#050505' })
       if (subheadEl) gsap.set(subheadEl, { color: '#050505' })
+      if (statsOverlay) gsap.set(statsOverlay, { opacity: 0 })
+      // Cloud veil starts translated down (+15vh) at rest; pans up as pin ends
+      if (cloudVeil) gsap.set(cloudVeil, { y: '15vh' })
 
       // Enable GPU compositing during the pin
-      const willChangeTargets: (Element | null)[] = [buildingWrap, headline, slotTrack, subCta, wordmark, outline, fill]
-      if (copyBlock) willChangeTargets.push(copyBlock)
+      const willChangeTargets: (Element | null)[] = [
+        buildingWrap, headline, slotTrack, subCta, wordmark, outline, fill,
+      ]
+      if (statsOverlay) willChangeTargets.push(statsOverlay)
+      if (cloudVeil) willChangeTargets.push(cloudVeil)
       gsap.set(willChangeTargets.filter(Boolean) as Element[], { willChange: 'transform, opacity' })
 
-      // Responsive pan range
       const panVH = getBuildingPanVH()
       const panPx = (window.innerHeight * panVH) / 100
 
-      // Copy centering shift: ~14vh to sit at high-center over the clouds.
-      const centerShiftPx = (window.innerHeight * 14) / 100
-
-      // ── Master scrubbed timeline ─────────────────────────────────────────
+      // ── Master scrubbed timeline (pin +=560%) ───────────────────────────
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: '+=400%',
+          end: '+=560%',
           pin: true,
           scrub: true,
           anticipatePin: 1,
@@ -192,23 +193,11 @@ export default function Hero() {
         },
       })
 
-      // BUILDING PAN — CONCURRENT WITH SLOT-ROLL CYCLE (change #1).
-      // Building rises p0.10–0.55 overlapping the headline cycle (p0.06–0.42).
-      // Text turns white at p0.12–0.18 (change #2) so it stays readable on the
-      // rising building facade. Both effects together feel like a camera pull-back
-      // revealing the building as the message changes.
-      tl.to(buildingWrap, { y: -panPx, duration: 0.45, ease: 'power2.inOut' }, 0.10)
+      // CHANGE #6 — COMBINED RISE ~30% LONGER.
+      // Building pans p0.10–0.72 (was 0.10–0.55) within the longer pin.
+      tl.to(buildingWrap, { y: -panPx, duration: 0.62, ease: 'power2.inOut' }, 0.10)
 
-      // COPY BLOCK DRIFT → CENTER (p 0.00–0.15).
-      if (copyBlock) {
-        tl.to(copyBlock, { y: centerShiftPx, duration: 0.15, ease: 'power2.out' }, 0)
-      }
-
-      // TEXT COLOR SWAP — black → white (change #2).
-      // At p0.12 the building starts rising noticeably behind the copy zone.
-      // Tween headline (via textColorRef wrapper) and subhead to #ffffff over
-      // p0.12–0.20, and swap the drop-shadow halo from white-glow → dark shadow.
-      // This keeps text legible against the grey concrete/glass facade.
+      // TEXT COLOR SWAP — black → white (p0.12–0.20 unchanged).
       if (textColor) {
         tl.to(textColor, {
           color: '#ffffff',
@@ -225,7 +214,9 @@ export default function Hero() {
         }, 0.12)
       }
 
-      // Slot-roll cycling headline — readable cycle p 0.06–0.42.
+      // CHANGE #1 — HEADLINE CYCLE LONGER.
+      // Slot-roll spans p0.06–0.55 (was 0.06–0.42), plateau holds at
+      // [0.22–0.38] and [0.72–0.88] within the tween's own progress.
       const lineCount = cycle.length
       if (lineCount > 1) {
         const totalSlots = lineCount - 1
@@ -236,7 +227,7 @@ export default function Hero() {
           { y: 0 },
           {
             y: endY,
-            duration: 0.36,
+            duration: 0.49,   // p0.06–0.55 span
             ease: 'none',
             modifiers: {
               y: (raw: string) => {
@@ -245,17 +236,22 @@ export default function Hero() {
                 let slotPos: number
 
                 if (totalSlots === 1) {
-                  if (rawProgress < 0.25) {
+                  // Single transition: hold 0→move→hold 1
+                  if (rawProgress < 0.30) {
                     slotPos = 0
-                  } else if (rawProgress < 0.75) {
-                    const t = (rawProgress - 0.25) / 0.50
+                  } else if (rawProgress < 0.70) {
+                    const t = (rawProgress - 0.30) / 0.40
                     const eased = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2
                     slotPos = eased
                   } else {
                     slotPos = 1
                   }
                 } else {
-                  const transitions = [[0.18, 0.32], [0.68, 0.82]] as const
+                  // Longer holds: [0.22–0.38] and [0.72–0.88]
+                  // Sentence 0 shows p0.00–0.22, transitions 0.22–0.38 → sentence 1
+                  // Sentence 1 holds 0.38–0.72, transitions 0.72–0.88 → sentence 2
+                  // Sentence 2 holds 0.88–1.00
+                  const transitions = [[0.22, 0.38], [0.72, 0.88]] as const
 
                   if (rawProgress < transitions[0][0]) {
                     slotPos = 0
@@ -285,74 +281,78 @@ export default function Hero() {
       // p 0.38–0.46  subhead+CTA exits.
       tl.to(subCta, { opacity: 0, y: -50, duration: 0.08, ease: 'power3.in' }, 0.38)
 
-      // p 0.43–0.52  headline fade+lift.
-      tl.to(headline, { opacity: 0, y: -60, duration: 0.09, ease: 'power3.in' }, 0.43)
+      // p 0.48–0.57  headline fade+lift.
+      tl.to(headline, { opacity: 0, y: -60, duration: 0.09, ease: 'power3.in' }, 0.48)
 
-      // p 0.44–0.52  Scroll nudge fades.
+      // p 0.49–0.57  Scroll nudge fades.
       if (scrollNudge) {
-        tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.44)
+        tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.49)
       }
 
-      // p 0.50–0.55  Wordmark settles to rest position.
-      tl.to(wordmark, { scale: 1, y: 0, duration: 0.05, ease: 'power1.out' }, 0.50)
+      // p 0.60–0.67  Wordmark settles to rest position.
+      tl.to(wordmark, { scale: 1, y: 0, duration: 0.07, ease: 'power1.out' }, 0.60)
 
-      // p 0.55–0.88  PURE SCRUBBED CROSS-FADE — building dissolves into wordmark.
-      // EXTENDED by 50%: was 0.55–0.82, now 0.55–0.88 + fill holds until 0.90 (change #5).
-      // Overlap windows at every stage ensure no visual hole.
+      // CHANGE #7 — WORDMARK ~50% LONGER AGAIN.
+      // Cross-dissolve p0.73–0.94; lift p0.95–0.99.
+      // HeroClouds frontVeilIntensity bloom now p0.63–0.97 (updated below).
       //
-      //   p 0.55–0.72  Building image:  1 → 0  (sine.inOut)
-      //   p 0.55–0.70  White outline:   0 → 1  (power1.inOut)
-      //   p 0.70–0.84  White outline:   1 → 0  (power1.inOut)
-      //   p 0.67–0.88  Image fill:      0 → 1  (power1.inOut) — HOLD at 1 until p0.90
+      //   p 0.73–0.87  Building image:  1→0  (sine.inOut)
+      //   p 0.73–0.86  White outline:   0→1  (power1.inOut)
+      //   p 0.84–0.94  White outline:   1→0  (power1.inOut)
+      //   p 0.82–0.94  Image fill:      0→1  (power1.inOut) — holds until lift
+      tl.to(buildingImg, { opacity: 0, duration: 0.14, ease: 'sine.inOut' }, 0.73)
+      tl.to(outline, { opacity: 1, duration: 0.13, ease: 'power1.inOut' }, 0.73)
+      tl.to(outline, { opacity: 0, duration: 0.10, ease: 'power1.inOut' }, 0.84)
+      tl.to(fill, { opacity: 1, duration: 0.12, ease: 'power1.inOut' }, 0.82)
 
-      tl.to(buildingImg, { opacity: 0, duration: 0.17, ease: 'sine.inOut' }, 0.55)
-      tl.to(outline, { opacity: 1, duration: 0.15, ease: 'power1.inOut' }, 0.55)
-      tl.to(outline, { opacity: 0, duration: 0.14, ease: 'power1.inOut' }, 0.70)
-      tl.to(fill, { opacity: 1, duration: 0.21, ease: 'power1.inOut' }, 0.67)
+      // p 0.95–0.99  Wordmark lifts into cloud bloom + fades.
+      tl.to(wordmark, { y: '-20%', scale: 1.08, opacity: 0, duration: 0.04, ease: 'power2.in' }, 0.95)
 
-      // p 0.90–0.98  Wordmark lifts into the cloud bloom + fades (was 0.78–0.88).
-      // Delayed so the filled wordmark lingers noticeably longer before departure.
-      tl.to(wordmark, { y: '-20%', scale: 1.08, opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.90)
+      // CHANGES #8+9 — STATS OVERLAY + CLOUD PAN UP.
+      // Stats fade in p0.88–1.0 (after wordmark lift clears screen space).
+      if (statsOverlay) {
+        tl.to(statsOverlay, { opacity: 1, duration: 0.12, ease: 'power2.out' }, 0.88)
+      }
 
-      // ── Nav fade REMOVED (change #6e): BonimNavbar self-manages its scroll state.
-      // An external opacity tween conflicts with the navbar's own transparency logic.
+      // Cloud veil pans up: starts at y=+15vh → y=0 across p0.90–1.0.
+      // This creates a "rising through clouds" feel as the hero pin releases
+      // into the white RewiredSteps below. The veil carries the stats with it.
+      if (cloudVeil) {
+        tl.to(cloudVeil, { y: '0vh', duration: 0.10, ease: 'power2.inOut' }, 0.90)
+      }
 
-      // Clean up will-change after the pin completes
+      // Clean up will-change after pin
       return () => {
         gsap.set(willChangeTargets.filter(Boolean) as Element[], { willChange: 'auto' })
-        // Restore text color to black for any reduced-motion / back-nav scenario
         if (textColor) gsap.set(textColor, { color: '#050505', filter: '' })
         if (subheadEl) gsap.set(subheadEl, { color: '#050505' })
+        if (cloudVeil) gsap.set(cloudVeil, { y: '0vh' })
       }
     },
     [motionOk, mounted, cycle.length, slotHeightPx]  // eslint-disable-line react-hooks/exhaustive-deps
   )
 
   // ── Reduced-motion: clean composed fallback ──────────────────────────────
-  // Sky gradient + soft cloud veil + headline + subhead + CTA. No animation.
-  // White veil separates building from copy so neither layer collides visually.
+  // Shows copy + building + static stats below (change #9 fallback).
   if (!motionOk) {
     return (
       <section
         id="hero"
         aria-label="Hero"
-        className="relative flex min-h-screen w-full flex-col items-center overflow-hidden"
-        style={{ paddingTop: 'clamp(10vh, 14vh, 18vh)' }}
+        className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden"
+        style={{ paddingTop: 'clamp(8vh, 10vh, 14vh)' }}
       >
         <SkyGradient />
-        {/* Building — pushed lower so sky is open above */}
+        {/* Building — lower rest position */}
         <div
           className="absolute left-1/2 z-[2]"
           style={{
-            top: 'clamp(44vh, 50vh, 56vh)',
+            top: 'clamp(62vh, 66vh, 70vh)',
             width: 'min(87.5vw, 1260px)',
             transform: 'translateX(-50%)',
-            position: 'absolute',
-            // No background-color — sky gradient is continuous behind building (no seam)
           }}
           aria-hidden="true"
         >
-          {/* Same cool-dusk treatment as animated path for visual consistency */}
           <div style={{ display: 'block', lineHeight: 0, fontSize: 0, position: 'relative', zIndex: 1 }}>
             <Image
               src={images.heroBuildingCutout}
@@ -370,7 +370,6 @@ export default function Hero() {
               sizes="(max-width: 768px) 88vw, 1260px"
             />
           </div>
-          {/* Cool rim light on glass faces */}
           <div
             aria-hidden="true"
             style={{
@@ -390,7 +389,6 @@ export default function Hero() {
               pointerEvents: 'none',
             }}
           />
-          {/* Cool base haze */}
           <div
             aria-hidden="true"
             style={{
@@ -410,28 +408,26 @@ export default function Hero() {
             }}
           />
         </div>
-        {/* Cloud layer behind the veil */}
+        {/* Cloud layer */}
         {mounted && (
           <div className="absolute inset-0 z-[1]" aria-hidden="true">
             <HeroClouds progressRef={progressRef} active={false} />
           </div>
         )}
-        {/* Cool dusk veil — separates building + clouds from readable copy.
-            Slightly cool-tinted blue-white so the veil feels part of the palette.
-            Dark ink text is fully legible on this near-white surface. */}
+        {/* Cool dusk veil */}
         <div
           aria-hidden="true"
           className="absolute inset-0 z-[3] pointer-events-none"
           style={{ background: 'rgba(228,235,246,0.82)' }}
         />
-        {/* Copy stack — headline + subhead + CTA fully over sky */}
+        {/* Copy stack — centered */}
         <div className="relative z-[4] flex w-full flex-col items-center px-6 text-center gap-6">
           <h1
             className="font-bold leading-[0.95]"
             style={{
               fontFamily: 'var(--font-hebrew-display)',
-              fontSize: 'clamp(2.25rem, 7vw, 6rem)',
-              letterSpacing: '-0.02em',
+              fontSize: 'clamp(2.4rem, 6.5vw, 6rem)',
+              letterSpacing: '-0.03em',
               color: '#050505',
               filter: 'drop-shadow(0 1px 10px rgba(255,255,255,0.65))',
             }}
@@ -442,10 +438,10 @@ export default function Hero() {
             className="font-light"
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
-              lineHeight: 1.6,
+              fontSize: 'clamp(1.15rem, 2vw, 1.6rem)',
+              lineHeight: 1.65,
               color: '#050505',
-              maxWidth: '640px',
+              maxWidth: '560px',
             }}
           >
             {c.hero.subhead}
@@ -456,6 +452,8 @@ export default function Hero() {
             </Pill>
           </div>
         </div>
+        {/* CHANGE #9 — Static stats fallback (reduced-motion) */}
+        <StatsFallback stats={c.stats} />
       </section>
     )
   }
@@ -469,53 +467,35 @@ export default function Hero() {
       className="relative w-full overflow-hidden"
       style={{ height: '100svh' }}
     >
-      {/* 1. Sky gradient — zero JS, instant LCP */}
+      {/* 1. Sky gradient */}
       <SkyGradient />
 
-      {/* 2. HeroClouds BACK — behind building + wordmark. Visible throughout pin. */}
+      {/* 2. HeroClouds BACK — FAR + MID bands, behind building. */}
       {mounted && (
         <div className="absolute inset-0 z-[1]" aria-hidden="true">
           <HeroClouds progressRef={progressRef} active={motionOk} variant="back" />
         </div>
       )}
 
-      {/* 3. Building — SMALLER (87.5vw/1260px) PAN VERSION.
-          OUTER: centering only (translateX(-50%)). top: clamp(44vh,50vh,56vh) positions
-          the building's ROOFLINE at ~50vh at rest — open sky occupies the top ~50%.
-          Copy sits in clamp(18vh,21vh,24vh) paddingTop zone; full copy stack ends ~40vh.
-          Sky gap between copy bottom (~40vh) and roofline (~50vh) = ~10vh at rest.
-          BUILDING HOLDS NEAR REST THROUGH p0.45 (micro-drift ≤2vh) so all 3 slot-roll
-          headlines read over bright clouds, not over the building facade.
-          PAN REVEALS p0.45–0.72 — building rises the full panPx after headlines are gone. */}
+      {/* 3. Building — LOWER at rest (clamp(62vh,66vh,70vh)).
+          OUTER: centering only (translateX(-50%)). The higher top means more open sky
+          frames the centered copy at rest. INNER: GSAP pan target. */}
       <div
         ref={buildingOuterRef}
         className="absolute left-1/2 z-[2]"
         style={{
-          top: 'clamp(44vh, 50vh, 56vh)',
+          top: 'clamp(62vh, 66vh, 70vh)',
           width: 'min(87.5vw, 1260px)',
           transform: 'translateX(-50%)',
           margin: 0,
           padding: 0,
-          // 30% smaller than before (was min(125vw,1800px)) — building is now centered
-          // with visible sky on both sides. No background-color — sky gradient continuous.
         }}
         aria-hidden="true"
       >
-        {/* INNER: GSAP pan target — translateY only, no scale.
-            ALL tint/glow/haze layers live INSIDE this div so they pan and are clipped
-            with the building — they NEVER reach the sky above the outer wrapper. */}
         <div
           ref={buildingWrapRef}
           style={{ transformOrigin: 'center top', position: 'relative' }}
         >
-          {/* Building image — cool blue-hour grade. The building is naturally grey concrete +
-              glass, which already reads as cool. A subtle filter shifts it into dusk cohesion:
-              hue-rotate(+6deg) nudges residual warm tones slightly toward blue-steel,
-              saturate(0.96) desaturates slightly for a twilight feel,
-              brightness(0.97) drops it a touch to sit naturally in fading light,
-              contrast(1.03) keeps structural depth in the glass/facade details.
-              CSS filter on <img> touches rendered pixels, NOT the transparent alpha channel,
-              so the sky gradient behind is completely unaffected. */}
           <div ref={buildingImgRef} style={{ display: 'block', lineHeight: 0, fontSize: 0, position: 'relative', zIndex: 1 }}>
             <Image
               src={images.heroBuildingCutout}
@@ -534,12 +514,7 @@ export default function Hero() {
             />
           </div>
 
-          {/* Cool rim light — faint blue-steel glow on the building's upper glass faces.
-              Simulates ambient sky light reflecting off the glazing at dusk.
-              Low opacity (0.28 at base) keeps it tasteful — a sheen, not a tint.
-              mix-blend-mode: soft-light so it interacts with the actual building tones
-              rather than painting flat colour over them.
-              mask-image alpha-clips to building silhouette — sky stays clean. */}
+          {/* Cool rim light on glass faces */}
           <div
             aria-hidden="true"
             style={{
@@ -561,10 +536,7 @@ export default function Hero() {
             }}
           />
 
-          {/* Cool base haze — blue-white atmospheric mist dissolving the building base.
-              Reads as ground fog or reflected sky light at the building's foundation.
-              rgba(200,215,235) is a cool steel-blue-white — cohesive with the dusk sky.
-              No blend mode needed here — straight cool-white dissolve for mist. */}
+          {/* Cool base haze */}
           <div
             aria-hidden="true"
             style={{
@@ -587,11 +559,7 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Global cool atmosphere — subtle blue-indigo depth wash from the lower scene.
-          Reinforces the blue-hour dusk feel across building base + cumulus.
-          Very low opacity (0.14 at base) — purely atmospheric, no muddying.
-          Sits above building/clouds (z-[2]) but below wordmark (z-[3]) and copy (z-[4]).
-          Fades to zero by 55% height so headline zone is completely unaffected. */}
+      {/* Global cool atmosphere wash */}
       <div
         aria-hidden="true"
         style={{
@@ -618,16 +586,13 @@ export default function Hero() {
             maxWidth: 'clamp(420px, 78vw, 1100px)',
             paddingLeft: 'clamp(8px, 1.5vw, 24px)',
             paddingRight: 'clamp(8px, 1.5vw, 24px)',
-            // Taller viewBox (720×285 with subWord) so the container proportions match.
-            // No marginTop nudge — vertically centered in the section.
           }}
         >
-          {/* Outline — white stroke, draws in while building is still visible */}
+          {/* Outline — white stroke */}
           <div ref={outlineRef} className="absolute inset-0">
             <BrandWordmarkOutline subWord="וובינר" />
           </div>
-          {/* Fill — building image clipped to Hebrew letters.
-              Fades in during cross-dissolve; outline fades as fill lands. */}
+          {/* Fill — building image clipped to Hebrew letters. */}
           <div ref={fillRef} style={{ transition: 'none' }}>
             <BrandWordmarkMask
               fillSrc={images.heroBuildingFill}
@@ -638,26 +603,80 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* 6. HeroClouds FRONT — blooms in over building + wordmark (p 0.45+).
-          z-[3] overlaps wordmark group; under headline z-[4].
-          Near-invisible at rest — headline fully legible. Stays at peak — no fade-out. */}
+      {/* 6. HeroClouds FRONT — blooms in over building + wordmark (p 0.63+).
+          z-[3] overlaps wordmark group; under stats overlay z-[4] and copy z-[5].
+          veilRef forwarded so GSAP can pan it upward for rising-through-clouds effect. */}
       {mounted && (
         <div className="absolute inset-0 z-[3]" aria-hidden="true">
-          <HeroClouds progressRef={progressRef} active={motionOk} variant="front" />
+          <HeroClouds
+            progressRef={progressRef}
+            active={motionOk}
+            variant="front"
+            veilRef={cloudFrontVeilRef}
+          />
         </div>
       )}
 
-      {/* 7. Text stack — outer wrapper is absolute-inset, inner ref receives Y shift.
-          At rest copy is upper-middle (paddingTop clamp(18vh,21vh,24vh)).
-          GSAP translates copyBlockRef downward ~14vh by p0.15 so all 3 slot states
-          read at vertical center. GPU-safe: translateY only, willChange managed above. */}
+      {/* CHANGE #8 — STATS OVERLAY on the cloud screen.
+          Revealed p0.88–1.0 after the wordmark lifts. Sits on top of the cloud veil
+          but below the copy zone. Dark text on near-white veil for contrast.
+          The veil (z-[3]) + these stats (z-[4]) pan up together via GSAP on cloudFrontVeilRef —
+          since the veil div is inside HeroClouds we animate the front veil translateY,
+          and the stats independently fade in over it. */}
       <div
-        className="absolute inset-0 z-[4] flex flex-col items-center justify-start px-6 text-center pointer-events-none"
-        style={{ paddingTop: 'clamp(18vh, 21vh, 24vh)' }}
+        ref={statsOverlayRef}
+        className="absolute inset-0 z-[4] flex flex-col items-center justify-end pointer-events-none"
+        style={{
+          opacity: 0,
+          paddingBottom: 'clamp(5vh, 8vh, 12vh)',
+        }}
+        aria-label={c.stats.map((s) => `${s.value} ${s.label}`).join(', ')}
       >
-        {/* Inner ref — receives the scroll-driven Y shift toward vertical center */}
-        <div ref={copyBlockRef} className="w-full flex flex-col items-center pointer-events-auto">
-          {/* Cycling headline — textColorRef wrapper receives GSAP color tween (#2) */}
+        <div className="w-full max-w-4xl px-6 md:px-12">
+          <ul className="grid grid-cols-3 divide-x divide-[rgba(17,17,17,0.15)]">
+            {c.stats.map((stat) => (
+              <li
+                key={stat.value}
+                className="flex flex-col items-center text-center gap-2 px-4 sm:px-8"
+              >
+                <span
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 300,
+                    fontSize: 'clamp(2.4rem, 6.5vw, 5.5rem)',
+                    lineHeight: 1,
+                    letterSpacing: '-0.03em',
+                    color: 'rgba(17,17,17,0.88)',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  {stat.value}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 'clamp(0.75rem, 1.2vw, 0.95rem)',
+                    lineHeight: 1.4,
+                    color: 'rgba(17,17,17,0.55)',
+                    maxWidth: '14ch',
+                    textAlign: 'center',
+                  }}
+                >
+                  {stat.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* 7. Text stack — CHANGE #4: copy starts centered (justify-center, no paddingTop).
+          No scroll drift tween. Copy is at vertical center from rest through cycle then fades. */}
+      <div
+        className="absolute inset-0 z-[5] flex flex-col items-center justify-center px-6 text-center pointer-events-none"
+      >
+        <div className="w-full flex flex-col items-center pointer-events-auto">
+          {/* Cycling headline — textColorRef receives GSAP color tween */}
           <div
             ref={textColorRef}
             className="w-full flex flex-col items-center"
@@ -696,7 +715,6 @@ export default function Hero() {
             >
               {c.hero.subhead}
             </p>
-            {/* CTA */}
             <div style={{ marginTop: 'clamp(1rem, 2.5vh, 1.75rem)' }}>
               <Pill variant="dark" href="#register" withArrow>
                 {c.hero.cta}
@@ -706,12 +724,10 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Scroll nudge — fades out with headline (gone by p~0.30).
-          Positioned with explicit inline style for RTL-safe centering (P3-A).
-          English "Scroll" label removed — vertical line alone reads clearly (P3-E). */}
+      {/* Scroll nudge */}
       <div
         ref={scrollNudgeRef}
-        className="pointer-events-none z-[4] flex flex-col items-center gap-2"
+        className="pointer-events-none z-[5] flex flex-col items-center gap-2"
         aria-hidden="true"
         style={{ position: 'absolute', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', opacity: 0.45 }}
       >
@@ -721,8 +737,58 @@ export default function Hero() {
   )
 }
 
+// ─── Static stats fallback for reduced-motion ────────────────────────────────
+// Rendered inside the reduced-motion hero after the CTA. Shows the same 3-up grid
+// with dividers on a semi-transparent light surface.
+interface StatsItem { value: string; label: string }
+
+function StatsFallback({ stats }: { stats: readonly StatsItem[] }) {
+  return (
+    <div
+      className="relative z-[4] w-full mt-12"
+      style={{
+        borderTop: '1px solid rgba(17,17,17,0.10)',
+        paddingTop: 'clamp(1.5rem, 3vh, 2.5rem)',
+      }}
+    >
+      <ul className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[rgba(17,17,17,0.10)] max-w-4xl mx-auto px-6">
+        {stats.map((stat) => (
+          <li
+            key={stat.value}
+            className="flex flex-col items-center text-center gap-2 px-4 py-6 sm:py-2"
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 300,
+                fontSize: 'clamp(2.4rem, 6.5vw, 5.5rem)',
+                lineHeight: 1,
+                letterSpacing: '-0.03em',
+                color: 'rgba(17,17,17,0.88)',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {stat.value}
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: 'clamp(0.75rem, 1.2vw, 0.95rem)',
+                lineHeight: 1.4,
+                color: 'rgba(17,17,17,0.55)',
+                maxWidth: '14ch',
+              }}
+            >
+              {stat.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 // ─── Slot-roll headline ──────────────────────────────────────────────────────
-// Clean masked vertical roll. See full comment in v1.
 
 interface SlotRollHeadlineProps {
   lines: readonly string[]
@@ -771,9 +837,10 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
               className="flex shrink-0 items-center justify-center font-bold w-full text-center"
               style={{
                 height: clipPx != null ? clipPx : 'auto',
-                minHeight: 'clamp(2rem, 5vw, 4.5rem)',
+                // CHANGE #3 — BIGGER HEADLINE
+                minHeight: 'clamp(2.4rem, 6.5vw, 6rem)',
                 fontFamily: 'var(--font-hebrew-display)',
-                fontSize: 'clamp(2rem, 5vw, 4.5rem)',
+                fontSize: 'clamp(2.4rem, 6.5vw, 6rem)',
                 lineHeight: 0.95,
                 letterSpacing: '-0.03em',
                 whiteSpace: 'normal',
@@ -781,9 +848,7 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
                 paddingTop: '0.12em',
                 paddingBottom: '0.12em',
                 boxSizing: 'border-box',
-                // Color + filter inherited from textColorRef wrapper div.
-                // GSAP tweens the wrapper to switch black→white when the
-                // building rises behind the copy zone (~p0.12–0.20).
+                // Color inherits from textColorRef wrapper.
                 color: 'inherit',
               }}
             >
@@ -797,11 +862,9 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
 )
 
 // ─── Sky gradient ─────────────────────────────────────────────────────────────
-// Blue-hour dusk — calm deep indigo at zenith, graduating through periwinkle steel
-// into a pale cool dove-grey at the horizon. The copy sits in the 10-40vh zone
-// which maps to roughly 0-40% of the gradient — we keep those stops in the lighter
-// periwinkle/steel range (#b8cce0 → #ccd8e8) so dark ink stays legible without
-// switching text color. Deepest indigo (#1e2d4a) is at very top where no copy lives.
+// CHANGE #2 — LIGHTER BLUE SKY.
+// Upper/mid stops lifted: top #2e4878 (was #1e2d4a), transitions raised throughout.
+// Keeps the cool dusk cohesion but opens up the sky above the centered copy.
 function SkyGradient() {
   return (
     <div
@@ -809,15 +872,13 @@ function SkyGradient() {
       className="absolute inset-0 z-0"
       style={{
         background:
-          'linear-gradient(to bottom, #1e2d4a 0%, #2e4268 8%, #3d587f 18%, #6b82a6 30%, #8da3be 42%, #a8bdd4 54%, #beccdf 66%, #ccd8e8 78%, #d8e2ee 88%, #e2eaf3 100%)',
+          'linear-gradient(to bottom, #2e4878 0%, #3d5a8a 8%, #4d6e9c 18%, #7a90b4 30%, #9aaec6 42%, #b4c6d8 54%, #c6d4e4 66%, #d4dded 78%, #dde6f0 88%, #e6eef5 100%)',
       }}
     />
   )
 }
 
 // ─── "בונים עתיד" outline wordmark ──────────────────────────────────────────
-// Mirrors the BrandWordmarkMask viewBox exactly (720×285 when subWord present).
-// Sub-word "וובינר" strokes in at 50% font size alongside the main word.
 interface BrandWordmarkOutlineProps {
   subWord?: string
 }
@@ -836,7 +897,6 @@ function BrandWordmarkOutline({ subWord }: BrandWordmarkOutlineProps) {
       overflow="visible"
       preserveAspectRatio="xMidYMid meet"
     >
-      {/* Main word — white stroke outline */}
       <text
         x="50%"
         y={mainY}
@@ -855,7 +915,6 @@ function BrandWordmarkOutline({ subWord }: BrandWordmarkOutlineProps) {
       >
         בונים עתיד
       </text>
-      {/* Sub-word at 50% scale — matches BrandWordmarkMask sub-word position */}
       {subWord && (
         <text
           x="50%"

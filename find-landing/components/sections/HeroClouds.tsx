@@ -45,6 +45,9 @@ export interface HeroCloudsProps {
   progressRef?: RefObject<number>
   active?: boolean
   variant?: 'back' | 'front'
+  /** Optional ref forwarded to the front-veil div so the hero GSAP timeline
+   *  can drive translateY for the cloud-pans-up effect. Only used when variant='front'. */
+  veilRef?: RefObject<HTMLDivElement | null>
 }
 
 // ─── PNG sources ──────────────────────────────────────────────────────────────
@@ -211,14 +214,15 @@ const expo = (n: number) => {
 /**
  * Full-screen soft veil intensity for the FRONT field, 0..1.
  *
- * v3 — DELAYED BLOOM: bloom starts at p≈0.50 (was 0.40), peaks at p≈0.95 (was 0.90).
- * Delay ensures the veil doesn't wash out the wordmark cross-dissolve (p0.55–0.88)
- * prematurely. The wordmark lingers clearly readable before the veil crests.
- * Stays at peak from p=0.95 → p=1.0. Next section (Stats) matches color.
+ * v4 — BATCH 4 DELAYED BLOOM: bloom starts at p≈0.63 (was 0.50), peaks at p≈0.97 (was 0.95).
+ * Wordmark cross-dissolve now spans p0.73–0.94 — this delay ensures the veil doesn't
+ * wash the wordmark during its display window. Stats overlay appears p0.88–1.0 on
+ * the bloomed veil surface. Cloud pan up p0.90–1.0 uses translateY (not opacity).
+ * Stays at peak from p=0.97 → p=1.0. Continuous into white RewiredSteps.
  */
 function frontVeilIntensity(p: number): number {
-  // Blooms from 0 at p=0.50 to 1 by p=0.95. Stays at 1 through p=1.0.
-  return expo(clamp01((p - 0.50) / 0.45))
+  // Blooms from 0 at p=0.63 to 1 by p=0.97. Stays at 1 through p=1.0.
+  return expo(clamp01((p - 0.63) / 0.34))
 }
 
 /**
@@ -253,14 +257,20 @@ export default function HeroClouds({
   progressRef,
   active = true,
   variant = 'back',
+  veilRef: externalVeilRef,
 }: HeroCloudsProps) {
   const layerRefs = useRef<Array<HTMLImageElement | null>>([])
-  const veilRef   = useRef<HTMLDivElement>(null)
+  const internalVeilRef = useRef<HTMLDivElement>(null)
+  // Use the externally forwarded veilRef when provided (hero GSAP pan target),
+  // otherwise fall back to the internal one.
+  const veilRef: RefObject<HTMLDivElement | null> = externalVeilRef ?? internalVeilRef
   const rafRef    = useRef<number | null>(null)
   const [reducedMotion, setReducedMotion] = useState(false)
 
   const layers      = variant === 'front' ? FRONT_LAYERS : BACK_LAYERS
-  const staticRestP = variant === 'front' ? 0.60 : 0.45
+  // staticRestP for front variant updated to match new delayed bloom p0.63–0.97.
+  // 0.68 puts the static veil at partial bloom (not full wash, not invisible).
+  const staticRestP = variant === 'front' ? 0.68 : 0.45
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return
