@@ -4,7 +4,8 @@ import { useRef, useState } from 'react'
 import Image from 'next/image'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
-import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
+import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useContent, useLang } from '@/components/providers/LanguageProvider'
 import { images } from '@/data/content'
 
@@ -63,18 +64,15 @@ const SOCIAL_ICONS: Record<string, React.FC> = {
 /**
  * Registration band + Footer.
  *
- * TOP  (id="register"): a premium two-part conversion moment over a cinematic
- *   background-image band. A bold value/urgency panel (heading, sub, webinar
- *   facts + a limited-seats cue) sits beside an elevated glass form card with a
- *   real 3-field controlled form (name / phone / email) that preventDefaults
- *   and shows a "thanks" success state, plus a prominent CTA pill.
- * BOTTOM: newsletter signup, nav columns, rights line, and the giant
- *   "בונים עתיד" wordmark filled with the hero building image.
+ * One-shot reveals use IntersectionObserver (via useScrollReveal), immune to
+ * the Hero pin-spacer math. motionOk sourced from useSmoothScroll (always true).
+ * The regBg background parallax (scrub:true) stays on ScrollTrigger inside
+ * useGsapContext because it is a continuous scrub, not a one-shot reveal.
  */
 export default function CtaFooter() {
   const footerRef = useRef<HTMLElement>(null)
   const regBgRef = useRef<HTMLDivElement>(null)
-  const motionOk = !useReducedMotion()
+  const { motionOk } = useSmoothScroll()
   const c = useContent()
   const { dir } = useLang()
   const isHebrew = c.register.fields.name === 'שם מלא'
@@ -83,85 +81,12 @@ export default function CtaFooter() {
   const [form, setForm] = useState({ name: '', phone: '', email: '' })
   const [submitted, setSubmitted] = useState(false)
 
+  // Scrub-based parallax on the background image — continuous, keep on ScrollTrigger.
   useGsapContext(
     footerRef,
     () => {
       if (!motionOk) return
 
-      // Urgency badge fades in first
-      // All fromTo + immediateRender:false prevents pin-spacer false triggers
-      gsap.fromTo(
-        '.reg-badge',
-        { opacity: 0, y: 14, scale: 0.95 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.55,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.reg-band', start: 'top 80%' },
-        }
-      )
-
-      // Register heading: word-by-word stagger (split manually since it's a plain h2)
-      const regHeading = footerRef.current?.querySelector<HTMLElement>('#register-heading')
-      if (regHeading) {
-        const text = regHeading.textContent ?? ''
-        const words = text.split(/\s+/).filter(Boolean)
-        regHeading.innerHTML = words
-          .map(
-            (w) =>
-              `<span style="display:inline-block;overflow:hidden;vertical-align:bottom"><span class="reg-heading-word" style="display:inline-block">${w}</span></span>`
-          )
-          .join(' ')
-
-        gsap.fromTo(
-          '.reg-heading-word',
-          { yPercent: 110, opacity: 0 },
-          {
-            yPercent: 0,
-            opacity: 1,
-            stagger: 0.04,
-            duration: 0.8,
-            ease: 'power3.out',
-            immediateRender: false,
-            scrollTrigger: { trigger: regHeading, start: 'top 84%' },
-          }
-        )
-      }
-
-      // Scroll-reveal for the registration composition: panel + card stagger up.
-      gsap.fromTo(
-        '.reg-reveal',
-        { y: 36, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.85,
-          ease: 'power3.out',
-          stagger: 0.14,
-          immediateRender: false,
-          scrollTrigger: { trigger: '.reg-band', start: 'top 78%' },
-        }
-      )
-
-      // Form rows cascade in just after the card.
-      gsap.fromTo(
-        '.reg-field',
-        { y: 18, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.55,
-          ease: 'power2.out',
-          stagger: 0.08,
-          immediateRender: false,
-          scrollTrigger: { trigger: '.reg-card', start: 'top 85%' },
-        }
-      )
-
-      // Subtle parallax on the background image.
       const bg = regBgRef.current
       if (bg) {
         gsap.fromTo(
@@ -180,22 +105,110 @@ export default function CtaFooter() {
           }
         )
       }
-
-      // Footer columns stagger in from below
-      gsap.fromTo(
-        '.footer-col',
-        { opacity: 0, y: 28 },
-        {
-          opacity: 1,
-          y: 0,
-          stagger: 0.09,
-          duration: 0.75,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.footer-cols', start: 'top 86%' },
-        }
-      )
     },
+    [motionOk]
+  )
+
+  // One-shot reveals via IntersectionObserver — immune to pin-spacer position math.
+  useScrollReveal(
+    footerRef,
+    [
+      // Urgency badge fades in first
+      {
+        trigger: '.reg-band',
+        revealAt: 0.2, // 'top 80%'
+        build: () =>
+          gsap.fromTo(
+            '.reg-badge',
+            { opacity: 0, y: 14, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'power3.out', paused: true }
+          ),
+      },
+      // Register heading: word-by-word stagger — split innerHTML inside build()
+      {
+        trigger: '#register-heading',
+        revealAt: 0.16, // 'top 84%'
+        build: () => {
+          const regHeading = footerRef.current?.querySelector<HTMLElement>('#register-heading')
+          if (regHeading) {
+            const text = regHeading.textContent ?? ''
+            const words = text.split(/\s+/).filter(Boolean)
+            regHeading.innerHTML = words
+              .map(
+                (w) =>
+                  `<span style="display:inline-block;overflow:hidden;vertical-align:bottom"><span class="reg-heading-word" style="display:inline-block">${w}</span></span>`
+              )
+              .join(' ')
+          }
+          return gsap.fromTo(
+            '.reg-heading-word',
+            { yPercent: 110, opacity: 0 },
+            {
+              yPercent: 0,
+              opacity: 1,
+              stagger: 0.04,
+              duration: 0.8,
+              ease: 'power3.out',
+              paused: true,
+            }
+          )
+        },
+      },
+      // Registration composition: panel + card stagger up
+      {
+        trigger: '.reg-band',
+        revealAt: 0.22, // 'top 78%'
+        build: () =>
+          gsap.fromTo(
+            '.reg-reveal',
+            { y: 36, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.85,
+              ease: 'power3.out',
+              stagger: 0.14,
+              paused: true,
+            }
+          ),
+      },
+      // Form rows cascade in just after the card
+      {
+        trigger: '.reg-card',
+        revealAt: 0.15, // 'top 85%'
+        build: () =>
+          gsap.fromTo(
+            '.reg-field',
+            { y: 18, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.55,
+              ease: 'power2.out',
+              stagger: 0.08,
+              paused: true,
+            }
+          ),
+      },
+      // Footer columns stagger in from below
+      {
+        trigger: '.footer-cols',
+        revealAt: 0.14, // 'top 86%'
+        build: () =>
+          gsap.fromTo(
+            '.footer-col',
+            { opacity: 0, y: 28 },
+            {
+              opacity: 1,
+              y: 0,
+              stagger: 0.09,
+              duration: 0.75,
+              ease: 'power3.out',
+              paused: true,
+            }
+          ),
+      },
+    ],
     [motionOk]
   )
 
@@ -209,7 +222,6 @@ export default function CtaFooter() {
     ? 'שלחנו את לינק הוובינר לאימייל שלכם - נתראה בשידור.'
     : "We've emailed your webinar link - see you on the broadcast."
 
-  // Trust / urgency cues - derived from the single source of truth (webinar facts).
   const seatsLabel = isHebrew ? 'מקומות מוגבלים' : 'Limited seats'
   const freeLabel = isHebrew ? 'השתתפות חינם' : 'Free to attend'
   const noteLabel = isHebrew
@@ -250,8 +262,7 @@ export default function CtaFooter() {
             aria-hidden="true"
           />
         </div>
-        {/* Layered scrim: vertical depth + a directional wash so the form card
-            edge reads cleanly against the photo regardless of language side. */}
+        {/* Layered scrim */}
         <div
           className="absolute inset-0"
           style={{
@@ -270,7 +281,7 @@ export default function CtaFooter() {
           }}
           aria-hidden="true"
         />
-        {/* Subtle warm accent glow anchored to the form side - depth with intent. */}
+        {/* Subtle warm accent glow */}
         <div
           className="pointer-events-none absolute -bottom-24 h-[420px] w-[420px] rounded-full blur-[120px] opacity-30"
           style={{
@@ -303,7 +314,7 @@ export default function CtaFooter() {
                 {c.register.sub}
               </p>
 
-              {/* Webinar facts - concrete trust cues */}
+              {/* Webinar facts */}
               <div className="mt-8 w-full max-w-md">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[rgba(255,255,255,0.5)]">
                   {factsHeading}
@@ -389,7 +400,6 @@ export default function CtaFooter() {
                       ))}
                     </div>
 
-                    {/* Prominent CTA pill - full width, arrow nudge, GPU transform only */}
                     <button
                       type="submit"
                       className="group mt-1 inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-full bg-white px-8 text-base font-semibold text-[var(--color-ink)] shadow-[0_10px_30px_-8px_rgba(255,255,255,0.4)] transition-[background-color,color,box-shadow] duration-200 hover:bg-[var(--color-sky-peach)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
@@ -431,12 +441,10 @@ export default function CtaFooter() {
         aria-label={c.newFooter.columns.contact}
       >
         <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 lg:px-20 py-16 md:py-20">
-          {/* 4-column grid - RTL: cols flow right→left in the page */}
           <div className="footer-cols grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
 
-            {/* ── Col 1 (RTL reading-start - rightmost on desktop): Logo + tagline + CTA ── */}
+            {/* ── Col 1: Logo + tagline + CTA ── */}
             <div className="footer-col flex flex-col items-start gap-6">
-              {/* Building-icon: render full logo, filter white, crop to icon portion */}
               <a href="#" aria-label="בונים עתיד – דף הבית" className="flex-shrink-0">
                 <div
                   className="relative overflow-hidden"
@@ -458,7 +466,6 @@ export default function CtaFooter() {
                 </div>
               </a>
 
-              {/* Tagline */}
               <p
                 className="text-[15px] leading-relaxed font-light text-white/90"
                 style={{ maxWidth: '28ch' }}
@@ -466,7 +473,6 @@ export default function CtaFooter() {
                 {c.newFooter.tagline}
               </p>
 
-              {/* Outline CTA button */}
               <a
                 href="#register"
                 className="mt-auto inline-flex items-center justify-center rounded-lg px-6 py-2.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
@@ -476,7 +482,7 @@ export default function CtaFooter() {
               </a>
             </div>
 
-            {/* ── Col 2: מפת אתר (Sitemap) ── */}
+            {/* ── Col 2: Sitemap ── */}
             <nav className="footer-col" aria-label={c.newFooter.columns.sitemap}>
               <h3 className="mb-5 text-base font-semibold text-white">
                 {c.newFooter.columns.sitemap}
@@ -495,7 +501,7 @@ export default function CtaFooter() {
               </ul>
             </nav>
 
-            {/* ── Col 3: השירותים שלנו (Services) ── */}
+            {/* ── Col 3: Services ── */}
             <nav className="footer-col" aria-label={c.newFooter.columns.services}>
               <h3 className="mb-5 text-base font-semibold text-white">
                 {c.newFooter.columns.services}
@@ -512,7 +518,6 @@ export default function CtaFooter() {
                   </li>
                 ))}
               </ul>
-              {/* Separated deals link */}
               <div className="mt-6 pt-4 border-t border-white/20">
                 <a
                   href={c.newFooter.dealsLink.href}
@@ -523,7 +528,7 @@ export default function CtaFooter() {
               </div>
             </nav>
 
-            {/* ── Col 4 (leftmost on desktop): דברו איתנו (Contact) ── */}
+            {/* ── Col 4: Contact ── */}
             <div className="footer-col">
               <h3 className="mb-5 text-base font-semibold text-white">
                 {c.newFooter.columns.contact}
@@ -549,7 +554,6 @@ export default function CtaFooter() {
                 </li>
               </ul>
 
-              {/* Social follow row */}
               <div className="mt-6">
                 <a
                   href="#"
