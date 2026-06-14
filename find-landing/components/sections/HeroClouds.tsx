@@ -434,6 +434,12 @@ export default function HeroClouds({
         const initial = layerState(scrollAnimate ? 0 : staticRestP, layer, variant)
         const rotateDeg = layer.rotate ?? 0
 
+        // P2: FAR layers (far-1, far-2) use normal blend — at 42-46% opacity
+        // over the sky the screen blend is imperceptible but forces a compositor
+        // layer. MID layers keep 'screen' because the blend with the building matters.
+        const isFar = layer.id.startsWith('far-')
+        const blendMode = isFar ? ('normal' as const) : ('screen' as const)
+
         // CSSProperties extended with CSS custom properties for keyframe composition.
         const style = {
           position: 'absolute' as const,
@@ -442,7 +448,7 @@ export default function HeroClouds({
           width: layer.width,
           height: 'auto',
           opacity: initial.opacity,
-          mixBlendMode: 'screen' as const,
+          mixBlendMode: blendMode,
           filter: filterVal || undefined,
           display: 'block',
           willChange: (animate ? 'transform, opacity' : 'auto') as CSSProperties['willChange'],

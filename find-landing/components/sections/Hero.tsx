@@ -506,7 +506,9 @@ export default function Hero() {
             width: 'clamp(480px, 70vw, 1100px)',
             height: 'auto',
             opacity: 0.28,
-            mixBlendMode: 'screen',
+            // P2: changed screen→normal; at 22-28% opacity over light sky the
+            // blend is imperceptible, but screen forces a GPU compositing layer
+            mixBlendMode: 'normal',
             filter: 'saturate(0) brightness(1.6)',
             animation: 'hc-drift-a 137s ease-in-out -22s infinite',
             willChange: 'transform',
@@ -529,7 +531,8 @@ export default function Hero() {
             width: 'clamp(400px, 58vw, 900px)',
             height: 'auto',
             opacity: 0.22,
-            mixBlendMode: 'screen',
+            // P2: changed screen→normal (wisp B); same rationale as wisp A
+            mixBlendMode: 'normal',
             filter: 'saturate(0) brightness(1.7) scaleX(-1)',
             transform: 'scaleX(-1)',
             animation: 'hc-drift-b 151s ease-in-out -68s infinite',
