@@ -32,18 +32,17 @@
  *   OUTER  - absolute left-1/2, translateX(-50%). NEVER touched by GSAP.
  *   INNER  - buildingWrapRef. GSAP animates translateY ONLY.
  *
- * Motion timeline (scrub: true, pin +=560%):
- *   p 0.00–0.12  REST hold - no motion yet
- *   p 0.12–0.44  building pans up -panPx (power2.inOut)
- *   p 0.18–0.34  headline+subhead+CTA group fades out (opacity→0, y→-40)
- *   p 0.10–0.18  scroll nudge fades
- *   p 0.44–0.52  wordmark outline fades IN (0→1)
- *   p 0.52–0.66  OUTLINE HOLDS - long beat; subtle scale 1→1.02
- *   p 0.66–0.78  cross-dissolve: buildingImg 1→0; outline 1→0; fill 0→1
- *   p 0.78–0.88  image-filled wordmark HOLDS
- *   p 0.86–1.00  wordmark lifts+fades; white mask rises from bottom (veil y:40vh→0)
+ * Motion timeline (scrub: 0.8, pin +=1000%, constant-velocity LINEAR scrub):
+ *   p 0.00–0.06  scroll nudge fades (ease:none)
+ *   p 0.06–0.44  building pans up -panPx (ease:none = LINEAR, even velocity)
+ *   p 0.10–0.24  headline+subhead+CTA group fades out (ease:none)
+ *   p 0.40–0.50  wordmark settles scale→1 y→0 (ease:none)
+ *   p 0.44–0.54  outline fades in + strokes draw (ease:none, stretched)
+ *   p 0.54–0.68  cross-dissolve: buildingImg 1→0; outline 1→0; fill 0→1 (ease:none, 0.14 wide)
+ *   p 0.66–0.90  wordmark presence - slow drift y:'-3%' scale:1.035 (ease:none, ~40% longer beat)
+ *   p 0.90–1.00  release into white: wordmark fades+lifts; veil rises y:40vh→0 (power1.in)
  *
- * HeroClouds front veil: bloom starts p≈0.86 (re-timed in HeroClouds.tsx)
+ * HeroClouds front veil: bloom starts p≈0.90 (synced in HeroClouds.tsx)
  * Cloud veil starts at y:'40vh' (pushed below frame) and pans to y:0 across
  * p0.86–1.0, driven by GSAP on cloudFrontVeilRef. This makes the white mask
  * appear to RISE from the bottom into the wordmark.
@@ -193,13 +192,13 @@ export default function Hero() {
       const panVH = getBuildingPanVH()
       const panPx = (window.innerHeight * panVH) / 100
 
-      // ── Master scrubbed timeline (pin +=560%) ───────────────────────────
-      // A12: scrub: 0.8 for smoother premium feel
+      // ── Master scrubbed timeline (pin +=1000%) ──────────────────────────
+      // scrub: 0.8 for smoother premium feel; extended pin for slower constant-velocity flow
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: '+=720%',
+          end: '+=1000%',
           pin: true,
           scrub: 0.8,
           anticipatePin: 1,
@@ -209,55 +208,53 @@ export default function Hero() {
         },
       })
 
-      // p 0.04–0.52  BUILDING PANS UP - starts almost immediately (short rest hold),
-      // longer rise (92vh) reveals ~80-90% of building by p≈0.52
-      tl.to(buildingWrap, { y: -panPx, duration: 0.48, ease: 'power2.inOut' }, 0.04)
+      // ── NEW CONSTANT-VELOCITY BEAT TABLE (all ease:'none' except noted) ──
 
-      // p 0.10–0.28  COPY GROUP FADES OUT - headline+subhead+CTA together, as building rises over them
-      tl.to(copyGroup, { opacity: 0, y: -40, duration: 0.18, ease: 'power3.in' }, 0.10)
-
-      // p 0.02–0.10  Scroll nudge fades almost immediately on first scroll input
+      // p 0.00–0.06  Scroll nudge fades immediately on first scroll input
       if (scrollNudge) {
-        tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.02)
+        tl.to(scrollNudge, { opacity: 0, duration: 0.06, ease: 'none' }, 0.00)
       }
 
-      // p 0.50–0.54  Wordmark settles to final position as building tops out
-      tl.to(wordmark, { scale: 1, y: 0, duration: 0.04, ease: 'power1.out' }, 0.50)
+      // p 0.06–0.44  BUILDING PANS UP - LINEAR (even velocity, no slow-fast-slow)
+      tl.to(buildingWrap, { y: -panPx, duration: 0.38, ease: 'none' }, 0.06)
 
-      // A8 - OUTLINE DRAW + HOLD WINDOW:
-      // p 0.54–0.60  outline fades in + stroke draws (strokeDashoffset 1→0)
-      // Building is FULLY revealed (base in view) and holding BEFORE this fires
-      tl.to(outline, { opacity: 1, duration: 0.05, ease: 'power2.out' }, 0.54)
+      // p 0.10–0.24  COPY GROUP FADES OUT - fades as building rises over it
+      tl.to(copyGroup, { opacity: 0, y: -40, duration: 0.14, ease: 'none' }, 0.10)
+
+      // p 0.40–0.50  Wordmark settles to final position as building tops out
+      tl.to(wordmark, { scale: 1, y: 0, duration: 0.10, ease: 'none' }, 0.40)
+
+      // p 0.44–0.54  Outline fades in + stroke draws (stretched, no snap)
+      tl.to(outline, { opacity: 1, duration: 0.10, ease: 'none' }, 0.44)
       if (outline) {
         tl.to(outline.querySelectorAll('.wordmark-outline-text'), {
           strokeDashoffset: 0,
-          duration: 0.08,
-          ease: 'power2.inOut',
-          stagger: 0.01,
-        }, 0.54)
+          duration: 0.10,
+          ease: 'none',
+          stagger: 0.012,
+        }, 0.44)
       }
 
-      // p 0.60–0.62  OUTLINE HOLDS. Very subtle scale.
-      tl.to(outline, { scale: 1.02, duration: 0.02, ease: 'power1.inOut' }, 0.60)
+      // p 0.54–0.68  CROSS-DISSOLVE (stretched to 0.14 duration - no fast snap):
+      //   buildingImg: 1→0  (building photo fades)
+      //   outline:     1→0
+      //   fill:        0→1  (image inside letters appears)
+      tl.to(buildingImg, { opacity: 0, duration: 0.14, ease: 'none' }, 0.54)
+      tl.to(outline,     { opacity: 0, duration: 0.14, ease: 'none' }, 0.54)
+      tl.to(fill,        { opacity: 1, duration: 0.14, ease: 'none' }, 0.54)
 
-      // p 0.64–0.70  CROSS-DISSOLVE:
-      //   buildingImg: 1→0  (building photo fades - held fully revealed until now)
-      //   outline:     scale back + 1→0
-      //   fill:        0→1  (image inside the letters appears)
-      tl.to(buildingImg, { opacity: 0, duration: 0.06, ease: 'sine.inOut' }, 0.64)
-      tl.to(outline,     { opacity: 0, scale: 1,       duration: 0.06, ease: 'power1.inOut' }, 0.64)
-      tl.to(fill,        { opacity: 1,                 duration: 0.06, ease: 'power1.inOut' }, 0.66)
+      // p 0.66–0.90  WORDMARK PRESENCE - slow continuous drift replaces dead hold.
+      // Every scroll tick changes something (fill+wordmark slowly drift + scale-creep).
+      // This 0.24-long span is the ~40%-longer wordmark beat.
+      tl.to(wordmark, { y: '-3%', scale: 1.035, duration: 0.24, ease: 'none' }, 0.66)
 
-      // p 0.70–0.86  IMAGE-FILL WORDMARK HOLDS - long defining beat (A8: extended hold)
-
-      // p 0.86–0.94  WORDMARK LIFTS + FADES into the rising white mask
-      tl.to(wordmark, { y: '-18%', scale: 1.06, opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.86)
-
-      // p 0.86–1.00  WHITE MASK RISES FROM BOTTOM:
-      // Cloud veil translates from y=40vh (below frame) → y=0 (covering screen).
-      // bloom is also timed here (frontVeilIntensity re-timed in HeroClouds.tsx to start p≈0.86).
+      // p 0.90–1.00  RELEASE INTO WHITE:
+      //   cloudVeil → y:'0vh' (power1.in - ONE eased beat so white arrives decisively)
+      //   wordmark  → opacity:0, y:'-10%', scale:1.06 (ease:'none')
+      // Veil must be FULLY covering screen at p=1.0.
+      tl.to(wordmark, { opacity: 0, y: '-10%', scale: 1.06, duration: 0.10, ease: 'none' }, 0.90)
       if (cloudVeil) {
-        tl.to(cloudVeil, { y: '0vh', duration: 0.14, ease: 'power2.inOut' }, 0.86)
+        tl.to(cloudVeil, { y: '0vh', duration: 0.10, ease: 'power1.in' }, 0.90)
       }
 
       // Clean up will-change after pin

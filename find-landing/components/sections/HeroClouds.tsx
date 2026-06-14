@@ -12,7 +12,7 @@
  *         saturate(0.85) mild tint, parallax 0.55-0.68x.
  *
  *  NEAR/VEIL (front bloom, 5 nodes): blur 0-1px, opacity 0.03-0.05,
- *         saturate(1.0), parallax 1.0-1.25x. Bloom to near-full at p 0.40-0.90,
+ *         saturate(1.0), parallax 1.0-1.25x. Bloom to near-full at p 0.90-1.0,
  *         then STAYS at peak (no thin-out). Bridges into next section via Stats' cloud-white top.
  *
  * KEY CRAFT:
@@ -23,8 +23,8 @@
  *     per layer per frame via --cov-* CSS var bridge.
  *  4. Non-looping drift: asymmetric @keyframes, PRIME-second periods. Negative delays
  *     desync. flipX + rotate ±deg on some instances for variety. Transform-only.
- *  5. Bloom curve: NEAR field genuinely ~0 until p≈0.45 (protects headline legibility).
- *     Hard ramp; peaks ~0.87 (never 1.0 - keeps texture). Thins to ~0.18 at p=1.0.
+ *  5. Bloom curve: NEAR field genuinely ~0 until p≈0.90 (new release window).
+ *     Hard ramp; peaks ~0.87 at p=1.0 (never full 1.0 - keeps texture).
  *
  * VARIANT prop (backwards compat with Hero.tsx):
  *  'back'  → FAR + MID bands (z-[1] behind building).
@@ -217,16 +217,15 @@ const expo = (n: number) => {
 /**
  * Full-screen soft veil intensity for the FRONT field, 0..1.
  *
- * v6 - BATCH 7 WHITE MASK RISES FROM BOTTOM: bloom starts at p≈0.86, peaks at p≈1.0.
- * Hero GSAP also drives the veil's translateY from 40vh→0 over p0.86–1.0 so the veil
- * appears to climb from below (white mask rising effect). The opacity bloom here makes
- * the veil opaque as it rises, and cloud PNG layers climb with it for a textured leading edge.
- * The veil is now rendered at z-[4] (above the wordmark) to fully cover it as it rises.
- * Continuous into white RewiredSteps below.
+ * v7 - BATCH 8 WHITE MASK RISES FROM BOTTOM: bloom starts at p≈0.90 (shifted from 0.86
+ * to sync with new veil-rise window p0.90–1.0). Hero GSAP drives the veil's translateY
+ * from 40vh→0 over p0.90–1.0 so the veil appears to climb from below (white mask rising).
+ * The opacity bloom here makes the veil opaque as it rises, and cloud PNG layers climb
+ * with it for a textured leading edge. Continuous into white RewiredSteps below.
  */
 function frontVeilIntensity(p: number): number {
-  // Blooms from 0 at p=0.86 to 1 by p=1.0. Stays at 1 through p=1.0.
-  return expo(clamp01((p - 0.86) / 0.14))
+  // Blooms from 0 at p=0.90 to 1 by p=1.0. Stays at 1 through p=1.0.
+  return expo(clamp01((p - 0.90) / 0.10))
 }
 
 /**
@@ -272,9 +271,9 @@ export default function HeroClouds({
   const [reducedMotion, setReducedMotion] = useState(false)
 
   const layers      = variant === 'front' ? FRONT_LAYERS : BACK_LAYERS
-  // staticRestP for front variant: bloom starts p0.86. 0.90 gives a full static bloom
+  // staticRestP for front variant: bloom starts p0.90. 0.95 gives a full static bloom
   // for reduced-motion (which shows the end-state composed view).
-  const staticRestP = variant === 'front' ? 0.90 : 0.45
+  const staticRestP = variant === 'front' ? 0.95 : 0.45
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return
