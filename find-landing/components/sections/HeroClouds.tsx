@@ -256,6 +256,12 @@ function layerState(p: number, layer: CloudLayer, variant: 'back' | 'front') {
   return { opacity, scale, translateY, translateX }
 }
 
+// IDs of the heaviest/most-redundant cloud layers to skip on phones (<768px).
+// BACK: skip far-1, far-2 (8px blur, large PNGs) + mid-3, mid-4 (redundant cumulus).
+//       Keep mid-1, mid-2 for visual sky depth.
+// FRONT: skip near-4, near-5 (lowest, largest, least perceptible before bloom).
+const MOBILE_SKIP_IDS = new Set(['far-1', 'far-2', 'mid-3', 'mid-4', 'near-4', 'near-5'])
+
 export default function HeroClouds({
   progressRef,
   active = true,
@@ -269,8 +275,16 @@ export default function HeroClouds({
   const veilRef: RefObject<HTMLDivElement | null> = externalVeilRef ?? internalVeilRef
   const rafRef    = useRef<number | null>(null)
   const [reducedMotion, setReducedMotion] = useState(false)
+  // Mobile perf: skip heavy layers on phones. Checked once at mount.
+  const [isMobile, setIsMobile] = useState(false)
 
-  const layers      = variant === 'front' ? FRONT_LAYERS : BACK_LAYERS
+  const allLayers = variant === 'front' ? FRONT_LAYERS : BACK_LAYERS
+  // On mobile, filter out the heaviest/most-redundant layers to cut GPU cost.
+  // On desktop, use all layers unchanged.
+  const layers = isMobile
+    ? allLayers.filter((l) => !MOBILE_SKIP_IDS.has(l.id))
+    : allLayers
+
   // staticRestP for front variant: bloom starts p0.90. 0.95 gives a full static bloom
   // for reduced-motion (which shows the end-state composed view).
   const staticRestP = variant === 'front' ? 0.95 : 0.45
@@ -282,6 +296,12 @@ export default function HeroClouds({
     const onChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches)
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  // Detect mobile once at mount (no listener — perf heuristic, not reactive layout).
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    setIsMobile(window.matchMedia('(max-width: 767px)').matches)
   }, [])
 
   // animate: controls CSS keyframe drift (ambient loop) — gated on reducedMotion.
