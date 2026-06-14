@@ -98,6 +98,54 @@ export default function Hero() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
+  // ── Building-float fix: measure rendered building height and clamp outer top ─
+  // Guarantees buildingTop + buildingHeight >= viewportHeight at every viewport
+  // (including tall/narrow phones where the 1:1 image is short relative to vh).
+  useEffect(() => {
+    const outer = buildingOuterRef.current
+    const img   = outer?.querySelector('img') as HTMLImageElement | null
+    if (!outer || !img) return
+
+    const compute = () => {
+      const vhPx        = window.innerHeight
+      // restTopPx mirrors the CSS clamp(55vh,59vh,63vh)
+      const restTopPx   = Math.min(0.63 * vhPx, Math.max(0.55 * vhPx, 0.59 * vhPx))
+      const buildingH   = img.getBoundingClientRect().height
+      // Push outer DOWN when the (short, width-sized) building wouldn't otherwise
+      // reach the bottom — so the base is ALWAYS at/below the viewport bottom (no float).
+      // max(): on desktop vhPx-buildingH is negative so restTop governs (only crown shows);
+      // on tall/narrow viewports it pushes the building down until its base meets the bottom.
+      const clampedTop  = Math.max(restTopPx, vhPx - buildingH)
+      outer.style.top   = `${clampedTop}px`
+    }
+
+    // Wait for image to be fully laid out before measuring
+    if (img.complete) {
+      compute()
+    } else {
+      img.addEventListener('load', compute, { once: true })
+    }
+
+    // Re-compute on resize (debounced via rAF)
+    let rafId = 0
+    const onResize = () => {
+      cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        compute()
+        // Refresh GSAP ScrollTrigger so pin recalculates with new outer top
+        import('@/lib/gsap').then(({ ScrollTrigger }) => {
+          ScrollTrigger.refresh()
+        }).catch(() => {})
+      })
+    }
+
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      cancelAnimationFrame(rafId)
+    }
+  }, [mounted]) // re-run once mounted so ref is available
+
   // ── Pinned, scrubbed master timeline (motionOk only) ─────────────────────
   useGsapContext(
     sectionRef,
@@ -216,105 +264,11 @@ export default function Hero() {
   // ── Reduced-motion: single static headline + subhead + CTA + building ───
   if (!motionOk) {
     return (
-      <section
-        id="hero"
-        aria-label="Hero"
-        className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden"
-        style={{ paddingTop: 'clamp(8vh, 10vh, 14vh)' }}
-      >
-        <SkyGradient />
-        {/* Building */}
-        <div
-          className="absolute left-1/2 z-[2]"
-          style={{
-            top: 'clamp(55vh, 59vh, 63vh)',
-            width: 'min(78vw, 1140px)',
-            transform: 'translateX(-50%)',
-          }}
-          aria-hidden="true"
-        >
-          <div style={{ display: 'block', lineHeight: 0, fontSize: 0, position: 'relative', zIndex: 1 }}>
-            <Image
-              src={images.heroBuildingCutout}
-              alt="Modern residential tower at golden hour"
-              width={1024}
-              height={1024}
-              priority
-              quality={90}
-              className="block h-auto w-full select-none"
-              style={{
-                verticalAlign: 'top',
-                display: 'block',
-                filter: 'saturate(1.02) contrast(1.02)',
-              }}
-              sizes="(max-width: 768px) 78vw, 1140px"
-            />
-          </div>
-          {/* Warm rim light - replaces the old cool blue cast */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute', inset: 0, zIndex: 2,
-              background: 'linear-gradient(to bottom, rgba(255,220,180,0.18) 0%, rgba(255,230,190,0.10) 30%, transparent 60%)',
-              WebkitMaskImage: `url(${images.heroBuildingCutout})`,
-              WebkitMaskSize: '100% auto', WebkitMaskPosition: 'top center', WebkitMaskRepeat: 'no-repeat',
-              maskImage: `url(${images.heroBuildingCutout})`,
-              maskSize: '100% auto', maskPosition: 'top center', maskRepeat: 'no-repeat',
-              mixBlendMode: 'soft-light' as const, pointerEvents: 'none',
-            }}
-          />
-        </div>
-        {/* Cloud layer */}
-        {mounted && (
-          <div className="absolute inset-0 z-[1]" aria-hidden="true">
-            <HeroClouds progressRef={progressRef} active={false} />
-          </div>
-        )}
-        {/* Cool dusk veil */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 z-[3] pointer-events-none"
-          style={{ background: 'rgba(228,235,246,0.82)' }}
-        />
-        {/* Copy stack - upward-biased via paddingBottom */}
-        <div
-          className="relative z-[4] flex w-full flex-col items-center px-6 text-center gap-6"
-          style={{ paddingBottom: 'clamp(10vh, 14vh, 18vh)' }}
-        >
-          <h1
-            className="font-bold leading-[0.95]"
-            style={{
-              fontFamily: 'var(--font-hebrew-display)',
-              fontSize: 'clamp(2.1rem, 7vw, 7rem)',
-              letterSpacing: '-0.03em',
-              color: '#000000',
-              whiteSpace: 'pre-line',
-              textWrap: 'balance',
-              textShadow: '0 1px 12px rgba(255,255,255,0.6)',
-            }}
-          >
-            {c.hero.title}
-          </h1>
-          <p
-            className="font-light"
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(0.58rem, 2.6vw, 1.4rem)',
-              lineHeight: 1.65,
-              color: '#000000',
-              whiteSpace: 'nowrap',
-              textShadow: '0 1px 8px rgba(255,255,255,0.55)',
-            }}
-          >
-            {c.hero.subhead}
-          </p>
-          <div>
-            <Pill variant="dark" href="#register" withArrow className="text-xs px-5 py-2.5 min-h-[36px] !bg-black text-white">
-              {c.hero.cta}
-            </Pill>
-          </div>
-        </div>
-      </section>
+      <ReducedMotionHero
+        mounted={mounted}
+        progressRef={progressRef}
+        c={c}
+      />
     )
   }
 
@@ -339,7 +293,10 @@ export default function Hero() {
 
       {/* 3. Building - two-layer wrapper (CRITICAL: outer centering-only, inner GSAP pan target).
           Building starts with only its TOP visible (bottom-flush to viewport bottom at rest).
-          z-[3] so it occludes the copy group (z-[2]) as it rises (A7). */}
+          z-[3] so it occludes the copy group (z-[2]) as it rises (A7).
+          NOTE: top is set by JS (applyBuildingTop) after mount to guarantee
+          buildingTop + buildingHeight >= viewportHeight at every viewport. The CSS
+          clamp is the SSR/fallback value; JS overrides it once the image is measured. */}
       <div
         ref={buildingOuterRef}
         className="absolute left-1/2 z-[3]"
@@ -562,6 +519,152 @@ function SkyGradient() {
           'linear-gradient(to bottom, #2e4878 0%, #3d5a8a 8%, #4d6e9c 18%, #7a90b4 30%, #9aaec6 42%, #b4c6d8 54%, #c6d4e4 66%, #d4dded 78%, #dde6f0 88%, #e6eef5 100%)',
       }}
     />
+  )
+}
+
+// ─── Reduced-motion hero ──────────────────────────────────────────────────────
+interface ReducedMotionHeroProps {
+  mounted: boolean
+  progressRef: React.RefObject<number>
+  c: ReturnType<typeof useContent>
+}
+
+function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) {
+  const buildingOuterRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const outer = buildingOuterRef.current
+    if (!outer) return
+    const img = outer.querySelector('img') as HTMLImageElement | null
+    if (!img) return
+
+    const compute = () => {
+      const vhPx      = window.innerHeight
+      const restTopPx = Math.min(0.63 * vhPx, Math.max(0.55 * vhPx, 0.59 * vhPx))
+      const buildingH = img.getBoundingClientRect().height
+      const clampedTop = Math.min(restTopPx, vhPx - buildingH)
+      outer.style.top = `${clampedTop}px`
+    }
+
+    if (img.complete) {
+      compute()
+    } else {
+      img.addEventListener('load', compute, { once: true })
+    }
+
+    let rafId = 0
+    const onResize = () => {
+      cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(compute)
+    }
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      cancelAnimationFrame(rafId)
+    }
+  }, [])
+
+  return (
+    <section
+      id="hero"
+      aria-label="Hero"
+      className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden"
+      style={{ paddingTop: 'clamp(8vh, 10vh, 14vh)' }}
+    >
+      <SkyGradient />
+      {/* Building */}
+      <div
+        ref={buildingOuterRef}
+        className="absolute left-1/2 z-[2]"
+        style={{
+          top: 'clamp(55vh, 59vh, 63vh)',
+          width: 'min(78vw, 1140px)',
+          transform: 'translateX(-50%)',
+        }}
+        aria-hidden="true"
+      >
+        <div style={{ display: 'block', lineHeight: 0, fontSize: 0, position: 'relative', zIndex: 1 }}>
+          <Image
+            src={images.heroBuildingCutout}
+            alt="Modern residential tower at golden hour"
+            width={1024}
+            height={1024}
+            priority
+            quality={90}
+            className="block h-auto w-full select-none"
+            style={{
+              verticalAlign: 'top',
+              display: 'block',
+              filter: 'saturate(1.02) contrast(1.02)',
+            }}
+            sizes="(max-width: 768px) 78vw, 1140px"
+          />
+        </div>
+        {/* Warm rim light */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute', inset: 0, zIndex: 2,
+            background: 'linear-gradient(to bottom, rgba(255,220,180,0.18) 0%, rgba(255,230,190,0.10) 30%, transparent 60%)',
+            WebkitMaskImage: `url(${images.heroBuildingCutout})`,
+            WebkitMaskSize: '100% auto', WebkitMaskPosition: 'top center', WebkitMaskRepeat: 'no-repeat',
+            maskImage: `url(${images.heroBuildingCutout})`,
+            maskSize: '100% auto', maskPosition: 'top center', maskRepeat: 'no-repeat',
+            mixBlendMode: 'soft-light' as const, pointerEvents: 'none',
+          }}
+        />
+      </div>
+      {/* Cloud layer */}
+      {mounted && (
+        <div className="absolute inset-0 z-[1]" aria-hidden="true">
+          <HeroClouds progressRef={progressRef} active={false} />
+        </div>
+      )}
+      {/* Cool dusk veil */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-[3] pointer-events-none"
+        style={{ background: 'rgba(228,235,246,0.82)' }}
+      />
+      {/* Copy stack - upward-biased via paddingBottom */}
+      <div
+        className="relative z-[4] flex w-full flex-col items-center px-6 text-center gap-6"
+        style={{ paddingBottom: 'clamp(10vh, 14vh, 18vh)' }}
+      >
+        <h1
+          className="font-bold leading-[0.95]"
+          style={{
+            fontFamily: 'var(--font-hebrew-display)',
+            fontSize: 'clamp(2.1rem, 7vw, 7rem)',
+            letterSpacing: '-0.03em',
+            color: '#000000',
+            whiteSpace: 'pre-line',
+            textWrap: 'balance',
+            textShadow: '0 1px 12px rgba(255,255,255,0.6)',
+          }}
+        >
+          {c.hero.title}
+        </h1>
+        <p
+          className="font-light"
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: 'clamp(0.58rem, 2.6vw, 1.4rem)',
+            lineHeight: 1.65,
+            color: '#000000',
+            whiteSpace: 'nowrap',
+            textShadow: '0 1px 8px rgba(255,255,255,0.55)',
+          }}
+        >
+          {c.hero.subhead}
+        </p>
+        <div>
+          <Pill variant="dark" href="#register" withArrow className="text-xs px-5 py-2.5 min-h-[36px] !bg-black text-white">
+            {c.hero.cta}
+          </Pill>
+        </div>
+      </div>
+    </section>
   )
 }
 
