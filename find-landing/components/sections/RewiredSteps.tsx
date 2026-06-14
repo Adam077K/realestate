@@ -144,10 +144,23 @@ export default function RewiredSteps() {
                 />
 
                 {/* Row content */}
-                <div className="item-content flex items-start gap-4 md:gap-6 py-8 md:py-10">
-                  {/* Index */}
-                  <span className="shrink-0 text-xs font-mono text-[var(--color-muted)] pt-1 w-6 text-end select-none">
-                    {item.n}
+                <div className="item-content flex items-center gap-4 md:gap-6 py-8 md:py-10">
+                  {/* Branded numbered circle */}
+                  <span
+                    aria-hidden="true"
+                    className="shrink-0 rounded-full flex items-center justify-center select-none"
+                    style={{
+                      width: 'clamp(44px, 5.2vw, 58px)',
+                      height: 'clamp(44px, 5.2vw, 58px)',
+                      border: '1.5px solid #5f9d91',
+                      color: '#5f9d91',
+                      fontFamily: 'var(--font-display, var(--font-hebrew))',
+                      fontSize: 'clamp(1.05rem, 2vw, 1.5rem)',
+                      fontWeight: 600,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {i + 1}
                   </span>
 
                   {/* Topic text */}
