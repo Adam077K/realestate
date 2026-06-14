@@ -30,38 +30,42 @@ export default function ChevronStrip() {
       if (!motionOk) return
 
       // Section entrance: the whole section rises
-      gsap.from(sectionRef.current, {
-        opacity: 0,
-        y: 40,
-        duration: 0.9,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-        onComplete() {
-          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
-        },
-      })
+      // fromTo + immediateRender:false prevents premature firing from pin-spacer offset
+      gsap.fromTo(
+        sectionRef.current,
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.9,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        }
+      )
 
       // Heading words stagger reveal
       const headingWords = sectionRef.current?.querySelectorAll('.chevron-heading .tt-word')
       if (headingWords && headingWords.length > 0) {
-        gsap.from(headingWords, {
-          yPercent: 115,
-          opacity: 0,
-          stagger: 0.055,
-          ease: 'power3.out',
-          duration: 0.9,
-          scrollTrigger: {
-            trigger: '.chevron-heading',
-            start: 'top 82%',
-          },
-          onComplete() {
-            gsap.set(headingWords, { clearProps: 'yPercent,opacity' })
-          },
-        })
+        gsap.fromTo(
+          headingWords,
+          { yPercent: 115, opacity: 0 },
+          {
+            yPercent: 0,
+            opacity: 1,
+            stagger: 0.055,
+            ease: 'power3.out',
+            duration: 0.9,
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: '.chevron-heading',
+              start: 'top 82%',
+            },
+          }
+        )
       }
 
-      // Arrow row: entire row wipes in via clip-path from the left — gives a
-      // "parting curtain" reveal as the ❯❯❯❯ chain opens rightward.
+      // Arrow row: entire row wipes in via clip-path from the left
       const arrowRow = sectionRef.current?.querySelector('.chevron-arrow-row')
       if (arrowRow) {
         gsap.fromTo(
@@ -71,12 +75,10 @@ export default function ChevronStrip() {
             clipPath: 'inset(0 0% 0 0)',
             duration: 1.1,
             ease: 'power3.out',
+            immediateRender: false,
             scrollTrigger: {
               trigger: arrowRow,
               start: 'top 84%',
-            },
-            onComplete() {
-              gsap.set(arrowRow, { clearProps: 'clipPath' })
             },
           }
         )
@@ -85,24 +87,26 @@ export default function ChevronStrip() {
       // Individual arrows stagger inside the clip: rise + fade
       const items = itemRefs.current.filter(Boolean) as HTMLDivElement[]
       if (items.length > 0) {
-        gsap.from(items, {
-          opacity: 0,
-          y: 18,
-          stagger: {
-            each: 0.1,
-            from: 'start',
-          },
-          ease: 'power3.out',
-          duration: 0.75,
-          delay: 0.15,
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top 80%',
-          },
-          onComplete() {
-            gsap.set(items, { clearProps: 'opacity,transform' })
-          },
-        })
+        gsap.fromTo(
+          items,
+          { opacity: 0, y: 18 },
+          {
+            opacity: 1,
+            y: 0,
+            stagger: {
+              each: 0.1,
+              from: 'start',
+            },
+            ease: 'power3.out',
+            duration: 0.75,
+            delay: 0.15,
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: 'top 80%',
+            },
+          }
+        )
       }
     },
     [motionOk]

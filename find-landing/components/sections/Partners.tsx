@@ -28,28 +28,33 @@ export default function Partners() {
       if (!motionOk) return
 
       // Section entrance: whole band drifts up
-      gsap.from(sectionRef.current, {
-        opacity: 0,
-        y: 28,
-        duration: 0.8,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 82%' },
-        onComplete() {
-          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
-        },
-      })
+      // fromTo + immediateRender:false prevents pin-spacer false triggers
+      gsap.fromTo(
+        sectionRef.current,
+        { opacity: 0, y: 28 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 82%' },
+        }
+      )
 
       // Heading subtle rise
-      gsap.from('.partners-heading', {
-        y: 22,
-        opacity: 0,
-        duration: 0.75,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.partners-heading', start: 'top 86%' },
-        onComplete() {
-          gsap.set('.partners-heading', { clearProps: 'opacity,transform' })
-        },
-      })
+      gsap.fromTo(
+        '.partners-heading',
+        { y: 22, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.75,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.partners-heading', start: 'top 86%' },
+        }
+      )
 
       // Logos: clip-path wipe from below, staggered cascade
       gsap.fromTo(
@@ -62,10 +67,8 @@ export default function Partners() {
           stagger: 0.055,
           duration: 0.65,
           ease: 'power3.out',
+          immediateRender: false,
           scrollTrigger: { trigger: '.partners-row', start: 'top 86%' },
-          onComplete() {
-            gsap.set('.partner-logo', { clearProps: 'clipPath,opacity,transform' })
-          },
         }
       )
     },

@@ -38,16 +38,19 @@ export default function Hitech() {
       if (!motionOk) return
 
       // Section entrance: whole band drifts up
-      gsap.from(sectionRef.current, {
-        opacity: 0,
-        y: 30,
-        duration: 0.8,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 82%' },
-        onComplete() {
-          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
-        },
-      })
+      // fromTo + immediateRender:false prevents pin-spacer false triggers
+      gsap.fromTo(
+        sectionRef.current,
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 82%' },
+        }
+      )
 
       // Heading: word-by-word stagger reveal (split on spaces)
       const headingEl = sectionRef.current?.querySelector('.hitech-heading')
@@ -62,32 +65,36 @@ export default function Hitech() {
           )
           .join(' ')
 
-        gsap.from('.hitech-word-inner', {
-          yPercent: 110,
-          opacity: 0,
-          stagger: 0.045,
-          duration: 0.75,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: headingEl, start: 'top 86%' },
-          onComplete() {
-            gsap.set('.hitech-word-inner', { clearProps: 'yPercent,opacity' })
-          },
-        })
+        gsap.fromTo(
+          '.hitech-word-inner',
+          { yPercent: 110, opacity: 0 },
+          {
+            yPercent: 0,
+            opacity: 1,
+            stagger: 0.045,
+            duration: 0.75,
+            ease: 'power3.out',
+            immediateRender: false,
+            scrollTrigger: { trigger: headingEl, start: 'top 86%' },
+          }
+        )
       }
 
       // Marquee track: fade in once it's moving
       const track = trackRef.current
       if (track) {
-        gsap.from(track, {
-          opacity: 0,
-          duration: 0.8,
-          delay: 0.2,
-          ease: 'power2.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-          onComplete() {
-            gsap.set(track, { clearProps: 'opacity' })
-          },
-        })
+        gsap.fromTo(
+          track,
+          { opacity: 0 },
+          {
+            opacity: 1,
+            duration: 0.8,
+            delay: 0.2,
+            ease: 'power2.out',
+            immediateRender: false,
+            scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+          }
+        )
 
         // Infinite marquee loop — gated on reducedMotion so it doesn't run
         // when the OS preference is set. Scroll-reveal entrances above always run.

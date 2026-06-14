@@ -35,53 +35,60 @@ export default function OwnYourCareer() {
       if (!motionOk) return
 
       // Section entrance: whole block rises
-      gsap.from(sectionRef.current, {
-        opacity: 0,
-        y: 44,
-        duration: 0.9,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 78%' },
-        onComplete() {
-          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
-        },
-      })
+      // fromTo + immediateRender:false prevents pin-spacer false triggers
+      gsap.fromTo(
+        sectionRef.current,
+        { opacity: 0, y: 44 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.9,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 78%' },
+        }
+      )
 
       // Heading word reveal
       const headingWords = headingRef.current?.querySelectorAll('.tt-word')
       if (headingWords && headingWords.length > 0) {
-        gsap.from(headingWords, {
-          yPercent: 115,
-          opacity: 0,
-          stagger: 0.05,
-          ease: 'power3.out',
-          duration: 0.9,
-          scrollTrigger: {
-            trigger: headingRef.current,
-            start: 'top 82%',
-          },
-          onComplete() {
-            gsap.set(headingWords, { clearProps: 'yPercent,opacity' })
-          },
-        })
+        gsap.fromTo(
+          headingWords,
+          { yPercent: 115, opacity: 0 },
+          {
+            yPercent: 0,
+            opacity: 1,
+            stagger: 0.05,
+            ease: 'power3.out',
+            duration: 0.9,
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: headingRef.current,
+              start: 'top 82%',
+            },
+          }
+        )
       }
 
       // Intro: blur-fade rise
       const intro = introRef.current
       if (intro) {
-        gsap.from(intro, {
-          opacity: 0,
-          y: 22,
-          filter: 'blur(4px)',
-          duration: 0.85,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: intro,
-            start: 'top 85%',
-          },
-          onComplete() {
-            gsap.set(intro, { clearProps: 'opacity,transform,filter' })
-          },
-        })
+        gsap.fromTo(
+          intro,
+          { opacity: 0, y: 22, filter: 'blur(4px)' },
+          {
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            duration: 0.85,
+            ease: 'power2.out',
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: intro,
+              start: 'top 85%',
+            },
+          }
+        )
       }
 
       // Each host card - image clip-path reveal + subtle scale settle + text rise
@@ -91,52 +98,47 @@ export default function OwnYourCareer() {
         const imageInner = person.querySelector<HTMLElement>('.host-image-inner')
         const textBlock = person.querySelectorAll('.host-text')
 
-        // GSAP sets the hidden FROM state (never inline style) so clearProps
-        // on complete always restores visibility even if the trigger misfires.
-        if (imageWrap) {
-          gsap.set(imageWrap, { clipPath: 'inset(100% 0 0 0)' })
-        }
-
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: person,
             start: 'top 84%',
           },
           delay: i * 0.1,
-          onComplete() {
-            // Safety: always clear so images are never permanently hidden
-            if (imageWrap) gsap.set(imageWrap, { clearProps: 'clipPath' })
-          },
         })
 
         if (imageWrap) {
-          tl.to(imageWrap, {
-            clipPath: 'inset(0% 0 0 0)',
-            duration: 1.1,
-            ease: 'power3.out',
-          })
+          tl.fromTo(
+            imageWrap,
+            { clipPath: 'inset(100% 0 0 0)' },
+            {
+              clipPath: 'inset(0% 0 0 0)',
+              duration: 1.1,
+              ease: 'power3.out',
+              immediateRender: false,
+            }
+          )
         }
 
         // Scale settle on inner image during the reveal
         if (imageInner) {
-          tl.from(
+          tl.fromTo(
             imageInner,
-            { scale: 1.06, ease: 'power3.out', duration: 1.1 },
+            { scale: 1.06 },
+            { scale: 1, ease: 'power3.out', duration: 1.1, immediateRender: false },
             '<'
           )
         }
 
-        tl.from(
+        tl.fromTo(
           textBlock,
+          { opacity: 0, y: 28 },
           {
-            opacity: 0,
-            y: 28,
+            opacity: 1,
+            y: 0,
             duration: 0.75,
             ease: 'power3.out',
             stagger: 0.06,
-            onComplete() {
-              gsap.set(textBlock, { clearProps: 'opacity,transform' })
-            },
+            immediateRender: false,
           },
           '-=0.65'
         )
@@ -149,6 +151,7 @@ export default function OwnYourCareer() {
             {
               yPercent: 5,
               ease: 'none',
+              immediateRender: false,
               scrollTrigger: {
                 trigger: imageWrap ?? person,
                 start: 'top bottom',

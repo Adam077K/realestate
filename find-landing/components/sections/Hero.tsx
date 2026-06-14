@@ -208,6 +208,11 @@ export default function Hero() {
 
       // ── Master scrubbed timeline (pin +=1000%) ──────────────────────────
       // scrub: 0.8 for smoother premium feel; extended pin for slower constant-velocity flow
+      // refreshPriority: 1 → this pinned trigger MUST refresh before all other triggers
+      // so the pin-spacer (10×vh tall) is accounted for when sibling section triggers
+      // compute their start positions. Without this every section below the fold
+      // thinks it's already in view on load (they fire immediately and clearProps
+      // leaves them permanently visible).
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -216,6 +221,7 @@ export default function Hero() {
           pin: true,
           scrub: 0.8,
           anticipatePin: 1,
+          refreshPriority: 1,
           onUpdate: (self) => {
             progressRef.current = self.progress
           },

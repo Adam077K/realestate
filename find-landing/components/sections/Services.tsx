@@ -35,43 +35,51 @@ export default function Services() {
       if (!motionOk) return
 
       // Section entrance: dark block rises into place
-      gsap.from(sectionRef.current, {
-        opacity: 0,
-        y: 36,
-        duration: 0.85,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-        onComplete() {
-          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
-        },
-      })
+      // All animations use fromTo + immediateRender:false to prevent premature firing
+      // (the hero pin-spacer can throw off trigger positions until ScrollTrigger.refresh runs)
+      gsap.fromTo(
+        sectionRef.current,
+        { opacity: 0, y: 36 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.85,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        }
+      )
 
       // Header section label + heading words stagger
-      gsap.from('.services-label', {
-        opacity: 0,
-        y: 16,
-        duration: 0.6,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: '.services-header', start: 'top 82%' },
-        onComplete() {
-          gsap.set('.services-label', { clearProps: 'opacity,transform' })
-        },
-      })
+      gsap.fromTo(
+        '.services-label',
+        { opacity: 0, y: 16 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: 'power2.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.services-header', start: 'top 82%' },
+        }
+      )
 
-      gsap.from('.services-heading .tt-word', {
-        yPercent: 115,
-        opacity: 0,
-        stagger: 0.045,
-        duration: 0.85,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.services-heading',
-          start: 'top 80%',
-        },
-        onComplete() {
-          gsap.set('.services-heading .tt-word', { clearProps: 'yPercent,opacity' })
-        },
-      })
+      gsap.fromTo(
+        '.services-heading .tt-word',
+        { yPercent: 115, opacity: 0 },
+        {
+          yPercent: 0,
+          opacity: 1,
+          stagger: 0.045,
+          duration: 0.85,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: {
+            trigger: '.services-heading',
+            start: 'top 80%',
+          },
+        }
+      )
 
       // Each row: giant word wipes in + number ring draws + body rises
       pillars.rows.forEach((_row, i) => {
@@ -90,12 +98,10 @@ export default function Services() {
             opacity: 1,
             duration: 1.1,
             ease: 'power3.out',
+            immediateRender: false,
             scrollTrigger: {
               trigger: rowEl,
               start: 'top 76%',
-            },
-            onComplete() {
-              gsap.set(`${rowEl} .service-giant-word`, { clearProps: 'clipPath,x,opacity' })
             },
           }
         )
@@ -108,6 +114,7 @@ export default function Services() {
             strokeDashoffset: 0,
             duration: 0.9,
             ease: 'power3.out',
+            immediateRender: false,
             scrollTrigger: {
               trigger: rowEl,
               start: 'top 76%',
@@ -116,69 +123,77 @@ export default function Services() {
         )
 
         // Number label fade
-        gsap.from(`${rowEl} .service-num-label`, {
-          opacity: 0,
-          duration: 0.5,
-          delay: 0.35,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: rowEl,
-            start: 'top 76%',
-          },
-          onComplete() {
-            gsap.set(`${rowEl} .service-num-label`, { clearProps: 'opacity' })
-          },
-        })
+        gsap.fromTo(
+          `${rowEl} .service-num-label`,
+          { opacity: 0 },
+          {
+            opacity: 1,
+            duration: 0.5,
+            delay: 0.35,
+            ease: 'power2.out',
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: rowEl,
+              start: 'top 76%',
+            },
+          }
+        )
 
         // Body text blur-fade up
-        gsap.from(`${rowEl} .service-body`, {
-          yPercent: 22,
-          opacity: 0,
-          filter: 'blur(3px)',
-          duration: 0.75,
-          delay: 0.18,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: rowEl,
-            start: 'top 76%',
-          },
-          onComplete() {
-            gsap.set(`${rowEl} .service-body`, { clearProps: 'yPercent,opacity,filter' })
-          },
-        })
+        gsap.fromTo(
+          `${rowEl} .service-body`,
+          { yPercent: 22, opacity: 0, filter: 'blur(3px)' },
+          {
+            yPercent: 0,
+            opacity: 1,
+            filter: 'blur(0px)',
+            duration: 0.75,
+            delay: 0.18,
+            ease: 'power2.out',
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: rowEl,
+              start: 'top 76%',
+            },
+          }
+        )
       })
 
       // Closing line words
-      gsap.from('.services-closing .tt-word', {
-        yPercent: 115,
-        opacity: 0,
-        stagger: 0.04,
-        duration: 0.85,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.services-closing',
-          start: 'top 84%',
-        },
-        onComplete() {
-          gsap.set('.services-closing .tt-word', { clearProps: 'yPercent,opacity' })
-        },
-      })
+      gsap.fromTo(
+        '.services-closing .tt-word',
+        { yPercent: 115, opacity: 0 },
+        {
+          yPercent: 0,
+          opacity: 1,
+          stagger: 0.04,
+          duration: 0.85,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: {
+            trigger: '.services-closing',
+            start: 'top 84%',
+          },
+        }
+      )
 
       // CTA pill: scale + fade
-      gsap.from('.services-cta', {
-        y: 22,
-        opacity: 0,
-        scale: 0.94,
-        duration: 0.65,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.services-cta',
-          start: 'top 90%',
-        },
-        onComplete() {
-          gsap.set('.services-cta', { clearProps: 'y,opacity,scale' })
-        },
-      })
+      gsap.fromTo(
+        '.services-cta',
+        { y: 22, opacity: 0, scale: 0.94 },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.65,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: {
+            trigger: '.services-cta',
+            start: 'top 90%',
+          },
+        }
+      )
     },
     [motionOk, isRtl]
   )

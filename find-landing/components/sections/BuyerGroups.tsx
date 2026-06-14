@@ -31,42 +31,49 @@ export default function BuyerGroups() {
       if (!motionOk) return
 
       // Section: rise from below as a unified block
-      gsap.from(sectionRef.current, {
-        opacity: 0,
-        y: 40,
-        duration: 0.9,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-        onComplete() {
-          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
-        },
-      })
+      // fromTo + immediateRender:false prevents pin-spacer false triggers
+      gsap.fromTo(
+        sectionRef.current,
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.9,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        }
+      )
 
       // Heading word stagger
-      gsap.from('.bg-heading .tt-word', {
-        yPercent: 110,
-        opacity: 0,
-        stagger: 0.045,
-        duration: 0.85,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.bg-heading', start: 'top 80%' },
-        onComplete() {
-          gsap.set('.bg-heading .tt-word', { clearProps: 'yPercent,opacity' })
-        },
-      })
+      gsap.fromTo(
+        '.bg-heading .tt-word',
+        { yPercent: 110, opacity: 0 },
+        {
+          yPercent: 0,
+          opacity: 1,
+          stagger: 0.045,
+          duration: 0.85,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.bg-heading', start: 'top 80%' },
+        }
+      )
 
       // Sub-line below the heading fades up
-      gsap.from('.bg-subline', {
-        opacity: 0,
-        y: 16,
-        duration: 0.7,
-        delay: 0.18,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: '.bg-heading', start: 'top 80%' },
-        onComplete() {
-          gsap.set('.bg-subline', { clearProps: 'opacity,transform' })
-        },
-      })
+      gsap.fromTo(
+        '.bg-subline',
+        { opacity: 0, y: 16 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          delay: 0.18,
+          ease: 'power2.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.bg-heading', start: 'top 80%' },
+        }
+      )
 
       // Marquee viewport: clip-wipe reveal from reading-start
       const carouselEl = sectionRef.current?.querySelector('.bg-carousel')
@@ -79,10 +86,8 @@ export default function BuyerGroups() {
             opacity: 1,
             duration: 1.1,
             ease: 'power3.out',
+            immediateRender: false,
             scrollTrigger: { trigger: carouselEl, start: 'top 82%' },
-            onComplete() {
-              gsap.set(carouselEl, { clearProps: 'clipPath,opacity' })
-            },
           }
         )
       }

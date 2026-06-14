@@ -33,34 +33,41 @@ export default function RewiredSteps() {
       if (!motionOk) return
 
       // Section entrance: the whole section rises first
-      gsap.from(sectionRef.current, {
-        opacity: 0,
-        y: 44,
-        duration: 0.9,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 92%' },
-        onComplete() {
-          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
-        },
-      })
+      // immediateRender:false → GSAP does NOT snapshot the "from" state at creation time.
+      // Without this, if the trigger fires at page-load (before pin-spacer is accounted for),
+      // GSAP sets opacity:0 immediately and then clearProps leaves it visible—arms never re-fire.
+      gsap.fromTo(
+        sectionRef.current,
+        { opacity: 0, y: 44 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.9,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 92%' },
+        }
+      )
 
-      // Heading words: stronger stagger-reveal (word-clip overflow-hidden)
+      // Heading words: masked word-clip stagger reveal with strong yPercent
       const headingWords = sectionRef.current?.querySelectorAll('.learn-heading .tt-word')
       if (headingWords && headingWords.length > 0) {
-        gsap.from(headingWords, {
-          yPercent: 115,
-          opacity: 0,
-          stagger: 0.05,
-          ease: 'power3.out',
-          duration: 0.95,
-          scrollTrigger: {
-            trigger: '.learn-heading',
-            start: 'top 82%',
-          },
-          onComplete() {
-            gsap.set(headingWords, { clearProps: 'yPercent,opacity' })
-          },
-        })
+        gsap.fromTo(
+          headingWords,
+          { yPercent: 115, opacity: 0 },
+          {
+            yPercent: 0,
+            opacity: 1,
+            stagger: 0.05,
+            ease: 'power3.out',
+            duration: 0.95,
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: '.learn-heading',
+              start: 'top 82%',
+            },
+          }
+        )
       }
 
       // Items: dividers scaleX 0→1 then row fades in
@@ -85,24 +92,21 @@ export default function RewiredSteps() {
               scaleX: 1,
               duration: 0.6,
               ease: 'power3.out',
-              onComplete() {
-                gsap.set(divider, { clearProps: 'scaleX,transformOrigin' })
-              },
+              immediateRender: false,
             }
           )
         }
 
         // Row number + content rise together, slightly offset from divider
-        tl.from(
+        tl.fromTo(
           item.querySelectorAll('.item-content'),
+          { opacity: 0, y: 18 },
           {
-            opacity: 0,
-            y: 18,
+            opacity: 1,
+            y: 0,
             duration: 0.6,
             ease: 'power3.out',
-            onComplete() {
-              gsap.set(item.querySelectorAll('.item-content'), { clearProps: 'opacity,transform' })
-            },
+            immediateRender: false,
           },
           '-=0.25'
         )

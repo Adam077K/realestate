@@ -49,29 +49,34 @@ export default function SupportBeyond() {
       if (!motionOk) return
 
       // Section entrance: dark block drifts up as a unit
-      gsap.from(sectionRef.current, {
-        opacity: 0,
-        y: 36,
-        duration: 0.85,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 92%' },
-        onComplete() {
-          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
-        },
-      })
+      // All fromTo + immediateRender:false prevents premature trigger firing
+      gsap.fromTo(
+        sectionRef.current,
+        { opacity: 0, y: 36 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.85,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 92%' },
+        }
+      )
 
       // Eyebrow + section title fade-rise.
-      gsap.from('.wb-intro > *', {
-        y: 20,
-        opacity: 0,
-        stagger: 0.09,
-        duration: 0.75,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.wb-stage', start: 'top 82%' },
-        onComplete() {
-          gsap.set('.wb-intro > *', { clearProps: 'y,opacity' })
-        },
-      })
+      gsap.fromTo(
+        '.wb-intro > *',
+        { y: 20, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          stagger: 0.09,
+          duration: 0.75,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.wb-stage', start: 'top 82%' },
+        }
+      )
 
       // Ghost numeral parallax drift.
       gsap.fromTo(
@@ -81,6 +86,7 @@ export default function SupportBeyond() {
           yPercent: 6,
           opacity: 1,
           ease: 'none',
+          immediateRender: false,
           scrollTrigger: {
             trigger: '.wb-stage',
             start: 'top bottom',
@@ -101,73 +107,80 @@ export default function SupportBeyond() {
           scale: 1,
           duration: 1.3,
           ease: 'power3.inOut',
+          immediateRender: false,
           scrollTrigger: { trigger: '.wb-bigdate', start: 'top 85%' },
-          onComplete() {
-            gsap.set('.wb-bigdate', { clearProps: 'clipPath,scale' })
-          },
         }
       )
 
-      gsap.from('.wb-year', {
-        opacity: 0,
-        y: 28,
-        duration: 0.7,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: '.wb-bigdate', start: 'top 80%' },
-        onComplete() {
-          gsap.set('.wb-year', { clearProps: 'opacity,y' })
-        },
-      })
+      gsap.fromTo(
+        '.wb-year',
+        { opacity: 0, y: 28 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          ease: 'power2.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.wb-bigdate', start: 'top 80%' },
+        }
+      )
 
       // The pass rail's hairline draws top→bottom.
-      gsap.from('.wb-rail-line', {
-        scaleY: 0,
-        transformOrigin: 'top center',
-        duration: 1.1,
-        ease: 'power3.inOut',
-        scrollTrigger: { trigger: '.wb-rail', start: 'top 80%' },
-        onComplete() {
-          gsap.set('.wb-rail-line', { clearProps: 'scaleY,transformOrigin' })
-        },
-      })
+      gsap.fromTo(
+        '.wb-rail-line',
+        { scaleY: 0, transformOrigin: 'top center' },
+        {
+          scaleY: 1,
+          duration: 1.1,
+          ease: 'power3.inOut',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.wb-rail', start: 'top 80%' },
+        }
+      )
 
       // Perforation draw
-      gsap.from('.wb-perf', {
-        scaleX: 0,
-        opacity: 0,
-        duration: 0.85,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.wb-rail', start: 'top 82%' },
-        onComplete() {
-          gsap.set('.wb-perf', { clearProps: 'scaleX,opacity' })
-        },
-      })
+      gsap.fromTo(
+        '.wb-perf',
+        { scaleX: 0, opacity: 0 },
+        {
+          scaleX: 1,
+          opacity: 1,
+          duration: 0.85,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.wb-rail', start: 'top 82%' },
+        }
+      )
 
       // Rows stagger in
-      gsap.from('.wb-row', {
-        y: 26,
-        opacity: 0,
-        stagger: 0.1,
-        duration: 0.7,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.wb-rail', start: 'top 78%' },
-        onComplete() {
-          gsap.set('.wb-row', { clearProps: 'y,opacity' })
-        },
-      })
+      gsap.fromTo(
+        '.wb-row',
+        { y: 26, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          stagger: 0.1,
+          duration: 0.7,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.wb-rail', start: 'top 78%' },
+        }
+      )
 
       // CTA: scale + rise
-      gsap.from('.wb-cta', {
-        y: 18,
-        opacity: 0,
-        scale: 0.95,
-        duration: 0.7,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.wb-rail', start: 'top 70%' },
-        onComplete() {
-          gsap.set('.wb-cta', { clearProps: 'y,opacity,scale' })
-        },
-      })
+      gsap.fromTo(
+        '.wb-cta',
+        { y: 18, opacity: 0, scale: 0.95 },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.7,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.wb-rail', start: 'top 70%' },
+        }
+      )
     },
     [motionOk, dir]
   )

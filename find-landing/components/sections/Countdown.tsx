@@ -134,29 +134,33 @@ export default function Countdown() {
     () => {
       if (!motionOk) return
 
-      gsap.from(sectionRef.current, {
-        opacity: 0,
-        y: 32,
-        duration: 0.85,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-        onComplete() {
-          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
-        },
-      })
+      gsap.fromTo(
+        sectionRef.current,
+        { opacity: 0, y: 32 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.85,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        }
+      )
 
       // Lead line: stronger reveal after section settles
-      gsap.from('.countdown-lead', {
-        opacity: 0,
-        y: 16,
-        duration: 0.6,
-        delay: 0.18,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-        onComplete() {
-          gsap.set('.countdown-lead', { clearProps: 'opacity,transform' })
-        },
-      })
+      gsap.fromTo(
+        '.countdown-lead',
+        { opacity: 0, y: 16 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          delay: 0.18,
+          ease: 'power2.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        }
+      )
     },
     [motionOk]
   )

@@ -37,59 +37,67 @@ export default function Stats() {
       if (!motionOk) return
 
       // Section entrance: the whole band rises as a unit before items stagger
-      gsap.from(sectionRef.current, {
-        opacity: 0,
-        y: 32,
-        duration: 0.7,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 82%' },
-      })
+      // All fromTo + immediateRender:false to prevent hero-pin-spacer false triggers
+      gsap.fromTo(
+        sectionRef.current,
+        { opacity: 0, y: 32 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 82%' },
+        }
+      )
 
       // Stat items - stagger rise + scale settle for confident landing
-      gsap.from('.stat-item', {
-        y: 48,
-        opacity: 0,
-        scale: 0.92,
-        stagger: 0.14,
-        duration: 1.0,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.stats-grid', start: 'top 80%' },
-        onStart() {
-          gsap.set('.stat-item', { clearProps: 'all' })
-        },
-        onComplete() {
-          // Safety clear so nothing stays hidden
-          gsap.set('.stat-item', { clearProps: 'opacity,transform' })
-        },
-      })
+      gsap.fromTo(
+        '.stat-item',
+        { y: 48, opacity: 0, scale: 0.92 },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          stagger: 0.14,
+          duration: 1.0,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.stats-grid', start: 'top 80%' },
+        }
+      )
 
       // Numbers themselves: blur-rise for extra drama
-      gsap.from('.stat-number', {
-        yPercent: 18,
-        opacity: 0,
-        filter: 'blur(8px)',
-        duration: 1.1,
-        stagger: 0.14,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.stats-grid', start: 'top 80%' },
-        onComplete() {
-          gsap.set('.stat-number', { clearProps: 'opacity,transform,filter' })
-        },
-      })
+      gsap.fromTo(
+        '.stat-number',
+        { yPercent: 18, opacity: 0, filter: 'blur(8px)' },
+        {
+          yPercent: 0,
+          opacity: 1,
+          filter: 'blur(0px)',
+          duration: 1.1,
+          stagger: 0.14,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.stats-grid', start: 'top 80%' },
+        }
+      )
 
       // Label lines fade up after numbers
-      gsap.from('.stat-label', {
-        opacity: 0,
-        y: 12,
-        stagger: 0.14,
-        duration: 0.7,
-        delay: 0.22,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: '.stats-grid', start: 'top 80%' },
-        onComplete() {
-          gsap.set('.stat-label', { clearProps: 'opacity,transform' })
-        },
-      })
+      gsap.fromTo(
+        '.stat-label',
+        { opacity: 0, y: 12 },
+        {
+          opacity: 1,
+          y: 0,
+          stagger: 0.14,
+          duration: 0.7,
+          delay: 0.22,
+          ease: 'power2.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.stats-grid', start: 'top 80%' },
+        }
+      )
     },
     [motionOk]
   )

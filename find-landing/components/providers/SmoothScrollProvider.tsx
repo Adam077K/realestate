@@ -79,10 +79,34 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       gsap.ticker.add(ticker)
       gsap.ticker.lagSmoothing(0)
 
-      // Refresh ScrollTrigger once fonts are loaded
-      document.fonts.ready.then(() => {
-        ScrollTrigger.refresh()
-      })
+      // ── Robust multi-point ScrollTrigger refresh ────────────────────────────
+      // The Hero pin creates a giant pin-spacer (end:'+=1000%', ~10×vh).
+      // The spacer is inserted AFTER the first ScrollTrigger.refresh() runs,
+      // so any section triggers below the fold compute wrong start positions
+      // and fire immediately at load (they think they're already in view).
+      //
+      // Fix: refresh at FOUR points so the spacer is always accounted for:
+      //   1. fonts.ready   — glyphs are laid out, headings have their real height
+      //   2. window 'load' — all images (including the hero building PNG) are decoded
+      //   3. double-rAF    — one frame after all synchronous layout work settles
+      //   4. setTimeout 600ms — catches slow network / late hydration cases
+      //
+      // refreshPriority:1 on the hero pin ensures it refreshes before sibling
+      // section triggers, so the spacer offset is baked in when they recalculate.
+      const doRefresh = () => ScrollTrigger.refresh()
+
+      // 1. fonts.ready
+      document.fonts.ready.then(doRefresh)
+
+      // 2. window 'load' (images decoded)
+      const onLoad = () => doRefresh()
+      window.addEventListener('load', onLoad, { once: true })
+
+      // 3. double rAF after this tick (layout fully settled)
+      requestAnimationFrame(() => requestAnimationFrame(doRefresh))
+
+      // 4. Late safety net — catches slow images / hydration lag
+      const safetyTimer = setTimeout(doRefresh, 600)
 
       // Handle resize
       const handleResize = () => {
@@ -91,6 +115,8 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       window.addEventListener('resize', handleResize, { passive: true })
 
       return () => {
+        clearTimeout(safetyTimer)
+        window.removeEventListener('load', onLoad)
         gsap.ticker.remove(ticker)
         ScrollTrigger.getAll().forEach((t) => t.kill())
         lenis.destroy()

@@ -89,17 +89,20 @@ export default function CtaFooter() {
       if (!motionOk) return
 
       // Urgency badge fades in first
-      gsap.from('.reg-badge', {
-        opacity: 0,
-        y: 14,
-        scale: 0.95,
-        duration: 0.55,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.reg-band', start: 'top 80%' },
-        onComplete() {
-          gsap.set('.reg-badge', { clearProps: 'opacity,transform' })
-        },
-      })
+      // All fromTo + immediateRender:false prevents pin-spacer false triggers
+      gsap.fromTo(
+        '.reg-badge',
+        { opacity: 0, y: 14, scale: 0.95 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.55,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.reg-band', start: 'top 80%' },
+        }
+      )
 
       // Register heading: word-by-word stagger (split manually since it's a plain h2)
       const regHeading = footerRef.current?.querySelector<HTMLElement>('#register-heading')
@@ -113,44 +116,50 @@ export default function CtaFooter() {
           )
           .join(' ')
 
-        gsap.from('.reg-heading-word', {
-          yPercent: 110,
-          opacity: 0,
-          stagger: 0.04,
-          duration: 0.8,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: regHeading, start: 'top 84%' },
-          onComplete() {
-            gsap.set('.reg-heading-word', { clearProps: 'yPercent,opacity' })
-          },
-        })
+        gsap.fromTo(
+          '.reg-heading-word',
+          { yPercent: 110, opacity: 0 },
+          {
+            yPercent: 0,
+            opacity: 1,
+            stagger: 0.04,
+            duration: 0.8,
+            ease: 'power3.out',
+            immediateRender: false,
+            scrollTrigger: { trigger: regHeading, start: 'top 84%' },
+          }
+        )
       }
 
       // Scroll-reveal for the registration composition: panel + card stagger up.
-      gsap.from('.reg-reveal', {
-        y: 36,
-        opacity: 0,
-        duration: 0.85,
-        ease: 'power3.out',
-        stagger: 0.14,
-        scrollTrigger: { trigger: '.reg-band', start: 'top 78%' },
-        onComplete() {
-          gsap.set('.reg-reveal', { clearProps: 'y,opacity' })
-        },
-      })
+      gsap.fromTo(
+        '.reg-reveal',
+        { y: 36, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.85,
+          ease: 'power3.out',
+          stagger: 0.14,
+          immediateRender: false,
+          scrollTrigger: { trigger: '.reg-band', start: 'top 78%' },
+        }
+      )
 
       // Form rows cascade in just after the card.
-      gsap.from('.reg-field', {
-        y: 18,
-        opacity: 0,
-        duration: 0.55,
-        ease: 'power2.out',
-        stagger: 0.08,
-        scrollTrigger: { trigger: '.reg-card', start: 'top 85%' },
-        onComplete() {
-          gsap.set('.reg-field', { clearProps: 'y,opacity' })
-        },
-      })
+      gsap.fromTo(
+        '.reg-field',
+        { y: 18, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.55,
+          ease: 'power2.out',
+          stagger: 0.08,
+          immediateRender: false,
+          scrollTrigger: { trigger: '.reg-card', start: 'top 85%' },
+        }
+      )
 
       // Subtle parallax on the background image.
       const bg = regBgRef.current
@@ -161,6 +170,7 @@ export default function CtaFooter() {
           {
             yPercent: 5,
             ease: 'none',
+            immediateRender: false,
             scrollTrigger: {
               trigger: '.reg-band',
               start: 'top bottom',
@@ -172,17 +182,19 @@ export default function CtaFooter() {
       }
 
       // Footer columns stagger in from below
-      gsap.from('.footer-col', {
-        opacity: 0,
-        y: 28,
-        stagger: 0.09,
-        duration: 0.75,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.footer-cols', start: 'top 86%' },
-        onComplete() {
-          gsap.set('.footer-col', { clearProps: 'opacity,transform' })
-        },
-      })
+      gsap.fromTo(
+        '.footer-col',
+        { opacity: 0, y: 28 },
+        {
+          opacity: 1,
+          y: 0,
+          stagger: 0.09,
+          duration: 0.75,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: '.footer-cols', start: 'top 86%' },
+        }
+      )
     },
     [motionOk]
   )

@@ -77,34 +77,39 @@ export default function Testimonials() {
       if (!motionOk) return
 
       // Section block rises as a unit
-      gsap.from(sectionRef.current, {
-        opacity: 0,
-        y: 40,
-        duration: 0.85,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-        onComplete() {
-          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
-        },
-      })
+      // fromTo + immediateRender:false prevents pin-spacer false triggers
+      gsap.fromTo(
+        sectionRef.current,
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.85,
+          ease: 'power3.out',
+          immediateRender: false,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        }
+      )
 
       // Heading words stagger
       const words = sectionRef.current?.querySelectorAll('.testimonials-heading .tt-word')
       if (words && words.length > 0) {
-        gsap.from(words, {
-          yPercent: 110,
-          opacity: 0,
-          stagger: 0.045,
-          ease: 'power3.out',
-          duration: 0.85,
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top 78%',
-          },
-          onComplete() {
-            gsap.set(words, { clearProps: 'yPercent,opacity' })
-          },
-        })
+        gsap.fromTo(
+          words,
+          { yPercent: 110, opacity: 0 },
+          {
+            yPercent: 0,
+            opacity: 1,
+            stagger: 0.045,
+            ease: 'power3.out',
+            duration: 0.85,
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: 'top 78%',
+            },
+          }
+        )
       }
 
       // Image: directional clip-path wipe (reading-start origin)
@@ -118,12 +123,10 @@ export default function Testimonials() {
             clipPath: 'inset(0 0% 0 0)',
             duration: 1.2,
             ease: 'power3.out',
+            immediateRender: false,
             scrollTrigger: {
               trigger: imgWrap,
               start: 'top 83%',
-            },
-            onComplete() {
-              gsap.set(imgWrap, { clearProps: 'clipPath' })
             },
           }
         )
@@ -132,39 +135,43 @@ export default function Testimonials() {
       // Right panel: fade up with slight delay
       const rightPanel = sectionRef.current?.querySelector('.testimonial-right')
       if (rightPanel) {
-        gsap.from(rightPanel, {
-          opacity: 0,
-          y: 30,
-          duration: 0.9,
-          ease: 'power3.out',
-          delay: 0.25,
-          scrollTrigger: {
-            trigger: rightPanel,
-            start: 'top 83%',
-          },
-          onComplete() {
-            gsap.set(rightPanel, { clearProps: 'opacity,transform' })
-          },
-        })
+        gsap.fromTo(
+          rightPanel,
+          { opacity: 0, y: 30 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.9,
+            ease: 'power3.out',
+            delay: 0.25,
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: rightPanel,
+              start: 'top 83%',
+            },
+          }
+        )
       }
 
       // Quote mark: scale + fade in after panel
       const quoteMark = sectionRef.current?.querySelector('.testimonial-quote-mark')
       if (quoteMark) {
-        gsap.from(quoteMark, {
-          opacity: 0,
-          scale: 0.7,
-          duration: 0.6,
-          delay: 0.5,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: rightPanel ?? sectionRef.current,
-            start: 'top 83%',
-          },
-          onComplete() {
-            gsap.set(quoteMark, { clearProps: 'opacity,transform' })
-          },
-        })
+        gsap.fromTo(
+          quoteMark,
+          { opacity: 0, scale: 0.7 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.6,
+            delay: 0.5,
+            ease: 'power3.out',
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: rightPanel ?? sectionRef.current,
+              start: 'top 83%',
+            },
+          }
+        )
       }
     },
     [motionOk, isRtl]
