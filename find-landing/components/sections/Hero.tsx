@@ -430,24 +430,24 @@ export default function Hero() {
         <div ref={copyGroupRef} className="w-full flex flex-col items-center pointer-events-auto">
           {/* Editorial eyebrow — flanked hairlines, warm-accent, spaced caps */}
           <div
-            className="flex items-center gap-3 mb-3"
+            className="flex items-center gap-3 mb-4"
             aria-hidden="true"
           >
-            <span style={{ display: 'block', width: 28, height: 1, background: 'rgba(0,0,0,0.28)' }} />
+            <span style={{ display: 'block', width: 40, height: 1, background: 'rgba(0,0,0,0.3)' }} />
             <span
               style={{
                 fontFamily: 'var(--font-hebrew)',
-                fontSize: '0.7rem',
+                fontSize: 'clamp(0.95rem, 1.5vw, 1.15rem)',
                 fontWeight: 600,
                 letterSpacing: '0.22em',
-                color: '#e8855a',
+                color: '#d9743f',
                 textShadow: '0 1px 8px rgba(255,255,255,0.5)',
                 lineHeight: 1,
               }}
             >
               וובינר
             </span>
-            <span style={{ display: 'block', width: 28, height: 1, background: 'rgba(0,0,0,0.28)' }} />
+            <span style={{ display: 'block', width: 40, height: 1, background: 'rgba(0,0,0,0.3)' }} />
           </div>
           <h1
             className="font-bold"
@@ -684,21 +684,21 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
       >
         {/* Editorial eyebrow — reduced-motion path */}
         <div className="flex items-center gap-3" aria-hidden="true">
-          <span style={{ display: 'block', width: 28, height: 1, background: 'rgba(0,0,0,0.28)' }} />
+          <span style={{ display: 'block', width: 40, height: 1, background: 'rgba(0,0,0,0.3)' }} />
           <span
             style={{
               fontFamily: 'var(--font-hebrew)',
-              fontSize: '0.7rem',
+              fontSize: 'clamp(0.95rem, 1.5vw, 1.15rem)',
               fontWeight: 600,
               letterSpacing: '0.22em',
-              color: '#e8855a',
+              color: '#d9743f',
               textShadow: '0 1px 8px rgba(255,255,255,0.5)',
               lineHeight: 1,
             }}
           >
             וובינר
           </span>
-          <span style={{ display: 'block', width: 28, height: 1, background: 'rgba(0,0,0,0.28)' }} />
+          <span style={{ display: 'block', width: 40, height: 1, background: 'rgba(0,0,0,0.3)' }} />
         </div>
         <h1
           className="font-bold leading-[0.95]"
