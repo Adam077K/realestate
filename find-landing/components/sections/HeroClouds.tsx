@@ -214,15 +214,15 @@ const expo = (n: number) => {
 /**
  * Full-screen soft veil intensity for the FRONT field, 0..1.
  *
- * v4 — BATCH 4 DELAYED BLOOM: bloom starts at p≈0.63 (was 0.50), peaks at p≈0.97 (was 0.95).
- * Wordmark cross-dissolve now spans p0.73–0.94 — this delay ensures the veil doesn't
- * wash the wordmark during its display window. Stats overlay appears p0.88–1.0 on
- * the bloomed veil surface. Cloud pan up p0.90–1.0 uses translateY (not opacity).
- * Stays at peak from p=0.97 → p=1.0. Continuous into white RewiredSteps.
+ * v5 — BATCH 5 LONGER WORDMARK HOLD: bloom starts at p≈0.80 (was 0.63), peaks at p≈0.98
+ * (was 0.97). Wordmark cross-dissolve spans p0.70–0.90 — veil delay ensures the fill
+ * wordmark holds fully visible ~p0.82–0.94 before white screen covers it.
+ * Stats overlay appears p0.92–1.0 on the bloomed veil surface.
+ * Stays at peak from p=0.98 → p=1.0. Continuous into white RewiredSteps.
  */
 function frontVeilIntensity(p: number): number {
-  // Blooms from 0 at p=0.63 to 1 by p=0.97. Stays at 1 through p=1.0.
-  return expo(clamp01((p - 0.63) / 0.34))
+  // Blooms from 0 at p=0.80 to 1 by p=0.98. Stays at 1 through p=1.0.
+  return expo(clamp01((p - 0.80) / 0.18))
 }
 
 /**
@@ -268,9 +268,9 @@ export default function HeroClouds({
   const [reducedMotion, setReducedMotion] = useState(false)
 
   const layers      = variant === 'front' ? FRONT_LAYERS : BACK_LAYERS
-  // staticRestP for front variant updated to match new delayed bloom p0.63–0.97.
-  // 0.68 puts the static veil at partial bloom (not full wash, not invisible).
-  const staticRestP = variant === 'front' ? 0.68 : 0.45
+  // staticRestP for front variant updated to match new delayed bloom p0.80–0.98.
+  // 0.74 puts the static veil at partial bloom (not full wash, not invisible).
+  const staticRestP = variant === 'front' ? 0.74 : 0.45
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return

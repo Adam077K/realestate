@@ -3,35 +3,29 @@
 /**
  * Hero — Signature pinned scroll experience for בונים עתיד (Bonim Atid).
  *
- * BATCH 4 CHANGES:
+ * BATCH 5 CHANGES:
  *
- * 1. HEADLINE CYCLE LONGER — cycle span widened to p0.06–0.55 with plateau holds
- *    at [0.22–0.38] and [0.72–0.88] within the tween so each sentence stays still
- *    much longer. Pin extended from +=400% → +=560% (re-budgeted so total feels
- *    deliberate, not endless).
+ * 1+2. INSTANT/SIMULTANEOUS SCROLL + FULL-RISE CYCLE — building pan starts at p0.0
+ *      (was 0.10), slot-roll cycle starts at p0.0 (was 0.06), both span ~0.60–0.62.
+ *      The 3-state headline completes across the full building-rise window. Internal
+ *      transition map re-budgeted: sentence holds evenly spread so each reads clearly.
  *
- * 2. SKY LIGHTER BLUE — upper/mid stops lifted: top ~#2e4878 (was #1e2d4a),
- *    mid transitions raised throughout for a brighter, lighter dusk.
+ * 3.   HEADLINE + SUBHEAD ALWAYS WHITE — no black→white tween; pure white at rest,
+ *      no drop-shadow filter. Color tween block removed from timeline.
  *
- * 3. HEADLINE BIGGER — fontSize clamp(2.4rem,6.5vw,6rem) (was clamp(2rem,5vw,4.5rem)).
+ * 3b.  RESPONSIVE HEADLINE — mobile floor lowered: clamp(1.85rem,6.2vw,6rem) +
+ *      textWrap:'balance' on headline span for even wrapping on 390px screens.
  *
- * 4. COPY STARTS CENTERED — paddingTop removed; layout uses flexbox justify-center.
- *    No scroll drift tween. Copy is centered from rest through cycle then fades.
+ * 4.   WEBINAR CTA white fill + black outline (SupportBeyond.tsx only).
  *
- * 5. BUILDING ~30% LOWER — outer top clamp(62vh,66vh,70vh) (was clamp(44vh,50vh,56vh))
- *    so more open sky frames the centered copy at rest.
+ * 5.   WORDMARK LONGER HOLD (DELAYED CLOUD VEIL) — veil bloom delayed to p0.80–0.98
+ *      in HeroClouds.tsx. Wordmark beats: cross-dissolve p0.70–0.82 (build→fill),
+ *      fill fully on by ~p0.82, holds until lift at p0.94. Stats overlay at p0.92.
+ *      Pin widened: +=560% → +=640%.
  *
- * 6. COMBINED RISE ~30% LONGER — building pans p0.10–0.72 (was p0.10–0.55), re-budgeted
- *    in the longer +=560% pin window.
- *
- * 7. WORDMARK ~50% LONGER AGAIN — cross-dissolve now p0.73–0.94 + lift at p0.95–0.99.
- *    Veil bloom delayed to p0.63–0.97.
- *
- * 8+9. STATS ON CLOUD SCREEN — stats numbers + labels overlaid on the front cloud
- *      veil, revealed p0.88–1.0 (after wordmark lifts). Cloud veil (carrying stats)
- *      pans upward via translateY: +15vh → 0 across p0.90–1.0, creating a rising-
- *      through-clouds feel. Seamless light→white into RewiredSteps.
- *      Reduced-motion: static stats fallback rendered inside hero.
+ * 6.   STATS STRIPE SIZING — number clamp(1.6rem,5.5vw,5rem) fits 3-up on mobile.
+ *      Column padding px-3 sm:px-8. Label clamp(0.7rem,1.1vw,0.95rem). Same fix
+ *      applied to StatsFallback.
  *
  * Architecture:
  *   - progressRef (plain useRef<number>) — zero React re-renders per tick.
@@ -45,20 +39,19 @@
  *   OUTER  — absolute left-1/2, translateX(-50%). NEVER touched by GSAP.
  *   INNER  — buildingWrapRef. GSAP animates translateY ONLY.
  *
- * Motion timeline (scrub: true, pin +=560%):
- *   p 0.00       REST: building low (62–70vh), copy centered, text #050505 + white halo
- *   p 0.06–0.55  headline slot-roll cycles 3 sentences with long plateau holds
- *   p 0.10–0.72  building pans up concurrently (-panPx, power2.inOut)
- *   p 0.12–0.20  text color #050505→#ffffff, halo→dark-shadow (building behind copy)
- *   p 0.38–0.46  subhead+CTA fade+lift out
- *   p 0.48–0.57  headline fade+lift out
- *   p 0.49–0.57  scroll nudge fades
+ * Motion timeline (scrub: true, pin +=640%):
+ *   p 0.00       REST: building low (62–70vh), copy centered, text #ffffff (always)
+ *   p 0.00–0.60  headline slot-roll cycles 3 sentences simultaneously with building
+ *   p 0.00–0.62  building pans up concurrently (-panPx, power2.inOut) — INSTANT start
+ *   p 0.54–0.62  subhead+CTA fade+lift out
+ *   p 0.62–0.70  headline fade+lift out
+ *   p 0.10–0.18  scroll nudge fades (disappears early in scroll)
  *   p 0.60–0.67  wordmark settles to rest position
- *   p 0.73–0.87  Building: 1→0; Outline: 0→1→0; Fill: 0→1 (cross-dissolve)
- *   p 0.95–0.99  wordmark lifts + fades
- *   p 0.63–0.97  cloud bloom (delayed — doesn't wash wordmark early)
- *   p 0.88–1.00  stats overlay fades in (over full cloud veil)
- *   p 0.90–1.00  cloud veil pans up +15vh→0 (rising-through-clouds feel)
+ *   p 0.70–0.84  Building: 1→0; Outline: 0→1→0; Fill: 0→1 (cross-dissolve)
+ *   p 0.94–0.98  wordmark lifts + fades
+ *   p 0.80–0.98  cloud bloom (very delayed — wordmark holds fully visible)
+ *   p 0.92–1.00  stats overlay fades in (over full cloud veil)
+ *   p 0.92–1.00  cloud veil pans up +15vh→0 (rising-through-clouds feel)
  */
 
 import dynamic from 'next/dynamic'
@@ -161,8 +154,8 @@ export default function Hero() {
       gsap.set(slotTrack, { yPercent: 0 })
       gsap.set([headline, subCta], { opacity: 1, y: 0 })
       if (scrollNudge) gsap.set(scrollNudge, { opacity: 0.45 })
-      if (textColor) gsap.set(textColor, { color: '#050505' })
-      if (subheadEl) gsap.set(subheadEl, { color: '#050505' })
+      if (textColor) gsap.set(textColor, { color: '#ffffff' })
+      if (subheadEl) gsap.set(subheadEl, { color: '#ffffff' })
       if (statsOverlay) gsap.set(statsOverlay, { opacity: 0 })
       // Cloud veil starts translated down (+15vh) at rest; pans up as pin ends
       if (cloudVeil) gsap.set(cloudVeil, { y: '15vh' })
@@ -178,12 +171,12 @@ export default function Hero() {
       const panVH = getBuildingPanVH()
       const panPx = (window.innerHeight * panVH) / 100
 
-      // ── Master scrubbed timeline (pin +=560%) ───────────────────────────
+      // ── Master scrubbed timeline (pin +=640%) ───────────────────────────
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: '+=560%',
+          end: '+=640%',
           pin: true,
           scrub: true,
           anticipatePin: 1,
@@ -193,30 +186,17 @@ export default function Hero() {
         },
       })
 
-      // CHANGE #6 — COMBINED RISE ~30% LONGER.
-      // Building pans p0.10–0.72 (was 0.10–0.55) within the longer pin.
-      tl.to(buildingWrap, { y: -panPx, duration: 0.62, ease: 'power2.inOut' }, 0.10)
+      // BATCH 5 — INSTANT BUILD RISE: starts at p0.00 (was 0.10). Duration 0.62 so
+      // building tops out at ~p0.62 simultaneously with the headline cycle end.
+      tl.to(buildingWrap, { y: -panPx, duration: 0.62, ease: 'power2.inOut' }, 0.0)
 
-      // TEXT COLOR SWAP — black → white (p0.12–0.20 unchanged).
-      if (textColor) {
-        tl.to(textColor, {
-          color: '#ffffff',
-          filter: 'drop-shadow(0 2px 14px rgba(0,0,0,0.40))',
-          duration: 0.08,
-          ease: 'power1.inOut',
-        }, 0.12)
-      }
-      if (subheadEl) {
-        tl.to(subheadEl, {
-          color: '#ffffff',
-          duration: 0.08,
-          ease: 'power1.inOut',
-        }, 0.12)
-      }
+      // BATCH 5 — no color tween: headline + subhead are always white from rest.
+      // Color tween block removed (Change 3).
 
-      // CHANGE #1 — HEADLINE CYCLE LONGER.
-      // Slot-roll spans p0.06–0.55 (was 0.06–0.42), plateau holds at
-      // [0.22–0.38] and [0.72–0.88] within the tween's own progress.
+      // BATCH 5 — HEADLINE CYCLE SPANS FULL BUILDING RISE.
+      // BATCH 5 — FULL-RISE CYCLE: starts at p0.0 (was 0.06), spans 0.60 (was 0.49).
+      // Internal transitions re-budgeted so 3 sentences are evenly spread and each
+      // holds long enough to read. Sentence 3 settles near end of span (raw ~0.88–1.0).
       const lineCount = cycle.length
       if (lineCount > 1) {
         const totalSlots = lineCount - 1
@@ -227,7 +207,7 @@ export default function Hero() {
           { y: 0 },
           {
             y: endY,
-            duration: 0.49,   // p0.06–0.55 span
+            duration: 0.60,   // p0.0–0.60 span
             ease: 'none',
             modifiers: {
               y: (raw: string) => {
@@ -247,11 +227,10 @@ export default function Hero() {
                     slotPos = 1
                   }
                 } else {
-                  // Longer holds: [0.22–0.38] and [0.72–0.88]
-                  // Sentence 0 shows p0.00–0.22, transitions 0.22–0.38 → sentence 1
-                  // Sentence 1 holds 0.38–0.72, transitions 0.72–0.88 → sentence 2
-                  // Sentence 2 holds 0.88–1.00
-                  const transitions = [[0.22, 0.38], [0.72, 0.88]] as const
+                  // Even spread: sentence 0 holds 0.00–0.26, transitions 0.26–0.40 → s1.
+                  // Sentence 1 holds 0.40–0.72, transitions 0.72–0.86 → s2.
+                  // Sentence 2 holds 0.86–1.00 (settles near end of span).
+                  const transitions = [[0.26, 0.40], [0.72, 0.86]] as const
 
                   if (rawProgress < transitions[0][0]) {
                     slotPos = 0
@@ -274,58 +253,56 @@ export default function Hero() {
               },
             },
           },
-          0.06
+          0.0
         )
       }
 
-      // p 0.38–0.46  subhead+CTA exits.
-      tl.to(subCta, { opacity: 0, y: -50, duration: 0.08, ease: 'power3.in' }, 0.38)
+      // p 0.54–0.62  subhead+CTA exits (after building has mostly risen).
+      tl.to(subCta, { opacity: 0, y: -50, duration: 0.08, ease: 'power3.in' }, 0.54)
 
-      // p 0.48–0.57  headline fade+lift.
-      tl.to(headline, { opacity: 0, y: -60, duration: 0.09, ease: 'power3.in' }, 0.48)
+      // p 0.62–0.70  headline fade+lift (after sentence 3 has held, as cloud mask begins).
+      tl.to(headline, { opacity: 0, y: -60, duration: 0.08, ease: 'power3.in' }, 0.62)
 
-      // p 0.49–0.57  Scroll nudge fades.
+      // p 0.10–0.18  Scroll nudge fades shortly after scroll begins (clearly scrolling).
       if (scrollNudge) {
-        tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.49)
+        tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.10)
       }
 
       // p 0.60–0.67  Wordmark settles to rest position.
       tl.to(wordmark, { scale: 1, y: 0, duration: 0.07, ease: 'power1.out' }, 0.60)
 
-      // CHANGE #7 — WORDMARK ~50% LONGER AGAIN.
-      // Cross-dissolve p0.73–0.94; lift p0.95–0.99.
-      // HeroClouds frontVeilIntensity bloom now p0.63–0.97 (updated below).
+      // BATCH 5 — WORDMARK LONGER HOLD. Cloud veil bloom delayed to p0.80–0.98
+      // (HeroClouds updated separately), so fill is fully on by ~p0.82 and HOLDS.
       //
-      //   p 0.73–0.87  Building image:  1→0  (sine.inOut)
-      //   p 0.73–0.86  White outline:   0→1  (power1.inOut)
-      //   p 0.84–0.94  White outline:   1→0  (power1.inOut)
-      //   p 0.82–0.94  Image fill:      0→1  (power1.inOut) — holds until lift
-      tl.to(buildingImg, { opacity: 0, duration: 0.14, ease: 'sine.inOut' }, 0.73)
-      tl.to(outline, { opacity: 1, duration: 0.13, ease: 'power1.inOut' }, 0.73)
-      tl.to(outline, { opacity: 0, duration: 0.10, ease: 'power1.inOut' }, 0.84)
-      tl.to(fill, { opacity: 1, duration: 0.12, ease: 'power1.inOut' }, 0.82)
+      //   p 0.70–0.84  Building image:  1→0  (sine.inOut)
+      //   p 0.70–0.83  White outline:   0→1  (power1.inOut)
+      //   p 0.78–0.88  White outline:   1→0  (power1.inOut)
+      //   p 0.78–0.90  Image fill:      0→1  (power1.inOut) — holds ~p0.82–0.94
+      tl.to(buildingImg, { opacity: 0, duration: 0.14, ease: 'sine.inOut' }, 0.70)
+      tl.to(outline, { opacity: 1, duration: 0.13, ease: 'power1.inOut' }, 0.70)
+      tl.to(outline, { opacity: 0, duration: 0.10, ease: 'power1.inOut' }, 0.78)
+      tl.to(fill, { opacity: 1, duration: 0.12, ease: 'power1.inOut' }, 0.78)
 
-      // p 0.95–0.99  Wordmark lifts into cloud bloom + fades.
-      tl.to(wordmark, { y: '-20%', scale: 1.08, opacity: 0, duration: 0.04, ease: 'power2.in' }, 0.95)
+      // p 0.94–0.98  Wordmark lifts into cloud bloom + fades.
+      tl.to(wordmark, { y: '-20%', scale: 1.08, opacity: 0, duration: 0.04, ease: 'power2.in' }, 0.94)
 
-      // CHANGES #8+9 — STATS OVERLAY + CLOUD PAN UP.
-      // Stats fade in p0.88–1.0 (after wordmark lift clears screen space).
+      // STATS OVERLAY + CLOUD PAN UP.
+      // Stats fade in p0.92–1.0 (after veil + wordmark lift).
       if (statsOverlay) {
-        tl.to(statsOverlay, { opacity: 1, duration: 0.12, ease: 'power2.out' }, 0.88)
+        tl.to(statsOverlay, { opacity: 1, duration: 0.08, ease: 'power2.out' }, 0.92)
       }
 
-      // Cloud veil pans up: starts at y=+15vh → y=0 across p0.90–1.0.
-      // This creates a "rising through clouds" feel as the hero pin releases
-      // into the white RewiredSteps below. The veil carries the stats with it.
+      // Cloud veil pans up: starts at y=+15vh → y=0 across p0.92–1.0.
       if (cloudVeil) {
-        tl.to(cloudVeil, { y: '0vh', duration: 0.10, ease: 'power2.inOut' }, 0.90)
+        tl.to(cloudVeil, { y: '0vh', duration: 0.08, ease: 'power2.inOut' }, 0.92)
       }
 
       // Clean up will-change after pin
       return () => {
         gsap.set(willChangeTargets.filter(Boolean) as Element[], { willChange: 'auto' })
-        if (textColor) gsap.set(textColor, { color: '#050505', filter: '' })
-        if (subheadEl) gsap.set(subheadEl, { color: '#050505' })
+        // Reset to white (not black) — re-init must not flash dark text.
+        if (textColor) gsap.set(textColor, { color: '#ffffff' })
+        if (subheadEl) gsap.set(subheadEl, { color: '#ffffff' })
         if (cloudVeil) gsap.set(cloudVeil, { y: '0vh' })
       }
     },
@@ -426,10 +403,9 @@ export default function Hero() {
             className="font-bold leading-[0.95]"
             style={{
               fontFamily: 'var(--font-hebrew-display)',
-              fontSize: 'clamp(2.4rem, 6.5vw, 6rem)',
+              fontSize: 'clamp(1.85rem, 6.2vw, 6rem)',
               letterSpacing: '-0.03em',
-              color: '#050505',
-              filter: 'drop-shadow(0 1px 10px rgba(255,255,255,0.65))',
+              color: '#ffffff',
             }}
           >
             {cycle[0]}
@@ -440,7 +416,7 @@ export default function Hero() {
               fontFamily: 'var(--font-body)',
               fontSize: 'clamp(1.15rem, 2vw, 1.6rem)',
               lineHeight: 1.65,
-              color: '#050505',
+              color: '#ffffff',
               maxWidth: '560px',
             }}
           >
@@ -632,18 +608,19 @@ export default function Hero() {
         }}
         aria-label={c.stats.map((s) => `${s.value} ${s.label}`).join(', ')}
       >
-        <div className="w-full max-w-4xl px-6 md:px-12">
+        <div className="w-full max-w-4xl px-4 md:px-12">
           <ul className="grid grid-cols-3 divide-x divide-[rgba(17,17,17,0.15)]">
             {c.stats.map((stat) => (
               <li
                 key={stat.value}
-                className="flex flex-col items-center text-center gap-2 px-4 sm:px-8"
+                className="flex flex-col items-center text-center gap-2 px-3 sm:px-8"
               >
                 <span
                   style={{
                     fontFamily: 'var(--font-display)',
                     fontWeight: 300,
-                    fontSize: 'clamp(2.4rem, 6.5vw, 5.5rem)',
+                    // BATCH 5 — CHANGE 6: reduced clamp so 3-up fits at 390px.
+                    fontSize: 'clamp(1.6rem, 5.5vw, 5rem)',
                     lineHeight: 1,
                     letterSpacing: '-0.03em',
                     color: 'rgba(17,17,17,0.88)',
@@ -655,7 +632,7 @@ export default function Hero() {
                 <span
                   style={{
                     fontFamily: 'var(--font-body)',
-                    fontSize: 'clamp(0.75rem, 1.2vw, 0.95rem)',
+                    fontSize: 'clamp(0.7rem, 1.1vw, 0.95rem)',
                     lineHeight: 1.4,
                     color: 'rgba(17,17,17,0.55)',
                     maxWidth: '14ch',
@@ -681,8 +658,7 @@ export default function Hero() {
             ref={textColorRef}
             className="w-full flex flex-col items-center"
             style={{
-              color: '#050505',
-              filter: 'drop-shadow(0 1px 10px rgba(255,255,255,0.65))',
+              color: '#ffffff',
             }}
           >
             <div ref={headlineRef} className="flex w-full flex-col items-center">
@@ -709,7 +685,7 @@ export default function Hero() {
                 lineHeight: 1.65,
                 letterSpacing: '0.005em',
                 maxWidth: '560px',
-                color: '#050505',
+                color: '#ffffff',
                 textAlign: 'center',
               }}
             >
@@ -751,17 +727,18 @@ function StatsFallback({ stats }: { stats: readonly StatsItem[] }) {
         paddingTop: 'clamp(1.5rem, 3vh, 2.5rem)',
       }}
     >
-      <ul className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[rgba(17,17,17,0.10)] max-w-4xl mx-auto px-6">
+      <ul className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[rgba(17,17,17,0.10)] max-w-4xl mx-auto px-4">
         {stats.map((stat) => (
           <li
             key={stat.value}
-            className="flex flex-col items-center text-center gap-2 px-4 py-6 sm:py-2"
+            className="flex flex-col items-center text-center gap-2 px-3 sm:px-8 py-6 sm:py-2"
           >
             <span
               style={{
                 fontFamily: 'var(--font-display)',
                 fontWeight: 300,
-                fontSize: 'clamp(2.4rem, 6.5vw, 5.5rem)',
+                // BATCH 5 — CHANGE 6: match animated overlay sizing.
+                fontSize: 'clamp(1.6rem, 5.5vw, 5rem)',
                 lineHeight: 1,
                 letterSpacing: '-0.03em',
                 color: 'rgba(17,17,17,0.88)',
@@ -773,7 +750,7 @@ function StatsFallback({ stats }: { stats: readonly StatsItem[] }) {
             <span
               style={{
                 fontFamily: 'var(--font-body)',
-                fontSize: 'clamp(0.75rem, 1.2vw, 0.95rem)',
+                fontSize: 'clamp(0.7rem, 1.1vw, 0.95rem)',
                 lineHeight: 1.4,
                 color: 'rgba(17,17,17,0.55)',
                 maxWidth: '14ch',
@@ -837,14 +814,16 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
               className="flex shrink-0 items-center justify-center font-bold w-full text-center"
               style={{
                 height: clipPx != null ? clipPx : 'auto',
-                // CHANGE #3 — BIGGER HEADLINE
-                minHeight: 'clamp(2.4rem, 6.5vw, 6rem)',
+                // BATCH 5 — CHANGE 3b: mobile floor lowered to 1.85rem; textWrap:balance
+                // for even wrapping on 390px. Keeps lineHeight + letterSpacing intact.
+                minHeight: 'clamp(1.85rem, 6.2vw, 6rem)',
                 fontFamily: 'var(--font-hebrew-display)',
-                fontSize: 'clamp(2.4rem, 6.5vw, 6rem)',
+                fontSize: 'clamp(1.85rem, 6.2vw, 6rem)',
                 lineHeight: 0.95,
                 letterSpacing: '-0.03em',
                 whiteSpace: 'normal',
                 wordBreak: 'break-word',
+                textWrap: 'balance',
                 paddingTop: '0.12em',
                 paddingBottom: '0.12em',
                 boxSizing: 'border-box',

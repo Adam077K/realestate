@@ -273,7 +273,7 @@ export default function SupportBeyond() {
                 href="#register"
                 variant="ghost"
                 withArrow
-                className="border border-[rgba(255,255,255,0.4)] text-white hover:border-white hover:bg-white hover:text-[var(--color-ink)] px-7 py-3.5"
+                className="bg-white text-[var(--color-ink)] border border-[var(--color-ink)] hover:bg-[var(--color-ink)] hover:text-white px-7 py-3.5"
                 aria-label={reserveLabel}
               >
                 {reserveLabel}
