@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { gsap } from '@/lib/gsap'
-import { useGsapContext } from '@/hooks/useGsapContext'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useLang, useContent } from '@/components/providers/LanguageProvider'
 import { images } from '@/data/content'
@@ -14,9 +14,8 @@ const AUTOPLAY_DELAY = 5000
 /**
  * Testimonials → attendee testimonials for the Bonim Atid webinar.
  *
- * Richer entrance: section block rises → heading words stagger →
- * image wipes in from reading-start → quote panel fades up → stars cascade in.
- * Autoplay crossfade uses premium easing (power3.inOut).
+ * One-shot reveals use IntersectionObserver (via useScrollReveal), immune to
+ * the Hero pin-spacer math. Autoplay crossfade uses premium easing (power3.inOut).
  */
 export default function Testimonials() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -59,7 +58,6 @@ export default function Testimonials() {
   )
 
   // Autoplay — gated on reducedMotion (not motionOk).
-  // Manual pager always works regardless of OS preference.
   useEffect(() => {
     if (reducedMotion) return
     timerRef.current = setTimeout(() => {
@@ -70,110 +68,96 @@ export default function Testimonials() {
     }
   }, [activeIdx, reducedMotion, goTo, items.length])
 
-  // Section entrance animations
-  useGsapContext(
+  // One-shot reveals via IntersectionObserver — immune to pin-spacer position math.
+  useScrollReveal(
     sectionRef,
-    () => {
-      if (!motionOk) return
-
+    [
       // Section block rises as a unit
-      // fromTo + immediateRender:false prevents pin-spacer false triggers
-      gsap.fromTo(
-        sectionRef.current,
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.85,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-        }
-      )
-
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.2, // 'top 80%'
+        build: () =>
+          gsap.fromTo(
+            sectionRef.current,
+            { opacity: 0, y: 40 },
+            { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out', paused: true }
+          ),
+      },
       // Heading words stagger
-      const words = sectionRef.current?.querySelectorAll('.testimonials-heading .tt-word')
-      if (words && words.length > 0) {
-        gsap.fromTo(
-          words,
-          { yPercent: 110, opacity: 0 },
-          {
-            yPercent: 0,
-            opacity: 1,
-            stagger: 0.045,
-            ease: 'power3.out',
-            duration: 0.85,
-            immediateRender: false,
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 78%',
-            },
-          }
-        )
-      }
-
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.22, // 'top 78%'
+        build: () => {
+          const words = sectionRef.current?.querySelectorAll('.testimonials-heading .tt-word')
+          return gsap.fromTo(
+            words ? Array.from(words) : [],
+            { yPercent: 110, opacity: 0 },
+            {
+              yPercent: 0,
+              opacity: 1,
+              stagger: 0.045,
+              ease: 'power3.out',
+              duration: 0.85,
+              paused: true,
+            }
+          )
+        },
+      },
       // Image: directional clip-path wipe (reading-start origin)
-      const imgWrap = sectionRef.current?.querySelector('.testimonial-image-wrap')
-      if (imgWrap) {
-        const hiddenClip = isRtl ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)'
-        gsap.fromTo(
-          imgWrap,
-          { clipPath: hiddenClip },
-          {
-            clipPath: 'inset(0 0% 0 0)',
-            duration: 1.2,
-            ease: 'power3.out',
-            immediateRender: false,
-            scrollTrigger: {
-              trigger: imgWrap,
-              start: 'top 83%',
-            },
-          }
-        )
-      }
-
+      {
+        trigger: '.testimonial-image-wrap',
+        revealAt: 0.17, // 'top 83%'
+        build: () => {
+          const imgWrap = sectionRef.current?.querySelector('.testimonial-image-wrap')
+          const hiddenClip = isRtl ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)'
+          return gsap.fromTo(
+            imgWrap ?? [],
+            { clipPath: hiddenClip },
+            { clipPath: 'inset(0 0% 0 0)', duration: 1.2, ease: 'power3.out', paused: true }
+          )
+        },
+      },
       // Right panel: fade up with slight delay
-      const rightPanel = sectionRef.current?.querySelector('.testimonial-right')
-      if (rightPanel) {
-        gsap.fromTo(
-          rightPanel,
-          { opacity: 0, y: 30 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.9,
-            ease: 'power3.out',
-            delay: 0.25,
-            immediateRender: false,
-            scrollTrigger: {
-              trigger: rightPanel,
-              start: 'top 83%',
-            },
-          }
-        )
-      }
-
+      {
+        trigger: '.testimonial-right',
+        revealAt: 0.17, // 'top 83%'
+        build: () => {
+          const rightPanel = sectionRef.current?.querySelector('.testimonial-right')
+          return gsap.fromTo(
+            rightPanel ?? [],
+            { opacity: 0, y: 30 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.9,
+              ease: 'power3.out',
+              delay: 0.25,
+              paused: true,
+            }
+          )
+        },
+      },
       // Quote mark: scale + fade in after panel
-      const quoteMark = sectionRef.current?.querySelector('.testimonial-quote-mark')
-      if (quoteMark) {
-        gsap.fromTo(
-          quoteMark,
-          { opacity: 0, scale: 0.7 },
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 0.6,
-            delay: 0.5,
-            ease: 'power3.out',
-            immediateRender: false,
-            scrollTrigger: {
-              trigger: rightPanel ?? sectionRef.current,
-              start: 'top 83%',
-            },
-          }
-        )
-      }
-    },
+      {
+        trigger: '.testimonial-right',
+        revealAt: 0.17, // 'top 83%'
+        build: () => {
+          const quoteMark = sectionRef.current?.querySelector('.testimonial-quote-mark')
+          return gsap.fromTo(
+            quoteMark ?? [],
+            { opacity: 0, scale: 0.7 },
+            {
+              opacity: 1,
+              scale: 1,
+              duration: 0.6,
+              delay: 0.5,
+              ease: 'power3.out',
+              paused: true,
+            }
+          )
+        },
+      },
+    ],
     [motionOk, isRtl]
   )
 
@@ -276,7 +260,6 @@ export default function Testimonials() {
               <span className="text-[var(--color-muted)] text-xs" aria-hidden="true">
                 /
               </span>
-              {/* Stars with stagger transition */}
               <span
                 className="flex gap-0.5"
                 aria-label={`${active.rating} / 5`}
