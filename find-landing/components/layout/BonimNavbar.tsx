@@ -217,7 +217,7 @@ export default function BonimNavbar() {
             {isDesktop ? (
               <div style={{ flexShrink: 0 }}>
                 <a
-                  href="#contact"
+                  href="#register"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -347,7 +347,7 @@ export default function BonimNavbar() {
               ))}
               <div style={{ paddingTop: "16px" }}>
                 <a
-                  href="#contact"
+                  href="#register"
                   onClick={() => setMenuOpen(false)}
                   tabIndex={menuOpen ? 0 : -1}
                   style={{

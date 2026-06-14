@@ -131,7 +131,7 @@ export default function Blog() {
 
             {/* CTA */}
             <div className="blog-pill mt-1">
-              <Pill variant="dark" href="#" withArrow>
+              <Pill variant="dark" href="#register" withArrow>
                 Read More
               </Pill>
             </div>
