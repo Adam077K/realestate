@@ -105,8 +105,13 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       // 3. double rAF after this tick (layout fully settled)
       requestAnimationFrame(() => requestAnimationFrame(doRefresh))
 
-      // 4. Late safety net — catches slow images / hydration lag
-      const safetyTimer = setTimeout(doRefresh, 600)
+      // 4. Late safety net — catches slow images / hydration lag.
+      // P7: use requestIdleCallback so the forced reflow fires during browser
+      // idle time, not mid-scroll. Falls back to setTimeout(800) in browsers
+      // without rIC (e.g. Safari < 16).
+      const ric = (window.requestIdleCallback as typeof window.requestIdleCallback | undefined)
+        ?? ((cb: IdleRequestCallback) => setTimeout(cb, 800) as unknown as number)
+      const idle = ric(doRefresh, { timeout: 800 })
 
       // Handle resize
       const handleResize = () => {
@@ -115,7 +120,11 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       window.addEventListener('resize', handleResize, { passive: true })
 
       return () => {
-        clearTimeout(safetyTimer)
+        if (window.cancelIdleCallback) {
+          window.cancelIdleCallback(idle)
+        } else {
+          clearTimeout(idle as unknown as ReturnType<typeof setTimeout>)
+        }
         window.removeEventListener('load', onLoad)
         gsap.ticker.remove(ticker)
         ScrollTrigger.getAll().forEach((t) => t.kill())
