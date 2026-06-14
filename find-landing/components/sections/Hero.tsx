@@ -437,7 +437,7 @@ export default function Hero() {
             <span
               style={{
                 fontFamily: 'var(--font-hebrew)',
-                fontSize: 'clamp(0.95rem, 1.5vw, 1.15rem)',
+                fontSize: 'clamp(1.05rem, 1.9vw, 1.3rem)',
                 fontWeight: 600,
                 letterSpacing: '0.22em',
                 color: '#111',
@@ -691,7 +691,7 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
           <span
             style={{
               fontFamily: 'var(--font-hebrew)',
-              fontSize: 'clamp(0.95rem, 1.5vw, 1.15rem)',
+              fontSize: 'clamp(1.05rem, 1.9vw, 1.3rem)',
               fontWeight: 600,
               letterSpacing: '0.22em',
               color: '#111',
