@@ -75,8 +75,12 @@ export interface BrandWordmarkMaskProps {
  */
 export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmarkMaskProps) {
   const rawId = useId()
-  const clipId = `brand-wordmark-clip-${rawId.replace(/[:]/g, '')}`
-  const clipIdSub = `brand-wordmark-sub-clip-${rawId.replace(/[:]/g, '')}`
+  const safeId = rawId.replace(/[:]/g, '')
+  const clipId = `brand-wordmark-clip-${safeId}`
+  const clipIdSub = `brand-wordmark-sub-clip-${safeId}`
+  // Unique filter IDs for the dilate rim — one per word to allow different radii if needed
+  const dilateId = `brand-wordmark-dilate-${safeId}`
+  const dilateIdSub = `brand-wordmark-dilate-sub-${safeId}`
 
   const viewBoxH = subWord ? 285 : 175
   const mainY = subWord ? '38%' : '50%'
@@ -90,8 +94,19 @@ export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmark
       className={className}
       overflow="visible"
       preserveAspectRatio="xMidYMid meet"
+      style={{ filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.28))' }}
     >
       <defs>
+        {/* Dilate filter for main word rim — expands the white glyph outward */}
+        <filter id={dilateId} x="-10%" y="-10%" width="120%" height="120%">
+          <feMorphology operator="dilate" radius="2.5" />
+        </filter>
+        {/* Dilate filter for sub-word rim */}
+        {subWord && (
+          <filter id={dilateIdSub} x="-10%" y="-10%" width="120%" height="120%">
+            <feMorphology operator="dilate" radius="2" />
+          </filter>
+        )}
         <clipPath id={clipId}>
           <text
             x="50%"
@@ -125,30 +140,20 @@ export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmark
           </clipPath>
         )}
       </defs>
-      {/* Main word - image fills the full viewBox height so both words get building texture */}
-      <image
-        href={fillSrc}
-        x="0"
-        y="0"
-        width="720"
-        height={viewBoxH}
-        preserveAspectRatio="xMidYMid slice"
-        clipPath={`url(#${clipId})`}
-      />
-      {/* Sub-word - same image, same clip technique */}
-      {subWord && (
-        <image
-          href={fillSrc}
-          x="0"
-          y="0"
-          width="720"
-          height={viewBoxH}
-          preserveAspectRatio="xMidYMid slice"
-          clipPath={`url(#${clipIdSub})`}
-        />
-      )}
-      {/* Thin black outline rendered ON TOP of the clipped image-fill to give the
-          letterforms a crisp edge. Matches the clip-path text metrics exactly. */}
+
+      {/*
+        Paint order (critical):
+          1. White-dilated main text  — the outer rim halo, painted BEHIND the image
+          2. Clipped image main       — covers glyph interior + counters → only rim peeks out
+          3. White-dilated sub text   — same technique for the sub-word
+          4. Clipped image sub        — covers sub-word interior
+
+        Because each image is clipped to the SAME glyph shape as its white text,
+        the image paints over the glyph interior (including counter holes like ם/ב),
+        leaving only the dilated white border as a clean outer rim.
+      */}
+
+      {/* 1 — White dilated rim for main word (BEHIND image) */}
       <text
         x="50%"
         y={mainY}
@@ -159,33 +164,55 @@ export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmark
         fontWeight="800"
         fontSize="138"
         letterSpacing="-2"
-        fill="none"
-        stroke="#ffffff"
-        strokeWidth="1"
-        strokeLinejoin="round"
+        fill="#ffffff"
+        filter={`url(#${dilateId})`}
         aria-hidden="true"
       >
         בונים עתיד
       </text>
+
+      {/* 2 — Clipped image fills main word (ON TOP of white rim → covers interior) */}
+      <image
+        href={fillSrc}
+        x="0"
+        y="0"
+        width="720"
+        height={viewBoxH}
+        preserveAspectRatio="xMidYMid slice"
+        clipPath={`url(#${clipId})`}
+      />
+
       {subWord && (
-        <text
-          x="50%"
-          y="80%"
-          dominantBaseline="central"
-          textAnchor="middle"
-          direction="rtl"
-          fontFamily="var(--font-hebrew), system-ui, sans-serif"
-          fontWeight="800"
-          fontSize="69"
-          letterSpacing="-1"
-          fill="none"
-          stroke="#ffffff"
-          strokeWidth="1"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          {subWord}
-        </text>
+        <>
+          {/* 3 — White dilated rim for sub-word (BEHIND sub image) */}
+          <text
+            x="50%"
+            y="80%"
+            dominantBaseline="central"
+            textAnchor="middle"
+            direction="rtl"
+            fontFamily="var(--font-hebrew), system-ui, sans-serif"
+            fontWeight="800"
+            fontSize="69"
+            letterSpacing="-1"
+            fill="#ffffff"
+            filter={`url(#${dilateIdSub})`}
+            aria-hidden="true"
+          >
+            {subWord}
+          </text>
+
+          {/* 4 — Clipped image fills sub-word */}
+          <image
+            href={fillSrc}
+            x="0"
+            y="0"
+            width="720"
+            height={viewBoxH}
+            preserveAspectRatio="xMidYMid slice"
+            clipPath={`url(#${clipIdSub})`}
+          />
+        </>
       )}
     </svg>
   )
