@@ -2,15 +2,13 @@
 
 import { useRef } from 'react'
 import { gsap } from '@/lib/gsap'
-import { useGsapContext } from '@/hooks/useGsapContext'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useContent } from '@/components/providers/LanguageProvider'
 import MaskedImage from '@/components/ui/MaskedImage'
 import TwoToneHeading from '@/components/ui/TwoToneHeading'
 import { images } from '@/data/content'
 
-// Per-image alt text and object-position tuning so faces/subjects stay centred
-// within the chevron clip shape.
 const IMAGE_META: { alt: string; objectPosition: string }[] = [
   { alt: 'משפחה מאושרת בדירה חדשה', objectPosition: 'center center' },
   { alt: 'רכישת דירה - חוזה ומפתח', objectPosition: 'center center' },
@@ -24,91 +22,76 @@ export default function ChevronStrip() {
   const { motionOk } = useSmoothScroll()
   const c = useContent()
 
-  useGsapContext(
+  // One-shot reveals via IntersectionObserver — immune to pin-spacer position math.
+  useScrollReveal(
     sectionRef,
-    () => {
-      if (!motionOk) return
-
-      // Section entrance: the whole section rises
-      // fromTo + immediateRender:false prevents premature firing from pin-spacer offset
-      gsap.fromTo(
-        sectionRef.current,
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.9,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-        }
-      )
-
+    [
+      // Section entrance: whole section rises
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.2, // 'top 80%'
+        build: () =>
+          gsap.fromTo(
+            sectionRef.current,
+            { opacity: 0, y: 40 },
+            { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', paused: true }
+          ),
+      },
       // Heading words stagger reveal
-      const headingWords = sectionRef.current?.querySelectorAll('.chevron-heading .tt-word')
-      if (headingWords && headingWords.length > 0) {
-        gsap.fromTo(
-          headingWords,
-          { yPercent: 115, opacity: 0 },
-          {
-            yPercent: 0,
-            opacity: 1,
-            stagger: 0.055,
-            ease: 'power3.out',
-            duration: 0.9,
-            immediateRender: false,
-            scrollTrigger: {
-              trigger: '.chevron-heading',
-              start: 'top 82%',
-            },
-          }
-        )
-      }
-
+      {
+        trigger: '.chevron-heading',
+        revealAt: 0.18, // 'top 82%'
+        build: () => {
+          const headingWords = sectionRef.current?.querySelectorAll('.chevron-heading .tt-word')
+          return gsap.fromTo(
+            headingWords ? Array.from(headingWords) : [],
+            { yPercent: 115, opacity: 0 },
+            {
+              yPercent: 0,
+              opacity: 1,
+              stagger: 0.055,
+              ease: 'power3.out',
+              duration: 0.9,
+              paused: true,
+            }
+          )
+        },
+      },
       // Arrow row: entire row wipes in via clip-path from the left
-      const arrowRow = sectionRef.current?.querySelector('.chevron-arrow-row')
-      if (arrowRow) {
-        gsap.fromTo(
-          arrowRow,
-          { clipPath: 'inset(0 100% 0 0)' },
-          {
-            clipPath: 'inset(0 0% 0 0)',
-            duration: 1.1,
-            ease: 'power3.out',
-            immediateRender: false,
-            scrollTrigger: {
-              trigger: arrowRow,
-              start: 'top 84%',
-            },
-          }
-        )
-      }
-
+      {
+        trigger: '.chevron-arrow-row',
+        revealAt: 0.16, // 'top 84%'
+        build: () => {
+          const arrowRow = sectionRef.current?.querySelector('.chevron-arrow-row')
+          return gsap.fromTo(
+            arrowRow ?? [],
+            { clipPath: 'inset(0 100% 0 0)' },
+            { clipPath: 'inset(0 0% 0 0)', duration: 1.1, ease: 'power3.out', paused: true }
+          )
+        },
+      },
       // Individual arrows stagger inside the clip: rise + fade
-      const items = itemRefs.current.filter(Boolean) as HTMLDivElement[]
-      if (items.length > 0) {
-        gsap.fromTo(
-          items,
-          { opacity: 0, y: 18 },
-          {
-            opacity: 1,
-            y: 0,
-            stagger: {
-              each: 0.1,
-              from: 'start',
-            },
-            ease: 'power3.out',
-            duration: 0.75,
-            delay: 0.15,
-            immediateRender: false,
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 80%',
-            },
-          }
-        )
-      }
-    },
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.2, // 'top 80%'
+        build: () => {
+          const items = itemRefs.current.filter(Boolean) as HTMLDivElement[]
+          return gsap.fromTo(
+            items,
+            { opacity: 0, y: 18 },
+            {
+              opacity: 1,
+              y: 0,
+              stagger: { each: 0.1, from: 'start' },
+              ease: 'power3.out',
+              duration: 0.75,
+              delay: 0.15,
+              paused: true,
+            }
+          )
+        },
+      },
+    ],
     [motionOk]
   )
 
@@ -126,11 +109,6 @@ export default function ChevronStrip() {
         <TwoToneHeading lead={c.arrows.lead} tail={c.arrows.tail} as="h2" />
       </div>
 
-      {/*
-        Arrow row - 4 EQUAL chevron-arrow panels.
-        overflow-hidden guards against sub-pixel clip bleed.
-        dir="ltr" pins the directional visual motif regardless of page direction.
-      */}
       <div className="overflow-hidden px-4" dir="ltr">
         <div className="chevron-arrow-row flex items-stretch justify-center">
           {chevronImages.map((src, i) => {
@@ -153,7 +131,6 @@ export default function ChevronStrip() {
                   marginInlineStart: i === 0 ? undefined : 'clamp(-24px, -1.8vw, -14px)',
                 }}
               >
-                {/* clip-path on MaskedImage contains the image scale within the chevron shape */}
                 <MaskedImage
                   shape="chevron"
                   src={src}
