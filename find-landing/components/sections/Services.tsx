@@ -104,20 +104,20 @@ export default function Services() {
         build: () => {
           const rowEl = `.service-row-${i}`
           const hiddenClip = 'inset(0 0 0 100%)'
-          const fromX = isRtl ? -40 : 40
+          const fromX = isRtl ? -24 : 24
 
           const tl = gsap.timeline({ paused: true })
 
           tl.fromTo(
             `${rowEl} .service-giant-word`,
             { clipPath: hiddenClip, x: fromX, opacity: 0 },
-            { clipPath: 'inset(0 0% 0 0)', x: 0, opacity: 1, duration: 1.1, ease: 'power3.out' },
+            { clipPath: 'inset(0 0% 0 0)', x: 0, opacity: 1, duration: 0.55, ease: 'power3.out' },
             0
           )
           tl.fromTo(
             `${rowEl} .service-ring`,
             { strokeDashoffset: 100 },
-            { strokeDashoffset: 0, duration: 0.9, ease: 'power3.out' },
+            { strokeDashoffset: 0, duration: 0.6, ease: 'power3.out' },
             0
           )
           tl.fromTo(
