@@ -463,7 +463,7 @@ export default function Hero() {
           </p>
 
           <div style={{ marginTop: 'clamp(1rem, 2.5vh, 1.75rem)' }}>
-            <Pill variant="dark" href="#register" withArrow className="text-xs px-5 py-2.5 min-h-[36px] !bg-black text-white">
+            <Pill variant="dark" href="#register" className="text-sm px-5 py-3 min-h-[42px] !bg-black text-white">
               {c.hero.cta}
             </Pill>
           </div>
@@ -690,7 +690,7 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
           {c.hero.subhead}
         </p>
         <div>
-          <Pill variant="dark" href="#register" withArrow className="text-xs px-5 py-2.5 min-h-[36px] !bg-black text-white">
+          <Pill variant="dark" href="#register" className="text-sm px-5 py-3 min-h-[42px] !bg-black text-white">
             {c.hero.cta}
           </Pill>
         </div>
