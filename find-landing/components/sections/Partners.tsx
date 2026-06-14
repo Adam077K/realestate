@@ -3,7 +3,7 @@
 import { useRef } from 'react'
 import Image from 'next/image'
 import { gsap } from '@/lib/gsap'
-import { useGsapContext } from '@/hooks/useGsapContext'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useContent } from '@/components/providers/LanguageProvider'
 import SectionLabel from '@/components/ui/SectionLabel'
@@ -11,67 +11,60 @@ import SectionLabel from '@/components/ui/SectionLabel'
 /**
  * Partners - id="partners".
  *
- * Real-estate / investment partner logos rendered as images (grayscale by default,
- * full-color on hover). Bilingual via `c.partners`; RTL-aware.
- *
- * Reveal: section rises as a unit, then heading, then logos cascade in with a
- * clip-path wipe from below + stagger. Each logo lifts to full-color on hover.
+ * One-shot reveals use IntersectionObserver (via useScrollReveal), immune to
+ * the Hero pin-spacer math.
  */
 export default function Partners() {
   const sectionRef = useRef<HTMLElement>(null)
   const { motionOk } = useSmoothScroll()
   const c = useContent()
 
-  useGsapContext(
+  // One-shot reveals via IntersectionObserver — immune to pin-spacer position math.
+  useScrollReveal(
     sectionRef,
-    () => {
-      if (!motionOk) return
-
+    [
       // Section entrance: whole band drifts up
-      // fromTo + immediateRender:false prevents pin-spacer false triggers
-      gsap.fromTo(
-        sectionRef.current,
-        { opacity: 0, y: 28 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 82%' },
-        }
-      )
-
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.18, // 'top 82%'
+        build: () =>
+          gsap.fromTo(
+            sectionRef.current,
+            { opacity: 0, y: 28 },
+            { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', paused: true }
+          ),
+      },
       // Heading subtle rise
-      gsap.fromTo(
-        '.partners-heading',
-        { y: 22, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.75,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.partners-heading', start: 'top 86%' },
-        }
-      )
-
+      {
+        trigger: '.partners-heading',
+        revealAt: 0.14, // 'top 86%'
+        build: () =>
+          gsap.fromTo(
+            '.partners-heading',
+            { y: 22, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.75, ease: 'power3.out', paused: true }
+          ),
+      },
       // Logos: clip-path wipe from below, staggered cascade
-      gsap.fromTo(
-        '.partner-logo',
-        { clipPath: 'inset(100% 0 0 0)', opacity: 0, y: 8 },
-        {
-          clipPath: 'inset(0% 0 0 0)',
-          opacity: 1,
-          y: 0,
-          stagger: 0.055,
-          duration: 0.65,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.partners-row', start: 'top 86%' },
-        }
-      )
-    },
+      {
+        trigger: '.partners-row',
+        revealAt: 0.14, // 'top 86%'
+        build: () =>
+          gsap.fromTo(
+            '.partner-logo',
+            { clipPath: 'inset(100% 0 0 0)', opacity: 0, y: 8 },
+            {
+              clipPath: 'inset(0% 0 0 0)',
+              opacity: 1,
+              y: 0,
+              stagger: 0.055,
+              duration: 0.65,
+              ease: 'power3.out',
+              paused: true,
+            }
+          ),
+      },
+    ],
     [motionOk]
   )
 
