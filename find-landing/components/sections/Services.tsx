@@ -10,7 +10,7 @@ import SectionLabel from '@/components/ui/SectionLabel'
 import Pill from '@/components/ui/Pill'
 
 /**
- * Services → "How Bonim Atid helps you" — dark giant-type pillars.
+ * Services → "How Bonim Atid helps you" - dark giant-type pillars.
  *
  * Bilingual + RTL aware. Content comes from `c.pillars` (he/en).
  * Layout: an ENORMOUS thin display word on one side, number + body on the other.
@@ -61,7 +61,7 @@ export default function Services() {
         const rowEl = `.service-row-${i}`
 
         // Giant word: clip-path wipe. The word rests against the right edge, so it
-        // reveals from the right — the right side stays anchored while the left side
+        // reveals from the right - the right side stays anchored while the left side
         // opens up (inset left 100% → 0).
         const hiddenClip = 'inset(0 0 0 100%)'
         const fromX = isRtl ? -40 : 40
@@ -162,14 +162,14 @@ export default function Services() {
         />
       </div>
 
-      {/* Pillar rows — full-width hairline dividers.
+      {/* Pillar rows - full-width hairline dividers.
           Each row is a CSS grid: [1fr auto].
           Col 1 (inline-start): number ring + body paragraph.
           Col 2 (inline-end): the giant display word.
           CSS Grid respects writing-mode so the word is always at the inline-end
           (right in RTL = reading-start, right in LTR = reading-end). This ensures
           the word's inline-end edge is flush with the section-heading's inline-end
-          edge — both are bounded by the same `px-6 md:px-12 lg:px-20` padding. */}
+          edge - both are bounded by the same `px-6 md:px-12 lg:px-20` padding. */}
       <div className="w-full">
         {pillars.rows.map((row, i) => (
           <div
@@ -212,7 +212,7 @@ export default function Services() {
               </p>
             </div>
 
-            {/* Col 2: Giant word — hidden on small screens, visible md+.
+            {/* Col 2: Giant word - hidden on small screens, visible md+.
                 Sits at the inline-end of the grid column, flush with the section
                 heading's inline-end edge (same padding boundary). */}
             <div className="hidden md:block">

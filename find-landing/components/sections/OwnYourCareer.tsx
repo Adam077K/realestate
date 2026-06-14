@@ -10,10 +10,10 @@ import TwoToneHeading from '@/components/ui/TwoToneHeading'
 import SectionLabel from '@/components/ui/SectionLabel'
 
 /**
- * "The Hosts" — id="founders".
+ * "The Hosts" - id="founders".
  *
  * Meet-the-two-hosts block using the REAL founder portraits
- * (`c.founders.people[i].img`: עידן פלג / רועי פישמן — professional head-and-torso
+ * (`c.founders.people[i].img`: עידן פלג / רועי פישמן - professional head-and-torso
  * portraits on a light ground). Each host is presented as a tasteful portrait card:
  * a framed photo above the display name, muted role, and bio.
  *
@@ -51,7 +51,7 @@ export default function OwnYourCareer() {
         })
       }
 
-      // Intro — fade up
+      // Intro - fade up
       const intro = introRef.current
       if (intro) {
         gsap.from(intro, {
@@ -66,7 +66,7 @@ export default function OwnYourCareer() {
         })
       }
 
-      // Each host card — image clip-path reveal + text rise
+      // Each host card - image clip-path reveal + text rise
       const people = personRefs.current.filter(Boolean) as HTMLElement[]
       people.forEach((person, i) => {
         const imageWrap = person.querySelector<HTMLElement>('.host-image')
@@ -82,7 +82,7 @@ export default function OwnYourCareer() {
           scrollTrigger: {
             trigger: person,
             start: 'top 85%',
-            // onLeaveBack: restart is acceptable — but crucially, ensure the
+            // onLeaveBack: restart is acceptable - but crucially, ensure the
             // to-state is always applied regardless.
           },
           delay: i * 0.08,
@@ -124,7 +124,7 @@ export default function OwnYourCareer() {
         <SectionLabel>{c.founders.heading.lead}</SectionLabel>
       </div>
 
-      {/* Full-width heading — 2× the default h2 clamp via sizeClassName override */}
+      {/* Full-width heading - 2× the default h2 clamp via sizeClassName override */}
       <div ref={headingRef} className="mb-10 md:mb-14">
         <TwoToneHeading
           lead={c.founders.heading.lead}
@@ -142,7 +142,7 @@ export default function OwnYourCareer() {
         {c.founders.intro}
       </p>
 
-      {/* Two host cards — second offset lower for editorial asymmetry */}
+      {/* Two host cards - second offset lower for editorial asymmetry */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 lg:gap-24 max-w-5xl mx-auto">
         {c.founders.people.map((person, i) => (
           <figure
@@ -152,7 +152,7 @@ export default function OwnYourCareer() {
             }}
             className={i === 1 ? 'group md:mt-24 lg:mt-32 m-0' : 'group m-0'}
           >
-            {/* Portrait — tasteful framed card */}
+            {/* Portrait - tasteful framed card */}
             <div className="relative">
               {/* Soft offset backing plate for a premium, framed feel */}
               <span
@@ -162,14 +162,14 @@ export default function OwnYourCareer() {
               <div
                 className="host-image relative overflow-hidden rounded-sm bg-[var(--color-ink)]/[0.03] ring-1 ring-[var(--color-ink)]/10 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.45)]"
                 style={{
-                  // No initial clipPath here — GSAP sets it via gsap.set() so
+                  // No initial clipPath here - GSAP sets it via gsap.set() so
                   // the element is NEVER permanently hidden if the animation fails.
                   aspectRatio: '4 / 5',
                 }}
               >
                 <Image
                   src={person.img}
-                  alt={`${person.name} — ${person.role}`}
+                  alt={`${person.name} - ${person.role}`}
                   fill
                   sizes="(max-width: 768px) 100vw, 480px"
                   className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.03] motion-reduce:transform-none motion-reduce:transition-none"

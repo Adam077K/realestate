@@ -101,7 +101,7 @@ export default function Blog() {
           key={post.title}
           className={`blog-row-${i} group border-t border-[rgba(17,17,17,0.1)] w-full px-6 md:px-12 lg:px-20 py-12 md:py-16 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 md:gap-16 items-start`}
         >
-          {/* LEFT — text content */}
+          {/* LEFT - text content */}
           <div className="flex flex-col gap-5 max-w-xl">
             {/* Date */}
             <time
@@ -111,7 +111,7 @@ export default function Blog() {
               {formatDate(post.date)}
             </time>
 
-            {/* Title — each word wrapped in overflow-hidden clip for GSAP stagger */}
+            {/* Title - each word wrapped in overflow-hidden clip for GSAP stagger */}
             <h2 className="font-[var(--font-display)] text-[clamp(1.75rem,3.5vw,3rem)] leading-[1.08] tracking-[-0.025em] text-[var(--color-ink)]">
               {post.title.split(/\s+/).map((word, wi) => (
                 <span
@@ -137,7 +137,7 @@ export default function Blog() {
             </div>
           </div>
 
-          {/* RIGHT — image with clip-reveal + hover zoom */}
+          {/* RIGHT - image with clip-reveal + hover zoom */}
           <div
             className="blog-image-wrap w-full md:w-[360px] lg:w-[420px] aspect-[3/2] relative overflow-hidden flex-shrink-0"
             style={{ willChange: 'clip-path' }}

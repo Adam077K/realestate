@@ -39,7 +39,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     const prefersReduced = mq.matches
     setMotionOk(!prefersReduced)
 
-    // If user prefers reduced motion, skip Lenis entirely — use native scroll
+    // If user prefers reduced motion, skip Lenis entirely - use native scroll
     if (prefersReduced) return
 
     const initLenis = async () => {

@@ -8,9 +8,9 @@ import { useContent } from '@/components/providers/LanguageProvider'
 import TwoToneHeading from '@/components/ui/TwoToneHeading'
 
 /**
- * Process — id="process".
+ * Process - id="process".
  *
- * "How it works" — a five-step vertical timeline. Each step sits to the
+ * "How it works" - a five-step vertical timeline. Each step sits to the
  * reading-start side of a hairline spine: a numbered node, a display title and a
  * muted description. The spine and nodes hug the inline-start edge (right in RTL,
  * left in LTR) using logical `ps-*` padding + a positioned absolute spine, so the
@@ -95,7 +95,7 @@ export default function Process() {
 
         {/* Timeline: spine pinned to the inline-start edge; steps padded off it. */}
         <ol className="process-list relative ps-14 md:ps-20">
-          {/* Vertical spine — start-anchored, mirrors with dir via inset-inline-start */}
+          {/* Vertical spine - start-anchored, mirrors with dir via inset-inline-start */}
           <span
             className="process-spine absolute top-3 bottom-3 w-px bg-[rgba(17,17,17,0.18)]"
             style={{

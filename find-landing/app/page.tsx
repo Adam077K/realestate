@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <>
       <BonimNavbar />
-      {/* Dark scrim — sits behind BonimNavbar (z-[49]), above hero sky (z-0).
+      {/* Dark scrim - sits behind BonimNavbar (z-[49]), above hero sky (z-0).
           Gives the transparent white navbar legibility at scroll-0 over the bright
           sky gradient. Gradient from rgba(15,22,40,0.38) → transparent over 120px.
           pointer-events-none so it doesn't block clicks. */}

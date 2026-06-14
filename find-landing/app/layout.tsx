@@ -4,7 +4,7 @@ import './globals.css'
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider'
 import { LanguageProvider } from '@/components/providers/LanguageProvider'
 
-// Display face: Onest — a tight, near-zero-tracking neo-grotesk for Latin headings.
+// Display face: Onest - a tight, near-zero-tracking neo-grotesk for Latin headings.
 const onest = Onest({
   subsets: ['latin'],
   variable: '--font-onest',
@@ -19,7 +19,7 @@ const hankenGrotesk = Hanken_Grotesk({
   weight: ['300', '400', '500', '600', '700', '800'],
 })
 
-// Hebrew face: Assistant — the de-facto premium modern Hebrew sans on high-end
+// Hebrew face: Assistant - the de-facto premium modern Hebrew sans on high-end
 // Israeli sites. Its native Hebrew letterforms are more refined and humanist than
 // Rubik's geometric build: open apertures, even rhythm, and a wide weight range
 // (300–800) that reads crisp at giant display sizes (hero headline, pillar words,
@@ -35,17 +35,17 @@ const assistant = Assistant({
 })
 
 export const metadata: Metadata = {
-  title: 'בונים עתיד — וובינר השקעות נדל״ן',
+  title: 'בונים עתיד - וובינר השקעות נדל״ן',
   description:
-    'איך לנצל את מצב השוק לטובתכם — וובינר חינם עם עידן פלג ורועי פישמן.',
+    'איך לנצל את מצב השוק לטובתכם - וובינר חינם עם עידן פלג ורועי פישמן.',
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
   },
   openGraph: {
-    title: 'בונים עתיד — וובינר השקעות נדל״ן',
+    title: 'בונים עתיד - וובינר השקעות נדל״ן',
     description:
-      'איך לנצל את מצב השוק לטובתכם — וובינר חינם עם עידן פלג ורועי פישמן.',
+      'איך לנצל את מצב השוק לטובתכם - וובינר חינם עם עידן פלג ורועי פישמן.',
     type: 'website',
   },
 }

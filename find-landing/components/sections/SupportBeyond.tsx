@@ -8,14 +8,14 @@ import { useLang, useContent } from '@/components/providers/LanguageProvider'
 import Pill from '@/components/ui/Pill'
 
 /**
- * Webinar details — id="webinar". "The Pass" concept.
+ * Webinar details - id="webinar". "The Pass" concept.
  *
  * A premium, dark "save the date" moment. The event DATE is the hero: the day's
  * numeral (e.g. 22.06) is rendered colossal, filled with a refined monochrome
  * white→gray gradient, clip-revealed on scroll, layered over a faded ghost
  * numeral for depth. The
  * logistics (full date / time / duration / platform) are woven into an elegant
- * boarding-pass rail — labelled rows on a single drawn hairline — instead of four
+ * boarding-pass rail - labelled rows on a single drawn hairline - instead of four
  * identical squares. A perforated divider sells the ticket/pass motif, and a CTA
  * pill reserves a spot (links to #register).
  *
@@ -188,11 +188,11 @@ export default function SupportBeyond() {
                 className="mt-4 max-w-md font-[var(--font-display)] text-lg font-medium leading-snug text-[rgba(255,255,255,0.82)] md:text-xl"
               >
                 {isHebrew ? 'שמרו את התאריך' : 'Save the date'}
-                <span className="sr-only">{` — ${w.date} ${w.time}`}</span>
+                <span className="sr-only">{` - ${w.date} ${w.time}`}</span>
               </h2>
             </div>
 
-            {/* The colossal date — gradient-filled, clip-revealed. */}
+            {/* The colossal date - gradient-filled, clip-revealed. */}
             <div className="relative mt-6 md:mt-8">
               <span
                 className="wb-bigdate block select-none font-[var(--font-hebrew-display)] font-extrabold leading-[0.82] tracking-[-0.05em]"
@@ -257,7 +257,7 @@ export default function SupportBeyond() {
               </ul>
             </div>
 
-            {/* Perforated edge — the ticket/pass tear line. */}
+            {/* Perforated edge - the ticket/pass tear line. */}
             <span
               aria-hidden="true"
               className="wb-perf mt-8 block h-px w-full"

@@ -4,7 +4,7 @@ import { useId } from 'react'
 import { cn } from '@/lib/utils'
 
 // ════════════════════════════════════════════════════════════════════════════════
-// בונים עתיד — primary brand mark
+// בונים עתיד - primary brand mark
 // ════════════════════════════════════════════════════════════════════════════════
 
 export type LogoVariant = 'nav' | 'footer'
@@ -15,7 +15,7 @@ export interface LogoProps {
 }
 
 /**
- * Bonim Atid logo — renders the Hebrew wordmark "בונים עתיד".
+ * Bonim Atid logo - renders the Hebrew wordmark "בונים עתיד".
  *
  * The brand name stays in Hebrew in BOTH languages (it is the company's real name).
  * Color inherits via `currentColor`; set text color on the parent.
@@ -45,7 +45,7 @@ export default function Logo({ variant = 'nav', className }: LogoProps) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
-// BrandWordmarkMask — building image clipped to the Hebrew letters "בונים עתיד"
+// BrandWordmarkMask - building image clipped to the Hebrew letters "בונים עתיד"
 // ════════════════════════════════════════════════════════════════════════════════
 
 export interface BrandWordmarkMaskProps {
@@ -86,7 +86,7 @@ export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmark
       viewBox={`0 0 720 ${viewBoxH}`}
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label={subWord ? `בונים עתיד — ${subWord}` : 'בונים עתיד'}
+      aria-label={subWord ? `בונים עתיד - ${subWord}` : 'בונים עתיד'}
       className={className}
       overflow="visible"
       preserveAspectRatio="xMidYMid meet"
@@ -125,7 +125,7 @@ export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmark
           </clipPath>
         )}
       </defs>
-      {/* Main word — image fills the full viewBox height so both words get building texture */}
+      {/* Main word - image fills the full viewBox height so both words get building texture */}
       <image
         href={fillSrc}
         x="0"
@@ -135,7 +135,7 @@ export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmark
         preserveAspectRatio="xMidYMid slice"
         clipPath={`url(#${clipId})`}
       />
-      {/* Sub-word — same image, same clip technique */}
+      {/* Sub-word - same image, same clip technique */}
       {subWord && (
         <image
           href={fillSrc}
@@ -152,12 +152,12 @@ export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmark
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
-// COMPAT — FIND glyph geometry (kept so Hero / CtaFooter still compile this wave).
+// COMPAT - FIND glyph geometry (kept so Hero / CtaFooter still compile this wave).
 // Removed once those sections migrate to the Bonim Atid mark.
 // ════════════════════════════════════════════════════════════════════════════════
 
 /**
- * FIND_GLYPH_PATHS — path geometry for the legacy "FIND" wordmark on a 200×60 viewBox.
+ * FIND_GLYPH_PATHS - path geometry for the legacy "FIND" wordmark on a 200×60 viewBox.
  * @deprecated Use <Logo /> / <BrandWordmarkMask />. Retained for Hero/CtaFooter compat.
  */
 export const FIND_GLYPH_PATHS = [

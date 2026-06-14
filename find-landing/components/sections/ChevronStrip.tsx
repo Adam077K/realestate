@@ -11,10 +11,10 @@ import { images } from '@/data/content'
 
 // Per-image alt text and object-position tuning so faces/subjects stay centred
 // within the chevron clip shape. The notch clips the left ~42% of the bounding
-// box, so the visible content lives in the right portion of each panel — we bias
+// box, so the visible content lives in the right portion of each panel - we bias
 // object-position rightward so faces/subjects don't get eaten by the notch.
 const IMAGE_META: { alt: string; objectPosition: string }[] = [
-  { alt: 'בונים עתיד — נדל״ן ואנשים', objectPosition: '62% center' },
+  { alt: 'בונים עתיד - נדל״ן ואנשים', objectPosition: '62% center' },
   { alt: 'פנים דירה עם נוף לעיר', objectPosition: '58% center' },
   { alt: 'סלון בתכנון פתוח', objectPosition: '55% center' },
   { alt: 'בניין חדש מקבלן', objectPosition: '55% center' },
@@ -79,15 +79,15 @@ export default function ChevronStrip() {
       id="chevron-strip"
       ref={sectionRef}
       className="bg-[var(--color-paper)] py-16 md:py-20 lg:py-24"
-      aria-label="בונים עתיד — אודות"
+      aria-label="בונים עתיד - אודות"
     >
-      {/* Heading — centered above the arrow row */}
+      {/* Heading - centered above the arrow row */}
       <div className="chevron-heading mb-10 md:mb-14 flex justify-center px-4 text-center">
         <TwoToneHeading lead={c.arrows.lead} tail={c.arrows.tail} as="h2" />
       </div>
 
       {/*
-        Arrow row — 4 EQUAL chevron-arrow panels in a centered horizontal row.
+        Arrow row - 4 EQUAL chevron-arrow panels in a centered horizontal row.
         Every panel is identical width/height with flex-shrink:0, so the four arrows
         are always the same size (no unequal flex-basis, no negative margins). A small
         consistent gap between panels yields a clean white chevron-shaped gap between
@@ -104,7 +104,7 @@ export default function ChevronStrip() {
           {chevronImages.map((src, i) => {
             const meta =
               IMAGE_META[i] ?? {
-                alt: `בונים עתיד — תמונה ${i + 1}`,
+                alt: `בונים עתיד - תמונה ${i + 1}`,
                 objectPosition: 'center',
               }
 

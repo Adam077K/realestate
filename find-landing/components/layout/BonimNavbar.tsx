@@ -97,7 +97,7 @@ export default function BonimNavbar() {
               paddingRight: "clamp(20px, 3.5vw, 56px)",
             }}
           >
-            {/* RIGHT edge (RTL start): Logo — first JSX child = visual right in RTL flow */}
+            {/* RIGHT edge (RTL start): Logo - first JSX child = visual right in RTL flow */}
             <a
               href="#"
               aria-label="בונים עתיד – דף הבית"
@@ -213,7 +213,7 @@ export default function BonimNavbar() {
               </nav>
             )}
 
-            {/* LEFT edge (RTL end): CTA button or hamburger — last JSX child = visual left in RTL flow */}
+            {/* LEFT edge (RTL end): CTA button or hamburger - last JSX child = visual left in RTL flow */}
             {isDesktop ? (
               <div style={{ flexShrink: 0 }}>
                 <a

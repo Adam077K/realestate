@@ -1,9 +1,9 @@
 'use client'
 
 /**
- * HeroClouds — realistic transparent PNG cloud layer for the signature Hero.
+ * HeroClouds - realistic transparent PNG cloud layer for the signature Hero.
  *
- * ARCHITECTURE — 3 depth bands (replaces the old flat BACK/FRONT split):
+ * ARCHITECTURE - 3 depth bands (replaces the old flat BACK/FRONT split):
  *
  *  FAR   (horizon haze, 2 nodes): blur 7-8px, opacity 0.38-0.42,
  *         saturate(0.65) warm tint, parallax 0.25-0.30x.
@@ -16,15 +16,15 @@
  *         then STAYS at peak (no thin-out). Bridges into next section via Stats' cloud-white top.
  *
  * KEY CRAFT:
- *  1. mix-blend-mode: screen on EVERY cloud PNG — kills ~80% of "stickered-on" look.
- *  2. Sky-tint filter set ONCE at mount — warm horizon (hue-rotate(-8deg) sepia(0.15)
+ *  1. mix-blend-mode: screen on EVERY cloud PNG - kills ~80% of "stickered-on" look.
+ *  2. Sky-tint filter set ONCE at mount - warm horizon (hue-rotate(-8deg) sepia(0.15)
  *     brightness(1.05)); cool high (hue-rotate(4deg)). Never per-frame.
  *  3. PARALLAX: separate translateY keyed to progress, folded into ONE style mutation
  *     per layer per frame via --cov-* CSS var bridge.
  *  4. Non-looping drift: asymmetric @keyframes, PRIME-second periods. Negative delays
  *     desync. flipX + rotate ±deg on some instances for variety. Transform-only.
  *  5. Bloom curve: NEAR field genuinely ~0 until p≈0.45 (protects headline legibility).
- *     Hard ramp; peaks ~0.87 (never 1.0 — keeps texture). Thins to ~0.18 at p=1.0.
+ *     Hard ramp; peaks ~0.87 (never 1.0 - keeps texture). Thins to ~0.18 at p=1.0.
  *
  * VARIANT prop (backwards compat with Hero.tsx):
  *  'back'  → FAR + MID bands (z-[1] behind building).
@@ -52,13 +52,13 @@ export interface HeroCloudsProps {
 
 // ─── PNG sources ──────────────────────────────────────────────────────────────
 const SRC = {
-  c1: '/images/clouds/cloud-1.png', // 1024×546  — wide soft grey stratus band
-  c2: '/images/clouds/cloud-2.png', // 1400×941  — large faint atmospheric mass
-  c3: '/images/clouds/cloud-3.png', // 1500×811  — large faint atmospheric mass
-  c4: '/images/clouds/cloud-4.png', // 1600×1038 — soft white cumulus puff
-  c5: '/images/clouds/cloud-5.png', // 1379×994  — bright bluish cumulus tower
-  c6: '/images/clouds/cloud-6.png', // 1260×605  — low flat stratus
-  c7: '/images/clouds/cloud-7.png', // 1653×906  — wide wispy low mist
+  c1: '/images/clouds/cloud-1.png', // 1024×546  - wide soft grey stratus band
+  c2: '/images/clouds/cloud-2.png', // 1400×941  - large faint atmospheric mass
+  c3: '/images/clouds/cloud-3.png', // 1500×811  - large faint atmospheric mass
+  c4: '/images/clouds/cloud-4.png', // 1600×1038 - soft white cumulus puff
+  c5: '/images/clouds/cloud-5.png', // 1379×994  - bright bluish cumulus tower
+  c6: '/images/clouds/cloud-6.png', // 1260×605  - low flat stratus
+  c7: '/images/clouds/cloud-7.png', // 1653×906  - wide wispy low mist
 } as const
 
 type AnimFamily = 'hc-drift-a' | 'hc-drift-b' | 'hc-drift-c' | 'hc-drift-d'
@@ -75,7 +75,7 @@ interface CloudLayer {
   flipX?: boolean
   rotate?: number
   anim: AnimFamily
-  /** PRIME period in seconds — prevents inter-layer sync. */
+  /** PRIME period in seconds - prevents inter-layer sync. */
   duration: number
   delay: number
   coverage: number
@@ -84,10 +84,10 @@ interface CloudLayer {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// BACK field — FAR + MID bands (rendered z-[1], behind building)
+// BACK field - FAR + MID bands (rendered z-[1], behind building)
 // ══════════════════════════════════════════════════════════════════════════════
 const BACK_LAYERS: CloudLayer[] = [
-  // ── FAR (horizon haze) — cool blue-hour tint ────────────────────────────
+  // ── FAR (horizon haze) - cool blue-hour tint ────────────────────────────
   // Dusk palette: sepia dropped to ~0, positive hue-rotate (+5 to +7deg) nudges
   // cloud whites toward the blue-steel of the deep dusk sky.
   // Slightly reduced brightness and saturation → reads as atmospheric twilight.
@@ -109,7 +109,7 @@ const BACK_LAYERS: CloudLayer[] = [
     anim: 'hc-drift-b', duration: 113, delay: -37,
     coverage: 0.08, driftX: 0, parallax: 0.25,
   },
-  // ── MID (cumulus) — cool blue-grey dusk, soft and atmospheric ────────────
+  // ── MID (cumulus) - cool blue-grey dusk, soft and atmospheric ────────────
   // sepia ~0, positive hue-rotate (+5 to +7deg) pushes cloud whites toward blue-grey.
   // Muted saturation so they read as dusk atmosphere, not bright daytime white.
   {
@@ -151,11 +151,11 @@ const BACK_LAYERS: CloudLayer[] = [
 ]
 
 // ══════════════════════════════════════════════════════════════════════════════
-// FRONT field — NEAR/VEIL band (rendered z-[3], over building + wordmark).
+// FRONT field - NEAR/VEIL band (rendered z-[3], over building + wordmark).
 // Near-invisible at rest; blooms to near-full veil ~p 0.78; thins to ~0.18 at p=1.
-// 5 nodes — under the 12-total limit.
+// 5 nodes - under the 12-total limit.
 // ══════════════════════════════════════════════════════════════════════════════
-// A10: FRONT_LAYERS — desaturate+brighten toward pure white for the rising mask.
+// A10: FRONT_LAYERS - desaturate+brighten toward pure white for the rising mask.
 // saturate(0) brightness(1.7) pushes photographic cloud PNGs as white as possible
 // while retaining enough form/texture for the veil leading edge to read as cloud.
 const FRONT_LAYERS: CloudLayer[] = [
@@ -217,7 +217,7 @@ const expo = (n: number) => {
 /**
  * Full-screen soft veil intensity for the FRONT field, 0..1.
  *
- * v6 — BATCH 7 WHITE MASK RISES FROM BOTTOM: bloom starts at p≈0.86, peaks at p≈1.0.
+ * v6 - BATCH 7 WHITE MASK RISES FROM BOTTOM: bloom starts at p≈0.86, peaks at p≈1.0.
  * Hero GSAP also drives the veil's translateY from 40vh→0 over p0.86–1.0 so the veil
  * appears to climb from below (white mask rising effect). The opacity bloom here makes
  * the veil opaque as it rises, and cloud PNG layers climb with it for a textured leading edge.
@@ -231,7 +231,7 @@ function frontVeilIntensity(p: number): number {
 
 /**
  * Per-layer animate state: opacity, scale, translateY (parallax), translateX (bloom drift).
- * filter + mix-blend-mode are set ONCE at mount — never computed here.
+ * filter + mix-blend-mode are set ONCE at mount - never computed here.
  */
 function layerState(p: number, layer: CloudLayer, variant: 'back' | 'front') {
   if (variant === 'front') {
@@ -304,7 +304,7 @@ export default function HeroClouds({
         el.style.setProperty('--cov-tx', `${translateX.toFixed(2)}vw`)
       }
 
-      // FRONT veil — drives the full-screen soft cloud cover
+      // FRONT veil - drives the full-screen soft cloud cover
       const veil = veilRef.current
       if (veil) {
         const v = frontVeilIntensity(p)
@@ -334,11 +334,11 @@ export default function HeroClouds({
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
       {/*
-        Drift keyframes — transform ONLY, GPU-composited.
+        Drift keyframes - transform ONLY, GPU-composited.
         Each @keyframe composes idle drift with the scroll-coverage + parallax
         transform in --cov-tx / --cov-ty / --cov-scale, so the live ramp and the
         continuous drift never fight over `transform`.
-        PRIME durations per layer — the field never re-syncs into a visible loop.
+        PRIME durations per layer - the field never re-syncs into a visible loop.
         Asymmetric stop positions + slight rotate creates organic non-returning motion.
       */}
       <style>{`
@@ -393,7 +393,7 @@ export default function HeroClouds({
       `}</style>
 
       {layers.map((layer, i) => {
-        // filter = blur + sky-tint — set ONCE, never per-frame.
+        // filter = blur + sky-tint - set ONCE, never per-frame.
         // Performance: blur is on individual layered PNGs, not on a promoted wrapper.
         const filterVal = [
           layer.blur > 0 ? `blur(${layer.blur}px)` : '',
@@ -448,7 +448,7 @@ export default function HeroClouds({
         )
       })}
 
-      {/* FRONT veil — soft near-white radial wash that fills the WHOLE viewport at
+      {/* FRONT veil - soft near-white radial wash that fills the WHOLE viewport at
           the end of the hero, then STAYS at peak (no thin-out). The next section
           (Stats) has a matching cloud-white gradient at its top so the seam between
           hero and next section is invisible. blur(6px) keeps it reading as cloud,

@@ -56,7 +56,7 @@ export function splitTextDOM(el: HTMLElement): HTMLElement[] {
 /**
  * Splits text into lines by grouping words that fit within a container width.
  * Returns line arrays of word strings.
- * NOTE: Relies on a rendered DOM element — call after layout is complete.
+ * NOTE: Relies on a rendered DOM element - call after layout is complete.
  */
 export function splitTextLines(el: HTMLElement): string[][] {
   const words = splitTextDOM(el)

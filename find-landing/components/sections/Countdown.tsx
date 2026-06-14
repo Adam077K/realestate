@@ -5,19 +5,19 @@ import { useLang, useContent } from '@/components/providers/LanguageProvider'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 
 /**
- * Countdown — id="countdown"
+ * Countdown - id="countdown"
  *
  * A premium, dark-toned countdown band placed between the webinar details
  * section (SupportBeyond, dark) and the ChevronStrip (light). The band holds
- * that dark momentum with its own surface — a deep charcoal #111 with a faint
- * radial bloom — so the transition to the light ChevronStrip feels deliberate.
+ * that dark momentum with its own surface - a deep charcoal #111 with a faint
+ * radial bloom - so the transition to the light ChevronStrip feels deliberate.
  *
  * Target: 2026-06-22 at 20:30 local time (יום שני, 22.06.26 | Monday 22.06.26).
  * Hardcoded as `new Date(2026, 5, 22, 20, 30, 0)` (month 5 = June, 0-indexed).
  *
  * HYDRATION-SAFE: No Date calls during SSR. A `mounted` flag flips in the first
  * client-side useEffect before the interval begins, so the first render always
- * shows stable `--` placeholders — zero hydration mismatch.
+ * shows stable `--` placeholders - zero hydration mismatch.
  *
  * Clamps at zero: once the target has passed all units show 0 and the `started`
  * message replaces the lead line.
@@ -26,8 +26,8 @@ import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
  * the flexbox container inherits page direction.
  *
  * Motion: on mount (after `mounted` is true) the four blocks fade-rise in with a
- * small stagger — gated on `motionOk` (respects prefers-reduced-motion).
- * Animation uses CSS transition (`opacity` + `transform`) only — no JS-driven
+ * small stagger - gated on `motionOk` (respects prefers-reduced-motion).
+ * Animation uses CSS transition (`opacity` + `transform`) only - no JS-driven
  * frame loop, no GSAP dependency here.
  */
 
@@ -95,7 +95,7 @@ function UnitBlock({ value, label, revealed, motionOk, delay }: UnitBlockProps) 
         }}
         aria-hidden="true"
       >
-        {/* Subtle inner glow — top edge highlight */}
+        {/* Subtle inner glow - top edge highlight */}
         <span
           className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-xl bg-[rgba(255,255,255,0.18)]"
           aria-hidden="true"
@@ -168,7 +168,7 @@ export default function Countdown() {
       className="relative w-full overflow-hidden bg-[var(--color-dark)]"
       aria-label={mounted && timeLeft.done ? cd.started : cd.lead}
     >
-      {/* Atmospheric radial bloom — centered, monochrome, very subtle */}
+      {/* Atmospheric radial bloom - centered, monochrome, very subtle */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
@@ -221,7 +221,7 @@ export default function Countdown() {
           ))}
         </div>
 
-        {/* Date annotation — visible once mounted */}
+        {/* Date annotation - visible once mounted */}
         <p
           className="mt-10 text-center font-[var(--font-display)] text-[11px] font-normal tracking-[0.18em] text-[rgba(255,255,255,0.28)] md:mt-12"
           aria-hidden="true"
@@ -238,7 +238,7 @@ export default function Countdown() {
         </p>
       </div>
 
-      {/* Hairline bottom-border — bridge into ChevronStrip's light bg */}
+      {/* Hairline bottom-border - bridge into ChevronStrip's light bg */}
       <div
         aria-hidden="true"
         className="absolute inset-x-0 bottom-0 h-px bg-[rgba(255,255,255,0.06)]"

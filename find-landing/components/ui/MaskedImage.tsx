@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
-// Chevron: true ❯ shape — pointed right tip, concave V-notch on the left.
+// Chevron: true ❯ shape - pointed right tip, concave V-notch on the left.
 // Panels overlap into one continuous ❯❯❯❯ chain (see ChevronStrip).
 // The notch vertex at 42% 50% lets the previous arrow's tip nest inside it,
 // producing the characteristic white V-gaps visible in the reference (frames 16/18).
@@ -37,7 +37,7 @@ export interface MaskedImageProps {
   priority?: boolean
   /** Object-fit style for the image */
   objectFit?: 'cover' | 'contain' | 'fill'
-  /** Object-position — controls which part of the image is visible within the clip shape */
+  /** Object-position - controls which part of the image is visible within the clip shape */
   objectPosition?: string
 }
 

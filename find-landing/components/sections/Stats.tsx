@@ -7,7 +7,7 @@ import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useContent } from '@/components/providers/LanguageProvider'
 
 /**
- * Stats — id="stats". Mid-page standalone band.
+ * Stats - id="stats". Mid-page standalone band.
  *
  * Sits between Testimonials (light warm) and BuyerGroups (light), so this uses
  * the dark brand surface for strong contrast. Three large display numbers on a
@@ -27,7 +27,7 @@ export default function Stats() {
     () => {
       if (!motionOk) return
 
-      // Display numbers — rise from below with a slight scale for impact.
+      // Display numbers - rise from below with a slight scale for impact.
       // Each number animates independently for a confident, staggered entrance.
       gsap.from('.stat-item', {
         y: 36,
@@ -67,7 +67,7 @@ export default function Stats() {
               className="stat-item flex flex-col items-center text-center gap-3 px-6 py-10 sm:py-4"
               style={{ willChange: 'transform, opacity' }}
             >
-              {/* Large display number — white on dark */}
+              {/* Large display number - white on dark */}
               <span
                 className="stat-number font-[var(--font-display)] font-light leading-none tracking-[-0.03em] text-[var(--color-paper)] tabular-nums"
                 style={{

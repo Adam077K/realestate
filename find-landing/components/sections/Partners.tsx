@@ -9,7 +9,7 @@ import { useContent } from '@/components/providers/LanguageProvider'
 import SectionLabel from '@/components/ui/SectionLabel'
 
 /**
- * Partners — id="partners".
+ * Partners - id="partners".
  *
  * Real-estate / investment partner logos rendered as images (grayscale by default,
  * full-color on hover). Bilingual via `c.partners`; RTL-aware.

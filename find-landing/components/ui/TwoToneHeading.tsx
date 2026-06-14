@@ -7,13 +7,13 @@ type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4'
 
 export interface TwoToneHeadingProps {
   /**
-   * First portion of the heading — rendered in full ink color.
+   * First portion of the heading - rendered in full ink color.
    * Can be a string (auto-split into word spans for GSAP staggering)
    * or arbitrary ReactNode for custom markup.
    */
   lead: string
   /**
-   * Second portion — rendered in muted grey.
+   * Second portion - rendered in muted grey.
    * Can be a string or ReactNode.
    */
   tail: string
@@ -28,7 +28,7 @@ export interface TwoToneHeadingProps {
   /** Render lead and tail on separate lines */
   stacked?: boolean
   /**
-   * Per-instance size override — replaces the built-in `text-[clamp(...)]`
+   * Per-instance size override - replaces the built-in `text-[clamp(...)]`
    * for this instance only. When absent, the default sizeByTag value is used.
    * Example: `sizeClassName="text-[clamp(4rem,9vw,8rem)] leading-[1.0] tracking-[-0.03em]"`
    */

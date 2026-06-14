@@ -8,7 +8,7 @@ import { useLang, useContent } from '@/components/providers/LanguageProvider'
 import TwoToneHeading from '@/components/ui/TwoToneHeading'
 
 /**
- * "What you'll learn" — id="learn".
+ * "What you'll learn" - id="learn".
  *
  * Editorial numbered list of the 4 webinar topics. The elegant numbered-steps
  * layout is repurposed: a left-column heading + a right-column list of numbered
@@ -96,7 +96,7 @@ export default function RewiredSteps() {
       aria-label={`${c.learn.heading.lead} ${c.learn.heading.tail}`}
     >
       <div className="flex flex-col md:flex-row md:gap-16 lg:gap-24 max-w-7xl mx-auto">
-        {/* HEADING — giant stacked, top of the inline-start column */}
+        {/* HEADING - giant stacked, top of the inline-start column */}
         <div className="md:w-5/12 lg:w-[42%] mb-16 md:mb-0 flex flex-col justify-start">
           <div className="learn-heading">
             <TwoToneHeading
@@ -109,7 +109,7 @@ export default function RewiredSteps() {
           </div>
         </div>
 
-        {/* TOPICS — numbered editorial list */}
+        {/* TOPICS - numbered editorial list */}
         <div className="md:w-7/12 lg:w-[58%]">
           <ol aria-label={`${c.learn.heading.lead} ${c.learn.heading.tail}`}>
             {c.learn.items.map((item, i) => (
@@ -120,7 +120,7 @@ export default function RewiredSteps() {
                 }}
                 className="relative"
               >
-                {/* Hairline divider — animates scaleX 0→1 from the reading-start edge */}
+                {/* Hairline divider - animates scaleX 0→1 from the reading-start edge */}
                 <span
                   ref={(el) => {
                     dividerRefs.current[i] = el
@@ -135,7 +135,7 @@ export default function RewiredSteps() {
 
                 {/* Row content */}
                 <div className="item-content flex items-start gap-4 md:gap-6 py-8 md:py-10">
-                  {/* Index — sits on the reading-start side, mono + muted */}
+                  {/* Index - sits on the reading-start side, mono + muted */}
                   <span className="shrink-0 text-xs font-mono text-[var(--color-muted)] pt-1 w-6 text-end select-none">
                     {item.n}
                   </span>

@@ -1,13 +1,13 @@
 /**
- * data/content.ts — SINGLE SOURCE OF TRUTH (bilingual)
+ * data/content.ts - SINGLE SOURCE OF TRUTH (bilingual)
  *
- * Brand: בונים עתיד (Bonim Atid) — Israeli real-estate investment advisory firm.
+ * Brand: בונים עתיד (Bonim Atid) - Israeli real-estate investment advisory firm.
  * Hebrew is the DEFAULT language (RTL). English is the secondary toggle.
  *
  * Two layers live here:
- *   1. `content` — the bilingual tree { he, en }. New components consume this via
+ *   1. `content` - the bilingual tree { he, en }. New components consume this via
  *      `useContent()` from the LanguageProvider.
- *   2. Backward-compatible named exports (hero, whyFind, chevronStrip, …) — the
+ *   2. Backward-compatible named exports (hero, whyFind, chevronStrip, …) - the
  *      existing section components still import these so the build stays green.
  *      They are derived from the Hebrew tree (closest mapping). A follow-up wave
  *      migrates the sections onto `useContent()` and removes these.
@@ -15,16 +15,16 @@
 
 export type Lang = 'he' | 'en'
 
-// ─── Image Manifest (language-agnostic — keep EXACTLY as-is) ─────────────────────
+// ─── Image Manifest (language-agnostic - keep EXACTLY as-is) ─────────────────────
 
 export const images = {
   heroBuilding: '/images/hero-building.jpg',
-  // Golden-hour building with the background keyed out to transparency — used as the
+  // Golden-hour building with the background keyed out to transparency - used as the
   // hero centerpiece (sits over the sky) AND the fill for the clip-mask wordmark.
   // Golden-hour building (transparent cutout, 1024×1024). Fresh filename to bust the
   // Next.js image-optimizer cache that was still serving the previous building.
   heroBuildingCutout: '/images/hero-tower-v4.png',
-  // Opaque, content-trimmed tower — fill for the clip-mask wordmark.
+  // Opaque, content-trimmed tower - fill for the clip-mask wordmark.
   heroBuildingFill: '/images/hero-tower-fill-v3.jpg',
   cityStreet: '/images/city-street.jpg',
   chevron: [
@@ -48,7 +48,7 @@ export const images = {
   // Real founder photos
   idanPeleg: '/images/idan-peleg.webp',
   roeyFishman: '/images/roey-fishman.webp',
-  // Buyer-group cards (pre-designed, used AS-IS — no overlay)
+  // Buyer-group cards (pre-designed, used AS-IS - no overlay)
   buyerCards: [
     '/images/buyer-holon.png',
     '/images/buyer-haifa.png',
@@ -118,7 +118,7 @@ export const content = {
     founders: {
       heading: { lead: 'מי', tail: 'מנחה?' },
       intro:
-        'בונים עתיד נפגשת בדיוק שם — היכן שנדל״ן, אנשים ומקצועיות נפגשים. אנחנו מלווים משקיעים ורוכשים לראות את התמונה המלאה ולקבל החלטות בטוחות לטווח ארוך.',
+        'בונים עתיד נפגשת בדיוק שם - היכן שנדל״ן, אנשים ומקצועיות נפגשים. אנחנו מלווים משקיעים ורוכשים לראות את התמונה המלאה ולקבל החלטות בטוחות לטווח ארוך.',
       people: [
         {
           name: 'עידן פלג',
@@ -155,7 +155,7 @@ export const content = {
       ],
       closing: {
         lead: 'ליווי מקצועי בכל שלב של ההשקעה',
-        tail: '— בידע אמין ובשקיפות מלאה.',
+        tail: '- בידע אמין ובשקיפות מלאה.',
       },
       cta: 'הצטרפו לוובינר',
     },
@@ -164,7 +164,7 @@ export const content = {
       items: [
         {
           quote:
-            'הגעתי לוובינר בלי לדעת כלום על השקעה בנדל״ן, ויצאתי עם תמונה ברורה ותכנית פעולה. עידן ורועי מסבירים בגובה העיניים — בלי מכירות, רק ערך.',
+            'הגעתי לוובינר בלי לדעת כלום על השקעה בנדל״ן, ויצאתי עם תמונה ברורה ותכנית פעולה. עידן ורועי מסבירים בגובה העיניים - בלי מכירות, רק ערך.',
           name: 'מאיה לוי',
           rating: 5 as const,
         },
@@ -199,7 +199,7 @@ export const content = {
       date: 'יום שני, 22.06.26',
       time: '20:30',
       duration: 'כ-45 דקות',
-      platform: 'בזום — הלינק יישלח למייל',
+      platform: 'בזום - הלינק יישלח למייל',
     },
     register: {
       heading: 'שריינו את מקומכם',
@@ -282,14 +282,14 @@ export const content = {
       items: [
         {
           title: 'מבינים נדל״ן, וגם אנשים',
-          desc: 'אנחנו מלווים אתכם בגובה העיניים — מקשיבים לצרכים שלכם ומתאימים את העסקה אליכם, לא להפך.',
+          desc: 'אנחנו מלווים אתכם בגובה העיניים - מקשיבים לצרכים שלכם ומתאימים את העסקה אליכם, לא להפך.',
         },
         {
           title: '100% מקצועיות, 0% משחקים',
           desc: 'כל המלצה נשענת על נתונים, בדיקות עומק ושקיפות מלאה. בלי לחץ מכירתי ובלי הבטחות באוויר.',
         },
         {
-          title: 'לא רק יודעים — מיישמים',
+          title: 'לא רק יודעים - מיישמים',
           desc: 'מהשיחה הראשונה ועד החתימה אנחנו לצדכם, מתרגמים את הידע לעסקה אמיתית ומשתלמת.',
         },
         {
@@ -314,7 +314,7 @@ export const content = {
     },
     buyerGroups: {
       heading: { lead: 'קבוצות הקונים', tail: 'שלנו' },
-      // Pre-designed cards (text baked into the image) — render AS-IS, no overlay.
+      // Pre-designed cards (text baked into the image) - render AS-IS, no overlay.
       cards: images.buyerCards,
       groups: [
         { city: 'חולון', img: images.buyerCards[0] },
@@ -442,7 +442,7 @@ export const content = {
       ],
       closing: {
         lead: 'Professional guidance at every stage',
-        tail: '— with reliable knowledge and full transparency.',
+        tail: '- with reliable knowledge and full transparency.',
       },
       cta: 'Join the webinar',
     },
@@ -451,7 +451,7 @@ export const content = {
       items: [
         {
           quote:
-            'I came in knowing nothing about real-estate investing and left with a clear picture and an action plan. Idan and Roey explain everything at eye level — no selling, just value.',
+            'I came in knowing nothing about real-estate investing and left with a clear picture and an action plan. Idan and Roey explain everything at eye level - no selling, just value.',
           name: 'Maya Levi',
           rating: 5 as const,
         },
@@ -486,7 +486,7 @@ export const content = {
       date: 'Monday, 22.06.26',
       time: '20:30',
       duration: '~45 minutes',
-      platform: 'On Zoom — link sent by email',
+      platform: 'On Zoom - link sent by email',
     },
     register: {
       heading: 'Reserve your spot',
@@ -569,7 +569,7 @@ export const content = {
       items: [
         {
           title: 'We understand real estate, and people',
-          desc: 'We guide you at eye level — listening to your needs and shaping the deal around you, not the other way around.',
+          desc: 'We guide you at eye level - listening to your needs and shaping the deal around you, not the other way around.',
         },
         {
           title: '100% professionalism, 0% games',
@@ -649,27 +649,27 @@ const he = content.he
 
 export const logoSubline = he.tagline
 
-// Hero — { title, subhead, cta }
+// Hero - { title, subhead, cta }
 export const hero = {
   title: he.hero.title,
   subhead: he.hero.subhead,
   cta: he.hero.cta,
 } as const
 
-// WhyFind — { label, heading: { lead, tail }, body }
+// WhyFind - { label, heading: { lead, tail }, body }
 export const whyFind = {
   label: he.brand,
   heading: { lead: he.arrows.lead, tail: he.arrows.tail },
   body: he.founders.intro,
 } as const
 
-// ChevronStrip — { heading: { lead, tail }, images }
+// ChevronStrip - { heading: { lead, tail }, images }
 export const chevronStrip = {
   heading: { lead: he.arrows.lead, tail: he.arrows.tail },
   images: images.chevron,
 } as const
 
-// RewiredSteps — { intro: { lead, tail }, title: { lead, tail }, cta, steps[] }
+// RewiredSteps - { intro: { lead, tail }, title: { lead, tail }, cta, steps[] }
 export const rewiredSteps = {
   intro: { lead: he.founders.intro, tail: he.pillars.closing.lead },
   title: { lead: he.learn.heading.lead, tail: he.learn.heading.tail },
@@ -681,14 +681,14 @@ export const rewiredSteps = {
   })),
 } as const
 
-// OwnYourCareer — { label, heading: { lead, tail }, body }
+// OwnYourCareer - { label, heading: { lead, tail }, body }
 export const ownYourCareer = {
   label: he.founders.heading.lead,
   heading: { lead: he.founders.heading.lead, tail: he.founders.heading.tail },
-  body: `${he.founders.people[0].name} — ${he.founders.people[0].bio} ${he.founders.people[1].name} — ${he.founders.people[1].bio} ${he.founders.intro}`,
+  body: `${he.founders.people[0].name} - ${he.founders.people[0].bio} ${he.founders.people[1].name} - ${he.founders.people[1].bio} ${he.founders.intro}`,
 } as const
 
-// Testimonials — { heading: { lead, tail }, items: Testimonial[] }
+// Testimonials - { heading: { lead, tail }, items: Testimonial[] }
 export interface Testimonial {
   author: string
   quote: string
@@ -708,7 +708,7 @@ export const testimonials = {
   })) satisfies Testimonial[],
 } as const
 
-// Services — { label, heading: { lead, tail }, rows: ServiceRow[], closing, cta }
+// Services - { label, heading: { lead, tail }, rows: ServiceRow[], closing, cta }
 export interface ServiceRow {
   n: string
   word: string
@@ -727,7 +727,7 @@ export const services = {
   cta: he.pillars.cta,
 } as const
 
-// SupportBeyond — { heading: { lead, tail }, intro: { lead, tail }, cta, cards: SupportCard[] }
+// SupportBeyond - { heading: { lead, tail }, intro: { lead, tail }, cta, cards: SupportCard[] }
 export interface SupportCard {
   title: string
   img: string
@@ -745,7 +745,7 @@ export const supportBeyond = {
   ] satisfies SupportCard[],
 } as const
 
-// Blog — { posts: BlogPost[] }
+// Blog - { posts: BlogPost[] }
 export interface BlogPost {
   date: string
   title: string
@@ -776,7 +776,7 @@ export const blog = {
   ] satisfies BlogPost[],
 } as const
 
-// CtaFooter — { ctaBand, newsletter, contact, navCols, social }
+// CtaFooter - { ctaBand, newsletter, contact, navCols, social }
 export const ctaFooter = {
   ctaBand: { heading: he.register.heading },
   newsletter: {

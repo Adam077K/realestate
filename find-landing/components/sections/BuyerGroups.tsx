@@ -9,7 +9,7 @@ import { useLang, useContent } from '@/components/providers/LanguageProvider'
 import TwoToneHeading from '@/components/ui/TwoToneHeading'
 
 /**
- * BuyerGroups — id="buyer-groups".
+ * BuyerGroups - id="buyer-groups".
  *
  * A continuously-moving, infinite marquee carousel of the four PRE-DESIGNED city
  * cards (`c.buyerGroups.cards`: Holon / Haifa / Tel Aviv / Herzliya). The card
@@ -18,7 +18,7 @@ import TwoToneHeading from '@/components/ui/TwoToneHeading'
  * ~590×348 (≈1.7:1) aspect ratio so it "fits exactly".
  *
  * Motion: the track is two back-to-back copies of the cards; we tween it by exactly
- * one copy's width on an infinite, GPU-transform (x) timeline, then modulo-wrap —
+ * one copy's width on an infinite, GPU-transform (x) timeline, then modulo-wrap -
  * giving a seamless, premium loop. Direction follows `dir` (RTL scrolls the other
  * way). Hover pauses. With reduced motion (motionOk === false) the track is a static,
  * wrapping row (no auto-move) and the duplicate copy is hidden from a11y.
@@ -62,7 +62,7 @@ export default function BuyerGroups() {
     // RTL reads right→left, so cards should drift toward the start (positive x in RTL,
     // negative x in LTR) for a natural "incoming" feel.
     const direction = dir === 'rtl' ? 1 : -1
-    const SPEED = 60 // px per second — calm, premium drift
+    const SPEED = 60 // px per second - calm, premium drift
 
     const ctx = gsap.context(() => {
       gsap.set(track, { x: 0 })
@@ -115,7 +115,7 @@ export default function BuyerGroups() {
         </div>
       </div>
 
-      {/* Carousel viewport — full-bleed within the section padding box */}
+      {/* Carousel viewport - full-bleed within the section padding box */}
       <div
         className="relative overflow-hidden"
         onMouseEnter={pause}
@@ -149,7 +149,7 @@ export default function BuyerGroups() {
               alt={cities[i]?.city ?? ''}
             />
           ))}
-          {/* Duplicate copy for the seamless loop — decorative only. */}
+          {/* Duplicate copy for the seamless loop - decorative only. */}
           {motionOk &&
             cards.map((src, i) => (
               <BuyerCard key={`b-${i}`} src={src} index={i} alt="" ariaHidden />
@@ -163,7 +163,7 @@ export default function BuyerGroups() {
 /**
  * A single pre-designed buyer-group card image, shown AS-IS at its native
  * ~1.7:1 aspect ratio (object-contain so nothing is cropped or distorted).
- * No overlay, no scrim — the artwork carries its own labels.
+ * No overlay, no scrim - the artwork carries its own labels.
  */
 function BuyerCard({
   src,

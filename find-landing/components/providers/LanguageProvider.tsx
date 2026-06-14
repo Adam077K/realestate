@@ -34,7 +34,7 @@ interface LanguageProviderProps {
 }
 
 /**
- * LanguageProvider — owns the HE/EN language state for the whole app.
+ * LanguageProvider - owns the HE/EN language state for the whole app.
  *
  * - Default language is Hebrew ('he'), rendered RTL.
  * - The chosen language persists to localStorage under 'bonim-lang'.
@@ -56,7 +56,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         setLangState(stored)
       }
     } catch {
-      // localStorage unavailable (private mode, etc.) — keep default.
+      // localStorage unavailable (private mode, etc.) - keep default.
     }
   }, [])
 

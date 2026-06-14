@@ -62,7 +62,7 @@ export default function Testimonials() {
     [activeIdx, motionOk]
   )
 
-  // Autoplay — pause when motionOk is false
+  // Autoplay - pause when motionOk is false
   useEffect(() => {
     if (!motionOk) return
     timerRef.current = setTimeout(() => {
@@ -95,7 +95,7 @@ export default function Testimonials() {
         })
       }
 
-      // Image clip-path reveal — origin follows reading direction.
+      // Image clip-path reveal - origin follows reading direction.
       const imgWrap = sectionRef.current?.querySelector('.testimonial-image-wrap')
       if (imgWrap) {
         const hiddenClip = isRtl ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)'
@@ -151,7 +151,7 @@ export default function Testimonials() {
         />
       </div>
 
-      {/* Two-column layout — track order mirrors automatically under dir=rtl */}
+      {/* Two-column layout - track order mirrors automatically under dir=rtl */}
       <div className="flex flex-col md:flex-row md:items-stretch gap-8 md:gap-12 lg:gap-16">
         {/* image card */}
         <div className="md:w-[45%] lg:w-[48%]">
@@ -165,7 +165,7 @@ export default function Testimonials() {
             <MaskedImage
               shape="rect"
               src={images.testimonialCouple}
-              alt={`${active.name} — ${testimonials.heading.lead} ${testimonials.heading.tail}`}
+              alt={`${active.name} - ${testimonials.heading.lead} ${testimonials.heading.tail}`}
               fill
               className="h-full"
               objectFit="cover"
@@ -205,7 +205,7 @@ export default function Testimonials() {
               </ol>
             </nav>
 
-            {/* Decorative large quote mark — direction-correct opening mark
+            {/* Decorative large quote mark - direction-correct opening mark
                 (low-9 opener for RTL, high-6 opener for LTR). */}
             <span
               className="font-[var(--font-display)] font-bold text-[var(--color-ink)] select-none leading-none"
@@ -216,7 +216,7 @@ export default function Testimonials() {
             </span>
           </div>
 
-          {/* Active quote — animated crossfade */}
+          {/* Active quote - animated crossfade */}
           <div ref={quoteRef} className="flex-1 flex flex-col justify-between">
             <blockquote
               className="font-[var(--font-display)] font-medium text-[var(--color-ink)] text-[clamp(1.5rem,2.4vw,2.25rem)] leading-[1.3] tracking-[-0.02em] mb-8"

@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils'
 
 export interface SectionLabelProps {
-  /** The label text — displayed uppercase, tracked */
+  /** The label text - displayed uppercase, tracked */
   children: string
   /** Additional Tailwind classes */
   className?: string

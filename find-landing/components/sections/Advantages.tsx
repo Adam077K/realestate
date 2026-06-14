@@ -8,9 +8,9 @@ import { useContent } from '@/components/providers/LanguageProvider'
 import TwoToneHeading from '@/components/ui/TwoToneHeading'
 
 /**
- * Advantages — id="advantages".
+ * Advantages - id="advantages".
  *
- * "Discover our advantages" — the five reasons to work with Bonim Atid. Rendered
+ * "Discover our advantages" - the five reasons to work with Bonim Atid. Rendered
  * as an intentional, non-generic grid: the first card spans wide as a lead card,
  * the remaining four sit in a 2-up rhythm beneath it. Each card carries a mono
  * index, a display title and a muted description, on a hairline-bordered surface.

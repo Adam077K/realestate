@@ -8,7 +8,7 @@ import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useContent } from '@/components/providers/LanguageProvider'
 
 /**
- * Hitech — id="hitech".
+ * Hitech - id="hitech".
  *
  * Social proof: a heading plus a strip of tech-company logo images that
  * Bonim Atid clients work at. On the dark background logos are rendered as

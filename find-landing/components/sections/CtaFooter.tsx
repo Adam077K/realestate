@@ -79,7 +79,7 @@ export default function CtaFooter() {
   const { dir } = useLang()
   const isHebrew = c.register.fields.name === 'שם מלא'
 
-  // Registration form — controlled, no backend; shows a success state on submit.
+  // Registration form - controlled, no backend; shows a success state on submit.
   const [form, setForm] = useState({ name: '', phone: '', email: '' })
   const [submitted, setSubmitted] = useState(false)
 
@@ -108,7 +108,7 @@ export default function CtaFooter() {
         scrollTrigger: { trigger: '.reg-card', start: 'top 85%' },
       })
 
-      // Subtle parallax on the background image — drifts 8% over section height.
+      // Subtle parallax on the background image - drifts 8% over section height.
       // GPU-safe: transform/yPercent only, no top/left.
       const bg = regBgRef.current
       if (bg) {
@@ -138,10 +138,10 @@ export default function CtaFooter() {
 
   const thanksTitle = isHebrew ? 'המקום שלכם שמור.' : "You're in."
   const thanksMsg = isHebrew
-    ? 'שלחנו את לינק הוובינר לאימייל שלכם — נתראה בשידור.'
-    : "We've emailed your webinar link — see you on the broadcast."
+    ? 'שלחנו את לינק הוובינר לאימייל שלכם - נתראה בשידור.'
+    : "We've emailed your webinar link - see you on the broadcast."
 
-  // Trust / urgency cues — derived from the single source of truth (webinar facts).
+  // Trust / urgency cues - derived from the single source of truth (webinar facts).
   const seatsLabel = isHebrew ? 'מקומות מוגבלים' : 'Limited seats'
   const freeLabel = isHebrew ? 'השתתפות חינם' : 'Free to attend'
   const noteLabel = isHebrew
@@ -159,13 +159,13 @@ export default function CtaFooter() {
 
   return (
     <footer ref={footerRef} className="w-full" aria-label="Footer">
-      {/* ── Registration band — cinematic image + scrim + split composition ── */}
+      {/* ── Registration band - cinematic image + scrim + split composition ── */}
       <section
         id="register"
         className="reg-band relative w-full overflow-hidden"
         aria-labelledby="register-heading"
       >
-        {/* Background image with subtle parallax — container clips overflow,
+        {/* Background image with subtle parallax - container clips overflow,
             inner div translates ±5% via scrub so content above/below is never exposed */}
         <div
           ref={regBgRef}
@@ -202,7 +202,7 @@ export default function CtaFooter() {
           }}
           aria-hidden="true"
         />
-        {/* Subtle warm accent glow anchored to the form side — depth with intent. */}
+        {/* Subtle warm accent glow anchored to the form side - depth with intent. */}
         <div
           className="pointer-events-none absolute -bottom-24 h-[420px] w-[420px] rounded-full blur-[120px] opacity-30"
           style={{
@@ -235,7 +235,7 @@ export default function CtaFooter() {
                 {c.register.sub}
               </p>
 
-              {/* Webinar facts — concrete trust cues */}
+              {/* Webinar facts - concrete trust cues */}
               <div className="mt-8 w-full max-w-md">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[rgba(255,255,255,0.5)]">
                   {factsHeading}
@@ -321,7 +321,7 @@ export default function CtaFooter() {
                       ))}
                     </div>
 
-                    {/* Prominent CTA pill — full width, arrow nudge, GPU transform only */}
+                    {/* Prominent CTA pill - full width, arrow nudge, GPU transform only */}
                     <button
                       type="submit"
                       className="group mt-1 inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-full bg-white px-8 text-base font-semibold text-[var(--color-ink)] shadow-[0_10px_30px_-8px_rgba(255,255,255,0.4)] transition-[background-color,color,box-shadow] duration-200 hover:bg-[var(--color-sky-peach)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
@@ -353,7 +353,7 @@ export default function CtaFooter() {
         </div>
       </section>
 
-      {/* ── Footer body — teal/sage gradient, 4-column RTL ── */}
+      {/* ── Footer body - teal/sage gradient, 4-column RTL ── */}
       <div
         style={{
           background: 'linear-gradient(to left, #5f9d91 0%, #a9cabf 100%)',
@@ -363,10 +363,10 @@ export default function CtaFooter() {
         aria-label={c.newFooter.columns.contact}
       >
         <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 lg:px-20 py-16 md:py-20">
-          {/* 4-column grid — RTL: cols flow right→left in the page */}
+          {/* 4-column grid - RTL: cols flow right→left in the page */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
 
-            {/* ── Col 1 (RTL reading-start — rightmost on desktop): Logo + tagline + CTA ── */}
+            {/* ── Col 1 (RTL reading-start - rightmost on desktop): Logo + tagline + CTA ── */}
             <div className="flex flex-col items-start gap-6">
               {/* Building-icon: render full logo, filter white, crop to icon portion */}
               <a href="#" aria-label="בונים עתיד – דף הבית" className="flex-shrink-0">

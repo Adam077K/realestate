@@ -119,7 +119,7 @@ export default function WhyFind() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={images.cityStreet}
-            alt="Aerial view of a residential neighbourhood — Why FIND"
+            alt="Aerial view of a residential neighbourhood - Why FIND"
             className="w-full h-full object-cover"
             loading="lazy"
           />
