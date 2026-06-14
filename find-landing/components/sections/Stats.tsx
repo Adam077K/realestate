@@ -48,13 +48,15 @@ export default function Stats() {
       id="stats"
       className="relative w-full"
       style={{
-        // Full-section vertical gradient: TOP = cool dusk cloud matching the hero veil
-        // end color (rgba(228,235,246) — same as the hero's reduced-motion veil and the
-        // sky gradient's lower stops). BOTTOM = pure white (#ffffff) matching RewiredSteps
-        // var(--color-paper). The gradient IS the bridge — no separate overlay needed.
-        // The top value is identical to the hero's persistent cloud veil so the seam
-        // between hero and stats is invisible; the section melts into white below.
-        background: 'linear-gradient(to bottom, rgba(228,235,246,1) 0%, rgba(238,243,250,1) 30%, #ffffff 100%)',
+        // Full-section vertical gradient.
+        // TOP (#e4ebf6): exact composited render color at the hero→stats boundary.
+        //   Hero sky at 100% stop = #e2eaf3 (rgb 226,234,243).
+        //   Hero veil = rgba(228,235,246,0.82) layered over it.
+        //   Composite: r≈228, g≈235, b≈246 → #e4ebf6.
+        //   This IS the same as rgba(228,235,246,1) — single source of truth.
+        //   If a seam is visible it's from the cloud bloom layer; the gradient color is correct.
+        // BOTTOM (#ffffff): matches RewiredSteps var(--color-paper) — no jarring jump.
+        background: 'linear-gradient(to bottom, #e4ebf6 0%, #edf3fa 30%, #ffffff 100%)',
       }}
       aria-label={c.stats.map((s) => `${s.value} ${s.label}`).join(', ')}
     >

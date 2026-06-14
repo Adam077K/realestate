@@ -36,20 +36,18 @@
  *   OUTER  — absolute top-0 left-1/2, translateX(-50%). NEVER touched by GSAP.
  *   INNER  — buildingWrapRef. GSAP animates translateY ONLY.
  *
- * Motion timeline (scrub: true, pin +=290%):
- *   p 0.00       REST: building low (roofline ~50vh), sky open above, headline/subhead/CTA visible
- *   p 0.00–0.45  building HOLDS near rest — micro-drift only (~4% of panPx ≈ 1–2vh)
- *                → ALL 3 headline states (p 0.06–0.42) remain over bright clouds
- *   p 0.06–0.42  headline slot-roll cycles 3 sentences with plateau holds per sentence
+ * Motion timeline (scrub: true, pin +=400% — slower / heavier hero):
+ *   p 0.00       REST: building low (roofline ~50vh), copy upper-middle, all visible
+ *   p 0.00–0.15  copy block drifts DOWN to vertical-center (translateY 0 → +centerShiftPx)
+ *   p 0.00–0.45  building HOLDS near rest — micro-drift only (~4% panPx ≈ 1–2vh)
+ *   p 0.06–0.42  headline slot-roll cycles 3 sentences with plateau holds
+ *   p 0.15–0.42  copy block HOLDS at vertical center (all 3 states readable + centered)
  *   p 0.38–0.46  subhead+CTA fade+lift out
  *   p 0.43–0.52  headline fade+lift out (fully gone by 0.52)
  *   p 0.44–0.52  scroll nudge fades
  *   p 0.45–0.72  building PAN REVEAL — rushes to full -panPx after headlines gone
  *   p 0.52–0.55  dead zone: building mid-pan, no text
- *   p 0.55–0.63  CROSS-DISSOLVE begins: outline draws in (building still visible / mid-pan)
- *   p 0.57–0.67  building IMAGE fades out
- *   p 0.62–0.72  fill fades in; outline fades as fill lands (p 0.67–0.72)
- *   p 0.72–0.78  brand micro-breath (pan complete)
+ *   p 0.55–0.82  PURE CROSS-FADE (no draw/pop): building 1→0, outline 0→1→0, fill 0→1
  *   p 0.40–0.90  cloud bloom (driven by HeroClouds progressRef)
  *   p 0.40–0.85  nav fades out, restores after
  *   p 0.78–0.88  wordmark lifts into cloud bloom + fades
@@ -105,6 +103,9 @@ export default function Hero() {
   const fillRef = useRef<HTMLDivElement>(null)
   const scrollNudgeRef = useRef<HTMLDivElement>(null)
   const buildingOuterRef = useRef<HTMLDivElement>(null)
+  // copyBlockRef — inner shift wrapper. GSAP translates Y to drift copy toward
+  // vertical center after the first scroll beat, then holds centered for the full cycle.
+  const copyBlockRef = useRef<HTMLDivElement>(null)
 
   // Shared scroll progress — written by ScrollTrigger onUpdate, read by HeroClouds' rAF.
   // Plain ref: zero React re-renders per scroll tick.
@@ -137,6 +138,8 @@ export default function Hero() {
       const fill = fillRef.current
       const scrollNudge = scrollNudgeRef.current
 
+      const copyBlock = copyBlockRef.current
+
       if (
         !buildingWrap || !headline || !slotTrack || !subCta ||
         !buildingImg || !wordmark || !outline || !fill
@@ -145,34 +148,42 @@ export default function Hero() {
       if (slotHeightPx === 0) return
 
       // ── REST state (p = 0) ───────────────────────────────────────────────
-      // Building starts at translateY(0) — top of building aligned to top of viewport.
-      // Top half of building visible; lower half extends below fold.
       gsap.set(buildingWrap, { y: 0 })
       gsap.set(buildingImg, { opacity: 1 })
+      // Wordmark: starts centered, invisible (outline + fill both 0).
+      // Smooth into frame from rest position — no sudden pop.
       gsap.set(wordmark, { opacity: 1, scale: 0.96, y: 20 })
       gsap.set(outline, { opacity: 0 })
-      // Hard cut — no CSS transition on fill.
       gsap.set(fill, { opacity: 0 })
       gsap.set(slotTrack, { yPercent: 0 })
       gsap.set([headline, subCta], { opacity: 1, y: 0 })
+      if (copyBlock) gsap.set(copyBlock, { y: 0 })
       if (scrollNudge) gsap.set(scrollNudge, { opacity: 0.45 })
 
       // Enable GPU compositing during the pin
-      gsap.set(
-        [buildingWrap, headline, slotTrack, subCta, wordmark, outline, fill],
-        { willChange: 'transform, opacity' }
-      )
+      const willChangeTargets = [buildingWrap, headline, slotTrack, subCta, wordmark, outline, fill]
+      if (copyBlock) willChangeTargets.push(copyBlock)
+      gsap.set(willChangeTargets, { willChange: 'transform, opacity' })
 
       // Responsive pan range
       const panVH = getBuildingPanVH()
       const panPx = (window.innerHeight * panVH) / 100
+
+      // Copy centering shift: the copy container has paddingTop clamp(18vh,21vh,24vh).
+      // At 21vh the top of the headline is at ~21vh. Vertical center of the copy block
+      // (headline ~10vh tall + gap ~2vh + subhead ~3vh + gap ~2.5vh + CTA ~3vh ≈ 20vh)
+      // means the copy block midpoint sits at 21 + 10 = 31vh from top.
+      // To center the copy block: midpoint should be at 50vh.
+      // Shift needed: 50 - 31 = ~19vh. In practice use ~14vh so the copy sits high-center
+      // (not low-center) — readable without bumping the building roofline.
+      const centerShiftPx = (window.innerHeight * 14) / 100
 
       // ── Master scrubbed timeline ─────────────────────────────────────────
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: '+=290%',
+          end: '+=400%',   // ← SLOWER HERO: more scroll to traverse the pin
           pin: true,
           scrub: true,
           anticipatePin: 1,
@@ -183,45 +194,25 @@ export default function Hero() {
       })
 
       // BUILDING PAN — two-phase schedule:
-      //
-      //   p 0.00–0.45  HOLD near rest position. The headline cycle runs p 0.06–0.42 and
-      //                the headline fades completely by p 0.52. We must keep the building
-      //                LOW (roofline at ~50vh) so all 3 slot-roll states read over bright
-      //                clouds, not over the grey concrete facade.
-      //                A gentle drift of ≤ 2.5vh is allowed as a subtle parallax feel but
-      //                the building top MUST NOT rise into the copy zone (≤ 24vh paddingTop
-      //                + headline height ≈ up to ~40vh).
-      //
-      //   p 0.45–0.72  PAN REVEAL. After the last headline is gone (p 0.52) and during
-      //                the cross-dissolve sequence (outline in p 0.55, building fade p 0.57),
-      //                the building executes its full upward pan. The pan overlaps the
-      //                wordmark cross-dissolve which is fine — by then the building has
-      //                filled the frame and is transitioning to the wordmark.
-      //
-      // Implementation: two tweens — a micro-drift hold, then the reveal.
+      //   p 0.00–0.45  HOLD near rest. Micro-drift only (~4% panPx ≈ 1–2vh).
+      //                Building roofline stays at ~50vh so all 3 headline states
+      //                read over bright clouds, not over the facade.
+      //   p 0.45–0.72  REVEAL. Full -panPx travel after headlines are gone.
+      const microDrift = panPx * 0.04
+      tl.to(buildingWrap, { y: -microDrift, duration: 0.45, ease: 'power1.in' }, 0)
+      tl.to(buildingWrap, { y: -panPx, duration: 0.27, ease: 'power2.out' }, 0.45)
 
-      // Phase 1: micro-drift (barely perceptible parallax while headlines are visible).
-      // Building moves only ~2-3% of its eventual pan — enough to feel alive, not enough
-      // to bring the roofline close to the copy zone.
-      const microDrift = panPx * 0.04   // ≈ 1–2vh — well below any copy
-      tl.to(
-        buildingWrap,
-        { y: -microDrift, duration: 0.45, ease: 'power1.in' },
-        0
-      )
+      // COPY BLOCK DRIFT → CENTER (p 0.00–0.15, then hold until fade-out).
+      // The copy container shifts downward so all 3 slot states are framed at
+      // vertical-center — cinematic and readable at both 1440 and 390.
+      if (copyBlock) {
+        tl.to(copyBlock, { y: centerShiftPx, duration: 0.15, ease: 'power2.out' }, 0)
+        // Holds centered until it fades out (headline fade at p 0.43–0.52, subCta at 0.38–0.46)
+        // No additional tween needed — the y value just holds through the fade.
+      }
 
-      // Phase 2: full pan reveal (p 0.45–0.72). Building rushes upward after headlines
-      // are gone, with a strong ease-out so it decelerates into the wordmark frame.
-      // Duration = 0.27 in timeline units (0.72 - 0.45).
-      tl.to(
-        buildingWrap,
-        { y: -panPx, duration: 0.27, ease: 'power2.out' },
-        0.45
-      )
-
-      // Slot-roll cycling headline — comfortable readable cycle p 0.06–0.42.
-      // Each of the 3 sentences holds for a "breath" before transitioning to the next.
-      // The modifier maps raw GSAP progress → slot position with per-sentence plateaus.
+      // Slot-roll cycling headline — readable cycle p 0.06–0.42.
+      // Plateau scheme: each of the 3 sentences holds, with cubic transitions between.
       const lineCount = cycle.length
       if (lineCount > 1) {
         const totalSlots = lineCount - 1
@@ -232,25 +223,15 @@ export default function Hero() {
           { y: 0 },
           {
             y: endY,
-            duration: 0.36,  // spans p 0.06–0.42 — long, readable, with plateau holds
+            duration: 0.36,  // spans p 0.06–0.42
             ease: 'none',
             modifiers: {
               y: (raw: string) => {
-                // Map raw linear progress (0→1) to slot position with plateau holds.
-                // For 3 sentences (2 transitions): each sentence holds for ~1/3 of the
-                // cycle, with a brief cross-fade window between them.
-                // Plateau scheme (totalSlots=2):
-                //   0.00–0.18  sentence 0 (hold)
-                //   0.18–0.32  transition 0→1
-                //   0.32–0.68  sentence 1 (hold)
-                //   0.68–0.82  transition 1→2
-                //   0.82–1.00  sentence 2 (hold)
                 const rawPx = parseFloat(raw)
-                const rawProgress = rawPx / endY   // 0→1 over the tween
+                const rawProgress = rawPx / endY
                 let slotPos: number
 
                 if (totalSlots === 1) {
-                  // 2 sentences: 0→hold→1
                   if (rawProgress < 0.25) {
                     slotPos = 0
                   } else if (rawProgress < 0.75) {
@@ -261,12 +242,10 @@ export default function Hero() {
                     slotPos = 1
                   }
                 } else {
-                  // 3 sentences (totalSlots=2): hold → transition → hold → transition → hold
-                  const holds = [0.18, 0.50]   // progress thresholds where holds end
-                  const transitions = [[0.18, 0.32], [0.68, 0.82]]
-                  const holdEnds = [0.32, 1.00]
+                  // 3 sentences (totalSlots=2)
+                  const transitions = [[0.18, 0.32], [0.68, 0.82]] as const
 
-                  if (rawProgress < holds[0]) {
+                  if (rawProgress < transitions[0][0]) {
                     slotPos = 0
                   } else if (rawProgress < transitions[0][1]) {
                     const t = (rawProgress - transitions[0][0]) / (transitions[0][1] - transitions[0][0])
@@ -281,13 +260,9 @@ export default function Hero() {
                   } else {
                     slotPos = 2
                   }
-
-                  // Suppress unused variable warning for holdEnds
-                  void holdEnds
                 }
 
-                const resultPx = -(slotPos * slotHeightPx)
-                return `${resultPx}px`
+                return `${-(slotPos * slotHeightPx)}px`
               },
             },
           },
@@ -295,10 +270,10 @@ export default function Hero() {
         )
       }
 
-      // p 0.38–0.46  subhead+CTA: exits — fully gone at 0.46.
+      // p 0.38–0.46  subhead+CTA exits.
       tl.to(subCta, { opacity: 0, y: -50, duration: 0.08, ease: 'power3.in' }, 0.38)
 
-      // p 0.43–0.52  headline: fade+lift complete by 0.52.
+      // p 0.43–0.52  headline fade+lift — fully gone at 0.52.
       tl.to(headline, { opacity: 0, y: -60, duration: 0.09, ease: 'power3.in' }, 0.43)
 
       // p 0.44–0.52  Scroll nudge fades.
@@ -306,27 +281,39 @@ export default function Hero() {
         tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.44)
       }
 
-      // p 0.55–0.68  CINEMATIC CROSS-DISSOLVE: outline draws in, building fades, fill lands.
-      // (a) Wordmark position: reset to centered, starting invisible at p 0.55
-      tl.set(wordmark, { scale: 1, y: 0 }, 0.55)
-      // (b) Outline DRAWS IN over p 0.55–0.63 (while building still partly visible)
-      tl.to(outline, { opacity: 1, duration: 0.08, ease: 'power2.inOut' }, 0.55)
-      // (c) Building IMAGE cross-FADES OUT over p 0.57–0.67
-      tl.to(buildingImg, { opacity: 0, duration: 0.10, ease: 'sine.inOut' }, 0.57)
-      // (d) Fill FADES IN over p 0.62–0.72, outline fades as fill lands p 0.67–0.72
-      tl.to(fill,    { opacity: 1, duration: 0.10, ease: 'power2.inOut' }, 0.62)
-      tl.to(outline, { opacity: 0, duration: 0.05, ease: 'power2.in' },   0.67)
+      // p 0.50–0.55  Wordmark smoothly drifts to final resting position (no snap).
+      // Replaces the old tl.set() hard snap — smooth tween ensures no pop.
+      tl.to(wordmark, { scale: 1, y: 0, duration: 0.05, ease: 'power1.out' }, 0.50)
 
-      // p 0.72–0.78  brand micro-breath: settle with spring feel
-      tl.to(wordmark, { scale: 1.04, duration: 0.03, ease: 'power2.out' }, 0.72)
-      tl.to(wordmark, { scale: 1.02, duration: 0.03, ease: 'back.out(1.2)' }, 0.75)
+      // p 0.55–0.82  PURE SCRUBBED CROSS-FADE — building dissolves into wordmark.
+      //
+      // NO stroke-dashoffset draw. NO instant appear. Every step is a continuous
+      // opacity fade tied to scroll progress (scrub:true). As you scroll slowly
+      // you see every intermediate state — no pop, no snap, no sudden appearance.
+      //
+      //   p 0.55–0.68  Building image: opacity 1 → 0  (sine.inOut — imperceptible start)
+      //   p 0.55–0.66  White outline:  opacity 0 → 1  (power1.inOut — gentle draw)
+      //   p 0.66–0.78  White outline:  opacity 1 → 0  (power1.inOut — fades as fill arrives)
+      //   p 0.63–0.80  Image fill:     opacity 0 → 1  (power1.inOut — smooth reveal)
+      //
+      // Overlap windows ensure continuous visual handoff — at every progress point
+      // some element is visible, guaranteeing there's never a "hole" or flash.
 
-      // p 0.78–0.88  wordmark lifts into the cloud bloom + fades
-      tl.to(
-        wordmark,
-        { y: '-20%', scale: 1.08, opacity: 0, duration: 0.10, ease: 'power2.in' },
-        0.78
-      )
+      // Building image fades out — long window so it's imperceptibly gradual.
+      tl.to(buildingImg, { opacity: 0, duration: 0.13, ease: 'sine.inOut' }, 0.55)
+
+      // White outline fades in alongside the building fade (overlap feels like a glow
+      // emerging from the building as it dissolves — very cinematic at slow scroll).
+      tl.to(outline, { opacity: 1, duration: 0.11, ease: 'power1.inOut' }, 0.55)
+
+      // Outline fades out as image fill arrives — it's a ghost bridging building→fill.
+      tl.to(outline, { opacity: 0, duration: 0.12, ease: 'power1.inOut' }, 0.66)
+
+      // Image fill fades in — starts while outline is still present for a soft handoff.
+      tl.to(fill, { opacity: 1, duration: 0.17, ease: 'power1.inOut' }, 0.63)
+
+      // p 0.78–0.88  Wordmark lifts into the cloud bloom + fades.
+      tl.to(wordmark, { y: '-20%', scale: 1.08, opacity: 0, duration: 0.10, ease: 'power2.in' }, 0.78)
 
       // p 0.40–0.85  Nav fades out before wordmark era, restores after.
       const nav = document.querySelector<HTMLElement>('nav, header[role="banner"]') ??
@@ -338,14 +325,11 @@ export default function Hero() {
 
       // Clean up will-change after the pin completes
       return () => {
-        gsap.set(
-          [buildingWrap, headline, slotTrack, subCta, wordmark, outline, fill],
-          { willChange: 'auto' }
-        )
+        gsap.set(willChangeTargets, { willChange: 'auto' })
         if (nav) gsap.set(nav, { opacity: 1 })
       }
     },
-    [motionOk, mounted, cycle.length, slotHeightPx]
+    [motionOk, mounted, cycle.length, slotHeightPx]  // eslint-disable-line react-hooks/exhaustive-deps
   )
 
   // ── Reduced-motion: clean composed fallback ──────────────────────────────
@@ -447,22 +431,24 @@ export default function Hero() {
         {/* Copy stack — headline + subhead + CTA fully over sky */}
         <div className="relative z-[4] flex w-full flex-col items-center px-6 text-center gap-6">
           <h1
-            className="font-bold text-[var(--color-ink)] leading-[0.95]"
+            className="font-bold leading-[0.95]"
             style={{
               fontFamily: 'var(--font-hebrew-display)',
               fontSize: 'clamp(2.25rem, 7vw, 6rem)',
               letterSpacing: '-0.02em',
+              color: '#050505',
+              filter: 'drop-shadow(0 1px 10px rgba(255,255,255,0.65))',
             }}
           >
             {cycle[0]}
           </h1>
           <p
-            className="font-light text-[var(--color-ink)]"
+            className="font-light"
             style={{
               fontFamily: 'var(--font-body)',
               fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
               lineHeight: 1.6,
-              opacity: 0.78,
+              color: '#050505',
               maxWidth: '640px',
             }}
           >
@@ -665,49 +651,49 @@ export default function Hero() {
         </div>
       )}
 
-      {/* 7. Text stack — vertically + horizontally centred.
-          v3 rest framing: building roofline at ~46vh (approach b), sky occupies top ~46%.
-          paddingTop reduced to ~10vh (approach a) so the copy block sits higher in the sky.
-          Stack bottom: 10vh + headline ~13vh + gap 4.5vh + subhead 3.5vh + gap 4vh + CTA 5.5vh
-          ≈ 40-41vh — gives 5-6vh of clear sky between CTA bottom and the roofline at 46vh.
-          Mobile (390×844): paddingTop 8vh, headline ~3.7vh, all gaps/text ≈ 27vh total.
-          Roofline clamp min = 34vh → 7vh breathing room on mobile. Both clear. */}
+      {/* 7. Text stack — outer wrapper is absolute-inset, inner ref receives Y shift.
+          At rest copy is upper-middle (paddingTop clamp(18vh,21vh,24vh)).
+          GSAP translates copyBlockRef downward ~14vh by p0.15 so all 3 slot states
+          read at vertical center. GPU-safe: translateY only, willChange managed above. */}
       <div
-        className="absolute inset-0 z-[4] flex flex-col items-center justify-start px-6 text-center"
+        className="absolute inset-0 z-[4] flex flex-col items-center justify-start px-6 text-center pointer-events-none"
         style={{ paddingTop: 'clamp(18vh, 21vh, 24vh)' }}
       >
-        {/* Cycling headline */}
-        <div ref={headlineRef} className="flex w-full flex-col items-center">
-          <SlotRollHeadline
-            ref={slotTrackRef}
-            lines={cycle}
-            onSlotHeight={handleSlotHeight}
-          />
-        </div>
+        {/* Inner ref — receives the scroll-driven Y shift toward vertical center */}
+        <div ref={copyBlockRef} className="w-full flex flex-col items-center pointer-events-auto">
+          {/* Cycling headline */}
+          <div ref={headlineRef} className="flex w-full flex-col items-center">
+            <SlotRollHeadline
+              ref={slotTrackRef}
+              lines={cycle}
+              onSlotHeight={handleSlotHeight}
+            />
+          </div>
 
-        {/* Subhead + CTA — tighter gaps (FIND-style compact upper-middle block) */}
-        <div
-          ref={subCtaRef}
-          className="flex w-full flex-col items-center"
-          style={{ marginTop: 'clamp(0.75rem, 2vh, 1.5rem)' }}
-        >
-          <p
-            className="font-light"
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
-              lineHeight: 1.6,
-              maxWidth: '640px',
-              color: 'rgba(225,235,248,0.90)',
-            }}
+          {/* Subhead + CTA — tighter gaps */}
+          <div
+            ref={subCtaRef}
+            className="flex w-full flex-col items-center"
+            style={{ marginTop: 'clamp(0.75rem, 2vh, 1.5rem)' }}
           >
-            {c.hero.subhead}
-          </p>
-          {/* CTA — tighter gap below subhead */}
-          <div style={{ marginTop: 'clamp(1rem, 2.5vh, 1.75rem)' }}>
-            <Pill variant="dark" href="#register" withArrow>
-              {c.hero.cta}
-            </Pill>
+            <p
+              className="font-light"
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
+                lineHeight: 1.6,
+                maxWidth: '640px',
+                color: '#050505',
+              }}
+            >
+              {c.hero.subhead}
+            </p>
+            {/* CTA — tighter gap below subhead */}
+            <div style={{ marginTop: 'clamp(1rem, 2.5vh, 1.75rem)' }}>
+              <Pill variant="dark" href="#register" withArrow>
+                {c.hero.cta}
+              </Pill>
+            </div>
           </div>
         </div>
       </div>
@@ -787,16 +773,11 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
                 paddingTop: '0.15em',
                 paddingBottom: '0.15em',
                 boxSizing: 'border-box',
-                // Black→gray gradient text — premium editorial feel.
-                // background-clip:text clips the gradient to the glyph shapes.
-                // drop-shadow (not textShadow — that paints the bounding box, not glyphs)
-                // adds a faint white halo that lifts the dark text off bright cloud mass.
-                background: 'linear-gradient(180deg, #111111 0%, #6b6b6b 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                color: 'transparent',
-                filter: 'drop-shadow(0 1px 8px rgba(255,255,255,0.60))',
+                // Very deep black fill — maximum contrast over clouds.
+                // drop-shadow (not textShadow) provides a white halo around the glyphs
+                // so the dark ink lifts cleanly off the bright cloud mass.
+                color: '#050505',
+                filter: 'drop-shadow(0 1px 10px rgba(255,255,255,0.65))',
               }}
             >
               {line}
