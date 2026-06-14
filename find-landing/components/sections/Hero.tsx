@@ -189,8 +189,22 @@ export default function Hero() {
       if (cloudVeil) willChangeTargets.push(cloudVeil)
       gsap.set(willChangeTargets.filter(Boolean) as Element[], { willChange: 'transform, opacity' })
 
-      const panVH = getBuildingPanVH()
-      const panPx = (window.innerHeight * panVH) / 100
+      // ── GROUNDED pan distance (fixes "building floats in mid-air") ──────────
+      // The building must rise ONLY until its base reaches the viewport bottom —
+      // a fully-revealed, GROUNDED tower. A fixed vh-based pan overshot and lifted
+      // the base off the bottom, leaving sky beneath it (the float bug). Derive the
+      // pan from the real building geometry (same math as the rest-position clamp)
+      // and never lift past base-at-bottom. GROUND_BLEED keeps the base a hair below
+      // the fold so sub-pixel rounding can never reopen a gap.
+      const GROUND_BLEED = 22
+      const vhNow      = window.innerHeight
+      const bImgEl     = buildingImg.querySelector('img') as HTMLImageElement | null
+      const bH         = bImgEl ? bImgEl.getBoundingClientRect().height : vhNow
+      const restTopNow = Math.min(0.63 * vhNow, Math.max(0.55 * vhNow, 0.59 * vhNow))
+      const baseAtRest = Math.max(restTopNow, vhNow - bH) + bH // matches compute() clamp
+      // On short (phone) viewports baseAtRest≈vh → pan≈0 (building stays grounded, no float).
+      // On desktop the building is taller than vh → pan lifts the base up to the bottom.
+      const panPx      = Math.max(0, baseAtRest - vhNow - GROUND_BLEED)
 
       // ── Master scrubbed timeline (pin +=1000%) ──────────────────────────
       // scrub: 0.8 for smoother premium feel; extended pin for slower constant-velocity flow
