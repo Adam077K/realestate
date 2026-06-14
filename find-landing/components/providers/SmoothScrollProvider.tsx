@@ -14,11 +14,13 @@ import { gsap, ScrollTrigger } from '@/lib/gsap'
 interface SmoothScrollContextValue {
   lenis: Lenis | null
   motionOk: boolean
+  reducedMotion: boolean
 }
 
 const SmoothScrollContext = createContext<SmoothScrollContextValue>({
   lenis: null,
   motionOk: true,
+  reducedMotion: false,
 })
 
 export function useSmoothScroll() {
@@ -31,17 +33,24 @@ interface SmoothScrollProviderProps {
 
 export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
   const lenisRef = useRef<Lenis | null>(null)
-  const [motionOk, setMotionOk] = useState(true)
+  // motionOk is ALWAYS true — scroll choreography always runs.
+  // reducedMotion reflects the live OS preference — used ONLY to gate
+  // infinite loops / autoplay (marquees, intervals, ambient drifts).
+  const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
-    // Detect reduced-motion preference
+    if (typeof window === 'undefined' || !window.matchMedia) return
+
+    // Track OS reduce-motion preference for gating autoplay/loop animations only.
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const prefersReduced = mq.matches
-    setMotionOk(!prefersReduced)
+    setReducedMotion(mq.matches)
 
-    // If user prefers reduced motion, skip Lenis entirely - use native scroll
-    if (prefersReduced) return
+    const handleMotionChange = (e: MediaQueryListEvent) => {
+      setReducedMotion(e.matches)
+    }
+    mq.addEventListener('change', handleMotionChange)
 
+    // Always initialize Lenis — smooth scroll is not gated on reduce-motion.
     const initLenis = async () => {
       const LenisModule = await import('lenis')
       const LenisClass = LenisModule.default
@@ -81,19 +90,12 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       }
       window.addEventListener('resize', handleResize, { passive: true })
 
-      // Listen for future motion preference changes
-      const handleMotionChange = (e: MediaQueryListEvent) => {
-        setMotionOk(!e.matches)
-      }
-      mq.addEventListener('change', handleMotionChange)
-
       return () => {
         gsap.ticker.remove(ticker)
         ScrollTrigger.getAll().forEach((t) => t.kill())
         lenis.destroy()
         lenisRef.current = null
         window.removeEventListener('resize', handleResize)
-        mq.removeEventListener('change', handleMotionChange)
       }
     }
 
@@ -104,12 +106,13 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
 
     return () => {
       cleanup?.()
+      mq.removeEventListener('change', handleMotionChange)
     }
   }, [])
 
   return (
     <SmoothScrollContext.Provider
-      value={{ lenis: lenisRef.current, motionOk }}
+      value={{ lenis: lenisRef.current, motionOk: true, reducedMotion }}
     >
       {children}
     </SmoothScrollContext.Provider>

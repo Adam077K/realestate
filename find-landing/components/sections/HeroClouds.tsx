@@ -285,7 +285,11 @@ export default function HeroClouds({
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
+  // animate: controls CSS keyframe drift (ambient loop) — gated on reducedMotion.
   const animate = active && !reducedMotion
+  // scrollAnimate: controls the rAF scroll-parallax loop — always runs when active.
+  // This ensures the veil bloom and parallax always fire with scroll, regardless of OS pref.
+  const scrollAnimate = active
 
   // rAF coverage + parallax loop
   useEffect(() => {
@@ -312,7 +316,7 @@ export default function HeroClouds({
       }
     }
 
-    if (!animate) {
+    if (!scrollAnimate) {
       apply(staticRestP)
       return
     }
@@ -326,7 +330,7 @@ export default function HeroClouds({
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
     }
-  }, [animate, progressRef, layers, variant, staticRestP])
+  }, [scrollAnimate, progressRef, layers, variant, staticRestP])
 
   return (
     <div
@@ -406,8 +410,9 @@ export default function HeroClouds({
             : (layer.anim as string)
           : undefined
 
-        // Initial state for first paint (before rAF loop, or when static)
-        const initial = layerState(animate ? 0 : staticRestP, layer, variant)
+        // Initial state for first paint (before rAF loop, or when fully static).
+        // scrollAnimate=true means the rAF loop will update state each tick from p=0.
+        const initial = layerState(scrollAnimate ? 0 : staticRestP, layer, variant)
         const rotateDeg = layer.rotate ?? 0
 
         // CSSProperties extended with CSS custom properties for keyframe composition.

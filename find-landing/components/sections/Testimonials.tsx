@@ -23,7 +23,7 @@ export default function Testimonials() {
   const quoteRef = useRef<HTMLDivElement>(null)
   const [activeIdx, setActiveIdx] = useState(0)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const { motionOk } = useSmoothScroll()
+  const { motionOk, reducedMotion } = useSmoothScroll()
   const { dir } = useLang()
   const c = useContent()
   const { testimonials } = c
@@ -58,16 +58,17 @@ export default function Testimonials() {
     [activeIdx, motionOk]
   )
 
-  // Autoplay
+  // Autoplay — gated on reducedMotion (not motionOk).
+  // Manual pager always works regardless of OS preference.
   useEffect(() => {
-    if (!motionOk) return
+    if (reducedMotion) return
     timerRef.current = setTimeout(() => {
       goTo((activeIdx + 1) % items.length)
     }, AUTOPLAY_DELAY)
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
     }
-  }, [activeIdx, motionOk, goTo, items.length])
+  }, [activeIdx, reducedMotion, goTo, items.length])
 
   // Section entrance animations
   useGsapContext(

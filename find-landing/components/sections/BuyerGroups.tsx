@@ -19,7 +19,7 @@ export default function BuyerGroups() {
   const sectionRef = useRef<HTMLElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const tweenRef = useRef<gsap.core.Tween | null>(null)
-  const { motionOk } = useSmoothScroll()
+  const { motionOk, reducedMotion } = useSmoothScroll()
   const { dir } = useLang()
   const c = useContent()
   const { buyerGroups } = c
@@ -90,10 +90,11 @@ export default function BuyerGroups() {
     [motionOk]
   )
 
-  // Auto-playing infinite marquee.
+  // Auto-playing infinite marquee — gated on reducedMotion (not motionOk).
+  // Scroll-reveal entrances in useGsapContext above always run (motionOk is always true).
   useEffect(() => {
     const track = trackRef.current
-    if (!track || !motionOk) return
+    if (!track || reducedMotion) return
 
     const distance = () => track.scrollWidth / 2
     const direction = dir === 'rtl' ? 1 : -1
@@ -121,7 +122,7 @@ export default function BuyerGroups() {
     }, track)
 
     return () => ctx.revert()
-  }, [motionOk, dir])
+  }, [reducedMotion, dir])
 
   const pause = () => tweenRef.current?.pause()
   const resume = () => tweenRef.current?.play()
@@ -170,7 +171,7 @@ export default function BuyerGroups() {
         <div
           ref={trackRef}
           className={
-            motionOk
+            !reducedMotion
               ? 'flex w-max gap-5 md:gap-6 will-change-transform'
               : 'flex flex-wrap justify-center gap-5 md:gap-6'
           }
@@ -184,7 +185,7 @@ export default function BuyerGroups() {
             />
           ))}
           {/* Duplicate copy for the seamless loop - decorative only. */}
-          {motionOk &&
+          {!reducedMotion &&
             cards.map((src, i) => (
               <BuyerCard key={`b-${i}`} src={src} index={i} alt="" ariaHidden />
             ))}

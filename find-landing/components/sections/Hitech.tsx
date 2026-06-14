@@ -24,12 +24,13 @@ import { useContent } from '@/components/providers/LanguageProvider'
 export default function Hitech() {
   const sectionRef = useRef<HTMLElement>(null)
   const trackRef = useRef<HTMLUListElement>(null)
-  const { motionOk } = useSmoothScroll()
+  const { motionOk, reducedMotion } = useSmoothScroll()
   const c = useContent()
   const { hitech } = c
 
   // Duplicate the logo list so a -50% translate produces a seamless loop.
-  const marqueeLogos = motionOk ? [...hitech.logos, ...hitech.logos] : hitech.logos
+  // motionOk is always true now; reducedMotion gates the loop itself.
+  const marqueeLogos = !reducedMotion ? [...hitech.logos, ...hitech.logos] : hitech.logos
 
   useGsapContext(
     sectionRef,
@@ -88,16 +89,19 @@ export default function Hitech() {
           },
         })
 
-        // Loop across exactly one copy's width (the list is doubled).
-        gsap.to(track, {
-          xPercent: -50,
-          duration: 26,
-          ease: 'none',
-          repeat: -1,
-        })
+        // Infinite marquee loop — gated on reducedMotion so it doesn't run
+        // when the OS preference is set. Scroll-reveal entrances above always run.
+        if (!reducedMotion) {
+          gsap.to(track, {
+            xPercent: -50,
+            duration: 26,
+            ease: 'none',
+            repeat: -1,
+          })
+        }
       }
     },
-    [motionOk]
+    [motionOk, reducedMotion]
   )
 
   return (
@@ -115,7 +119,7 @@ export default function Hitech() {
         <div
           className="relative"
           style={
-            motionOk
+            !reducedMotion
               ? {
                   WebkitMaskImage:
                     'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
@@ -128,7 +132,7 @@ export default function Hitech() {
           <ul
             ref={trackRef}
             className={
-              motionOk
+              !reducedMotion
                 ? 'flex w-max items-center gap-12 md:gap-16 will-change-transform'
                 : 'flex flex-wrap items-center justify-center gap-x-10 gap-y-8 md:gap-x-16'
             }
@@ -136,7 +140,7 @@ export default function Hitech() {
             {marqueeLogos.map((logo, i) => (
               <li
                 key={`${logo.name}-${i}`}
-                aria-hidden={motionOk && i >= hitech.logos.length ? true : undefined}
+                aria-hidden={!reducedMotion && i >= hitech.logos.length ? true : undefined}
                 className="group flex items-center justify-center"
               >
                 <Image
