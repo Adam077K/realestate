@@ -107,17 +107,26 @@ export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacit
   const viewBoxH = subWord ? 285 : 175
   const mainY = subWord ? '38%' : '50%'
 
+  // WebKit/iOS fix: WebKit does NOT honour Hebrew RTL bidi inside SVG <text>.
+  // Bypass bidi entirely by reversing the glyph string and forcing LTR layout,
+  // so both Chromium and WebKit render characters in the same (visual) order.
+  const rtlText = (s: string) => [...s].reverse().join('')
+
+  const MAIN_WORD = 'בונים עתיד'
+
   // Shared text attributes for the main word — outline and clipPath texts must match exactly.
+  // direction/unicodeBidi: force LTR so WebKit places reversed glyphs left→right,
+  // giving the same visual result as Chromium's native bidi handling.
   const mainTextAttrs = {
     x: '50%' as const,
     y: mainY,
     dominantBaseline: 'central' as const,
     textAnchor: 'middle' as const,
-    direction: 'rtl' as const,
     fontFamily: 'var(--font-hebrew), system-ui, sans-serif',
     fontWeight: '800' as const,
     fontSize: '138' as const,
     letterSpacing: '-2' as const,
+    style: { direction: 'ltr', unicodeBidi: 'bidi-override' } as const,
   }
 
   // Shared text attributes for the sub-word.
@@ -126,11 +135,11 @@ export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacit
     y: '80%' as const,
     dominantBaseline: 'central' as const,
     textAnchor: 'middle' as const,
-    direction: 'rtl' as const,
     fontFamily: 'var(--font-hebrew), system-ui, sans-serif',
     fontWeight: '800' as const,
     fontSize: '69' as const,
     letterSpacing: '-1' as const,
+    style: { direction: 'ltr', unicodeBidi: 'bidi-override' } as const,
   }
 
   return (
@@ -145,17 +154,17 @@ export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacit
       style={{ filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.22))' }}
     >
       <defs>
-        {/* ClipPath for main word fill image */}
+        {/* ClipPath for main word fill image — reversed+LTR for cross-browser bidi parity */}
         <clipPath id={clipId}>
           <text {...mainTextAttrs}>
-            בונים עתיד
+            {rtlText(MAIN_WORD)}
           </text>
         </clipPath>
         {/* ClipPath for sub-word fill image */}
         {subWord && (
           <clipPath id={clipIdSub}>
             <text {...subTextAttrs}>
-              {subWord}
+              {rtlText(subWord)}
             </text>
           </clipPath>
         )}
@@ -192,7 +201,7 @@ export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacit
           clipPath: 'inset(0 0 0 100%)',
         }}
       >
-        {/* Main word — thin white hollow stroke */}
+        {/* Main word — thin white hollow stroke; reversed+LTR for WebKit parity */}
         <text
           {...mainTextAttrs}
           fill="none"
@@ -201,7 +210,7 @@ export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacit
           strokeLinejoin="round"
           strokeLinecap="round"
         >
-          בונים עתיד
+          {rtlText(MAIN_WORD)}
         </text>
         {/* Sub-word — slightly thinner stroke at smaller scale */}
         {subWord && (
@@ -213,7 +222,7 @@ export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacit
             strokeLinejoin="round"
             strokeLinecap="round"
           >
-            {subWord}
+            {rtlText(subWord)}
           </text>
         )}
       </g>
