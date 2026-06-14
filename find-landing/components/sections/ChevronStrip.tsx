@@ -109,8 +109,10 @@ export default function ChevronStrip() {
         <TwoToneHeading lead={c.arrows.lead} tail={c.arrows.tail} as="h2" />
       </div>
 
+      {/* Mobile: 2×2 grid (no overlap, no horizontal scroll).
+          sm+: original overlapped horizontal flex row. */}
       <div className="overflow-hidden px-4" dir="ltr">
-        <div className="chevron-arrow-row flex items-stretch justify-center">
+        <div className="chevron-arrow-row grid grid-cols-2 gap-2 sm:flex sm:items-stretch sm:justify-center">
           {chevronImages.map((src, i) => {
             const meta =
               IMAGE_META[i] ?? {
@@ -124,12 +126,7 @@ export default function ChevronStrip() {
                 ref={(el) => {
                   itemRefs.current[i] = el
                 }}
-                className="group relative shrink-0 grow-0 will-change-transform"
-                style={{
-                  width: 'clamp(180px, 21vw, 290px)',
-                  height: 'clamp(240px, 30vw, 420px)',
-                  marginInlineStart: i === 0 ? undefined : 'clamp(-24px, -1.8vw, -14px)',
-                }}
+                className="chevron-panel group relative will-change-transform"
               >
                 <MaskedImage
                   shape="chevron"

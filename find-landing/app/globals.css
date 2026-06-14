@@ -150,6 +150,27 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.01em;
 }
 
+/* ── ChevronStrip panel: mobile 2×2 grid → sm+ overlapped flex row ── */
+/* Mobile default: full grid-cell width, taller clamp for 2-column layout */
+.chevron-panel {
+  position: relative;
+  width: 100%;
+  height: clamp(150px, 42vw, 420px);
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+/* sm+ (≥640px): restore fixed panel width + negative-margin overlap */
+@media (min-width: 640px) {
+  .chevron-panel {
+    width: clamp(180px, 21vw, 290px);
+    height: clamp(240px, 30vw, 420px);
+  }
+  .chevron-panel:not(:first-child) {
+    margin-inline-start: clamp(-24px, -1.8vw, -14px);
+  }
+}
+
 /* ── Utility: hairline border ── */
 .hairline {
   border: 1px solid rgba(17, 17, 17, 0.12);
