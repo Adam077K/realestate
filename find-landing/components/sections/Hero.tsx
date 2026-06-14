@@ -3,7 +3,7 @@
 /**
  * Hero — Signature pinned scroll experience for בונים עתיד (Bonim Atid).
  *
- * Building: hero-tower-v2.png — SQUARE 1024×1024 green-terraced glass tower.
+ * Building: hero-tower-v3.png — 1024×946 green-terraced glass tower (transparent top rows + semi-transparent base row removed).
  * Because the image is square (not portrait), we render it at min(78vw, 880px)
  * wide so the upper terraces show flush at viewport bottom at rest. REST_SCALE 0.57
  * (desktop) / 0.80 (mobile) means at 1440px the building base is flush to the
@@ -110,13 +110,13 @@ export default function Hero() {
     setSlotHeightPx(px)
   }, [])
 
-  // Issue B — set building outer translateY after mount to avoid SSR hydration mismatch.
-  // Mobile (< 768px) needs more nudge than desktop to cover transparent PNG bottom pixels.
+  // Issue B (resolved) — hero-tower-v3.png has transparent top rows cropped and
+  // semi-transparent bottom row removed, so the building base is the last pixel row.
+  // A 1px nudge is kept only to absorb sub-pixel rounding on HiDPI displays.
   useEffect(() => {
     const el = buildingOuterRef.current
     if (!el) return
-    const nudge = window.innerWidth < 768 ? 8 : 4
-    el.style.transform = `translateX(-50%) translateY(${nudge}px)`
+    el.style.transform = `translateX(-50%) translateY(1px)`
   }, [mounted])
 
   // ── Pinned, scrubbed master timeline (motionOk only) ─────────────────────
@@ -358,20 +358,17 @@ export default function Hero() {
           No translateY → zero floating gap at all times.
           P2.5: bottom-0, no padding/margin on outer. object-bottom on img. */}
       {/* OUTER: centering only. bottom-0 + no bottom spacing = flush base.
-          Issue B: The hero-tower-v2.png has transparent pixels at its bottom edge
-          (the building base doesn't fill the full 1024×1024 frame).
-          translateY pushes the wrapper below the viewport bottom so those transparent
-          pixels are clipped by the pinned section's overflow-hidden.
-          Responsive: mobile needs more nudge than desktop because the render width
-          is smaller relative to the PNG, so the transparent band is proportionally larger. */}
+          Issue B (resolved): hero-tower-v3.png has the 77 transparent top rows and
+          semi-transparent bottom row removed, so the building base is the last pixel row.
+          A 1px translateY absorbs sub-pixel rounding on HiDPI displays. */}
       <div
         ref={buildingOuterRef}
         className="absolute bottom-0 left-1/2 z-[2]"
         style={{
           width: 'min(78vw, 880px)',
-          // Default 4px nudge (overwritten to 8px on mobile by useEffect above).
+          // 1px nudge to absorb sub-pixel rounding on HiDPI; overwritten by useEffect.
           // Section overflow-hidden clips any overflow below viewport.
-          transform: 'translateX(-50%) translateY(4px)',
+          transform: 'translateX(-50%) translateY(1px)',
           margin: 0,
           padding: 0,
         }}
@@ -392,7 +389,7 @@ export default function Hero() {
               src={images.heroBuildingCutout}
               alt="Modern glass residential tower with green terraces"
               width={1024}
-              height={1024}
+              height={946}
               priority
               quality={90}
               className="block h-auto w-full select-none"

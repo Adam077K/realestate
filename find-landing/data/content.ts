@@ -23,9 +23,9 @@ export const images = {
   // hero centerpiece (sits over the sky) AND the fill for the clip-mask wordmark.
   // New glass-tower building (transparent cutout). Fresh filename to bust the Next.js
   // image-optimizer cache that was still serving the previous building at the old URL.
-  heroBuildingCutout: '/images/hero-tower-v2.png',
+  heroBuildingCutout: '/images/hero-tower-v3.png',
   // Opaque, content-trimmed tower — fill for the clip-mask wordmark.
-  heroBuildingFill: '/images/hero-tower-fill-v2.jpg',
+  heroBuildingFill: '/images/hero-tower-fill-v3.jpg',
   cityStreet: '/images/city-street.jpg',
   chevron: [
     '/images/chevron-1.jpg',
