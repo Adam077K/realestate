@@ -227,7 +227,7 @@ function BuyerCard({
             fill
             sizes="(max-width: 640px) 85vw, (max-width: 768px) 60vw, 480px"
             className="object-contain transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.04] motion-reduce:transform-none motion-reduce:transition-none"
-            priority={index === 0}
+            loading="lazy"
           />
         </div>
       </div>

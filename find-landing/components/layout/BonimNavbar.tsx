@@ -116,7 +116,7 @@ export default function BonimNavbar() {
               >
                 {/* White logo (top/translucent state) */}
                 <Image
-                  src="/images/bonim-logo.png"
+                  src="/images/bonim-logo.webp"
                   alt="בונים עתיד"
                   fill
                   priority
@@ -131,7 +131,7 @@ export default function BonimNavbar() {
                 />
                 {/* Full-color logo (scrolled state) */}
                 <Image
-                  src="/images/bonim-logo.png"
+                  src="/images/bonim-logo.webp"
                   alt=""
                   fill
                   aria-hidden="true"

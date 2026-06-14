@@ -158,7 +158,6 @@ export default function ChevronStrip() {
                   className="h-full w-full"
                   objectFit="cover"
                   objectPosition={meta.objectPosition}
-                  priority={i === 0}
                   imgClassName="transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.07] motion-reduce:transform-none motion-reduce:transition-none"
                 />
               </div>

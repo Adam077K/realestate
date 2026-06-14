@@ -431,7 +431,7 @@ export default function CtaFooter() {
                   style={{ width: '64px', height: '64px' }}
                 >
                   <Image
-                    src="/images/bonim-logo.png"
+                    src="/images/bonim-logo.webp"
                     alt="בונים עתיד"
                     fill
                     sizes="64px"
