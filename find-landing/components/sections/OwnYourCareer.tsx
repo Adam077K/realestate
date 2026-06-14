@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import Image from 'next/image'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useContent } from '@/components/providers/LanguageProvider'
 import TwoToneHeading from '@/components/ui/TwoToneHeading'
@@ -12,14 +13,9 @@ import SectionLabel from '@/components/ui/SectionLabel'
 /**
  * "The Hosts" - id="founders".
  *
- * Meet-the-two-hosts block. Motion language:
- * - Section rises as a unit (strong entrance)
- * - Heading words stagger-reveal
- * - Intro paragraph fades up with blur
- * - Each portrait: clip-path wipe from bottom + subtle scale settle
- * - Portrait inner image gets a slow parallax drift on scroll
- * - Text rises after the portrait with overlap
- * - clearProps on all onComplete for safety
+ * One-shot reveals use IntersectionObserver (via useScrollReveal), immune to
+ * the Hero pin-spacer math. Portrait parallax scrub tweens stay on
+ * ScrollTrigger because they are continuous, not one-shot.
  */
 export default function OwnYourCareer() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -29,121 +25,17 @@ export default function OwnYourCareer() {
   const { motionOk } = useSmoothScroll()
   const c = useContent()
 
+  // Scrub-based portrait parallax — continuous, keep on ScrollTrigger.
   useGsapContext(
     sectionRef,
     () => {
       if (!motionOk) return
 
-      // Section entrance: whole block rises
-      // fromTo + immediateRender:false prevents pin-spacer false triggers
-      gsap.fromTo(
-        sectionRef.current,
-        { opacity: 0, y: 44 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.9,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 78%' },
-        }
-      )
-
-      // Heading word reveal
-      const headingWords = headingRef.current?.querySelectorAll('.tt-word')
-      if (headingWords && headingWords.length > 0) {
-        gsap.fromTo(
-          headingWords,
-          { yPercent: 115, opacity: 0 },
-          {
-            yPercent: 0,
-            opacity: 1,
-            stagger: 0.05,
-            ease: 'power3.out',
-            duration: 0.9,
-            immediateRender: false,
-            scrollTrigger: {
-              trigger: headingRef.current,
-              start: 'top 82%',
-            },
-          }
-        )
-      }
-
-      // Intro: blur-fade rise
-      const intro = introRef.current
-      if (intro) {
-        gsap.fromTo(
-          intro,
-          { opacity: 0, y: 22, filter: 'blur(4px)' },
-          {
-            opacity: 1,
-            y: 0,
-            filter: 'blur(0px)',
-            duration: 0.85,
-            ease: 'power2.out',
-            immediateRender: false,
-            scrollTrigger: {
-              trigger: intro,
-              start: 'top 85%',
-            },
-          }
-        )
-      }
-
-      // Each host card - image clip-path reveal + subtle scale settle + text rise
       const people = personRefs.current.filter(Boolean) as HTMLElement[]
-      people.forEach((person, i) => {
+      people.forEach((person) => {
         const imageWrap = person.querySelector<HTMLElement>('.host-image')
         const imageInner = person.querySelector<HTMLElement>('.host-image-inner')
-        const textBlock = person.querySelectorAll('.host-text')
 
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: person,
-            start: 'top 84%',
-          },
-          delay: i * 0.1,
-        })
-
-        if (imageWrap) {
-          tl.fromTo(
-            imageWrap,
-            { clipPath: 'inset(100% 0 0 0)' },
-            {
-              clipPath: 'inset(0% 0 0 0)',
-              duration: 1.1,
-              ease: 'power3.out',
-              immediateRender: false,
-            }
-          )
-        }
-
-        // Scale settle on inner image during the reveal
-        if (imageInner) {
-          tl.fromTo(
-            imageInner,
-            { scale: 1.06 },
-            { scale: 1, ease: 'power3.out', duration: 1.1, immediateRender: false },
-            '<'
-          )
-        }
-
-        tl.fromTo(
-          textBlock,
-          { opacity: 0, y: 28 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.75,
-            ease: 'power3.out',
-            stagger: 0.06,
-            immediateRender: false,
-          },
-          '-=0.65'
-        )
-
-        // Subtle scroll parallax on portrait inner image
         if (imageInner) {
           gsap.fromTo(
             imageInner,
@@ -163,6 +55,112 @@ export default function OwnYourCareer() {
         }
       })
     },
+    [motionOk]
+  )
+
+  // One-shot reveals via IntersectionObserver — immune to pin-spacer position math.
+  useScrollReveal(
+    sectionRef,
+    [
+      // Section entrance: whole block rises
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.22, // 'top 78%'
+        build: () =>
+          gsap.fromTo(
+            sectionRef.current,
+            { opacity: 0, y: 44 },
+            { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', paused: true }
+          ),
+      },
+      // Heading word reveal
+      {
+        trigger: headingRef.current,
+        revealAt: 0.18, // 'top 82%'
+        build: () => {
+          const headingWords = headingRef.current?.querySelectorAll('.tt-word')
+          return gsap.fromTo(
+            headingWords ? Array.from(headingWords) : [],
+            { yPercent: 115, opacity: 0 },
+            {
+              yPercent: 0,
+              opacity: 1,
+              stagger: 0.05,
+              ease: 'power3.out',
+              duration: 0.9,
+              paused: true,
+            }
+          )
+        },
+      },
+      // Intro: blur-fade rise
+      {
+        trigger: introRef.current,
+        revealAt: 0.15, // 'top 85%'
+        build: () =>
+          gsap.fromTo(
+            introRef.current,
+            { opacity: 0, y: 22, filter: 'blur(4px)' },
+            {
+              opacity: 1,
+              y: 0,
+              filter: 'blur(0px)',
+              duration: 0.85,
+              ease: 'power2.out',
+              paused: true,
+            }
+          ),
+      },
+    ],
+    [motionOk]
+  )
+
+  // Per-person card reveals (image clip + text rise)
+  useScrollReveal(
+    sectionRef,
+    (personRefs.current.filter(Boolean) as HTMLElement[]).map((person, i) => ({
+      trigger: person,
+      revealAt: 0.16, // 'top 84%'
+      build: () => {
+        const imageWrap = person.querySelector<HTMLElement>('.host-image')
+        const imageInner = person.querySelector<HTMLElement>('.host-image-inner')
+        const textBlock = person.querySelectorAll('.host-text')
+
+        const tl = gsap.timeline({ paused: true, delay: i * 0.1 })
+
+        if (imageWrap) {
+          tl.fromTo(
+            imageWrap,
+            { clipPath: 'inset(100% 0 0 0)' },
+            { clipPath: 'inset(0% 0 0 0)', duration: 1.1, ease: 'power3.out' }
+          )
+        }
+
+        if (imageInner) {
+          tl.fromTo(
+            imageInner,
+            { scale: 1.06 },
+            { scale: 1, ease: 'power3.out', duration: 1.1 },
+            '<'
+          )
+        }
+
+        tl.fromTo(
+          textBlock,
+          { opacity: 0, y: 28 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.75,
+            ease: 'power3.out',
+            stagger: 0.06,
+          },
+          '-=0.65'
+        )
+
+        return tl
+      },
+    })),
     [motionOk]
   )
 
@@ -208,23 +206,15 @@ export default function OwnYourCareer() {
           >
             {/* Portrait - tasteful framed card */}
             <div className="relative">
-              {/* Soft offset backing plate for a premium, framed feel */}
               <span
                 aria-hidden="true"
                 className="absolute -inset-x-3 -bottom-3 top-6 rounded-sm bg-[var(--color-ink)]/[0.04]"
               />
               <div
                 className="host-image relative overflow-hidden rounded-sm bg-[var(--color-ink)]/[0.03] ring-1 ring-[var(--color-ink)]/10 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.45)]"
-                style={{
-                  // GSAP sets clipPath; no inline style so element is never
-                  // permanently hidden if the trigger fires late or not at all.
-                  aspectRatio: '4 / 5',
-                }}
+                style={{ aspectRatio: '4 / 5' }}
               >
-                {/* Extra wrapper for parallax + scale without breaking clip-path */}
-                <div
-                  className="host-image-inner absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.03] motion-reduce:transform-none motion-reduce:transition-none"
-                >
+                <div className="host-image-inner absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.03] motion-reduce:transform-none motion-reduce:transition-none">
                   <Image
                     src={person.img}
                     alt={`${person.name} - ${person.role}`}
