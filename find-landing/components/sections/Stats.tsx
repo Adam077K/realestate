@@ -7,18 +7,15 @@ import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useContent } from '@/components/providers/LanguageProvider'
 
 /**
- * Stats — id="stats".
+ * Stats — id="stats". Mid-page standalone band.
  *
- * v2: LIGHT CLOUD-WHITE background — continues the hero's persistent cloud veil
- * seamlessly. Same soft-sky coloring; dark text on light for WCAG contrast.
- * The cloud-bridge gradient at the top of this section is now a reinforcement
- * overlay (since bg and veil are the same coloring, the seam is invisible).
+ * Sits between Testimonials (light warm) and BuyerGroups (light), so this uses
+ * the dark brand surface for strong contrast. Three large display numbers on a
+ * `bg-[var(--color-dark)]` ground with light text.
  *
- * Three large display numbers + muted labels, separated by hairline rules.
- * Bilingual via `c.stats`; RTL-aware.
+ * Layout: 3-up grid, hairline dividers (divide-x desktop / divide-y mobile),
+ * centered text, generous vertical padding.
  * Reveal: numbers rise + fade with stagger (motionOk); static fallback otherwise.
- * Next section (RewiredSteps) is bg-[var(--color-paper)] (#ffffff) — soft light→light
- * handoff, no jarring jump.
  */
 export default function Stats() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -46,44 +43,29 @@ export default function Stats() {
     <section
       ref={sectionRef}
       id="stats"
-      className="relative w-full"
-      style={{
-        // Full-section vertical gradient.
-        // TOP (#e4ebf6): exact composited render color at the hero→stats boundary.
-        //   Hero sky at 100% stop = #e2eaf3 (rgb 226,234,243).
-        //   Hero veil = rgba(228,235,246,0.82) layered over it.
-        //   Composite: r≈228, g≈235, b≈246 → #e4ebf6.
-        //   This IS the same as rgba(228,235,246,1) — single source of truth.
-        //   If a seam is visible it's from the cloud bloom layer; the gradient color is correct.
-        // BOTTOM (#ffffff): matches RewiredSteps var(--color-paper) — no jarring jump.
-        background: 'linear-gradient(to bottom, #f7fafd 0%, #f9fbfe 40%, #ffffff 100%)',
-      }}
+      className="relative w-full bg-[var(--color-dark)]"
       aria-label={c.stats.map((s) => `${s.value} ${s.label}`).join(', ')}
     >
-      {/* No separate bridge overlay needed — the section bg gradient handles the blend. */}
-      <div className="relative w-full px-6 md:px-12 lg:px-20 py-16 md:py-24">
-        <ul className="stats-grid grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[rgba(17,17,17,0.10)]">
+      <div className="w-full px-6 md:px-12 lg:px-20 py-20 md:py-28">
+        <ul className="stats-grid grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[rgba(255,255,255,0.12)]">
           {c.stats.map((stat) => (
             <li
               key={stat.value}
-              className="stat-item flex flex-col items-center text-center gap-3 px-4 py-8 sm:py-2"
+              className="stat-item flex flex-col items-center text-center gap-3 px-6 py-10 sm:py-4"
               style={{ willChange: 'transform, opacity' }}
             >
-              {/* Large display number — dark on light for WCAG contrast */}
+              {/* Large display number — white on dark */}
               <span
-                className="font-[var(--font-display)] font-light leading-none tracking-[-0.03em]"
+                className="font-[var(--font-display)] font-light leading-none tracking-[-0.03em] text-[var(--color-paper)] tabular-nums"
                 style={{
-                  color: 'var(--color-ink)',
-                  fontSize: 'clamp(3.5rem,9vw,6.5rem)',
-                  fontVariantNumeric: 'tabular-nums',
+                  fontSize: 'clamp(2.75rem,7vw,5rem)',
                 }}
               >
                 {stat.value}
               </span>
-              {/* Muted label — dark/55% on light */}
+              {/* Muted label */}
               <span
-                className="text-sm md:text-base leading-snug max-w-[18ch]"
-                style={{ color: 'rgba(17,17,17,0.55)' }}
+                className="text-sm md:text-base leading-snug max-w-[22ch] text-[rgba(255,255,255,0.5)]"
               >
                 {stat.label}
               </span>

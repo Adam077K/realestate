@@ -2,13 +2,14 @@ import BonimNavbar from '@/components/layout/BonimNavbar'
 import Hero from '@/components/sections/Hero'
 import ChevronStrip from '@/components/sections/ChevronStrip'
 import RewiredSteps from '@/components/sections/RewiredSteps'
+import SupportBeyond from '@/components/sections/SupportBeyond'
 import OwnYourCareer from '@/components/sections/OwnYourCareer'
 import Partners from '@/components/sections/Partners'
 import Services from '@/components/sections/Services'
 import Testimonials from '@/components/sections/Testimonials'
+import Stats from '@/components/sections/Stats'
 import BuyerGroups from '@/components/sections/BuyerGroups'
 import Hitech from '@/components/sections/Hitech'
-import SupportBeyond from '@/components/sections/SupportBeyond'
 import CtaFooter from '@/components/sections/CtaFooter'
 
 export default function Home() {
@@ -35,14 +36,15 @@ export default function Home() {
       <main>
         <Hero />
         <RewiredSteps />
+        <SupportBeyond />
         <ChevronStrip />
         <OwnYourCareer />
         <Partners />
         <Services />
         <Testimonials />
+        <Stats />
         <BuyerGroups />
         <Hitech />
-        <SupportBeyond />
         <CtaFooter />
       </main>
     </>

@@ -163,23 +163,22 @@ export default function Services() {
       </div>
 
       {/* Pillar rows — full-width hairline dividers.
-          Each row is a direction-aware flex track:
-            - Left cluster: number ring + body paragraph.
-            - Right item: the giant display word.
-          In RTL the row uses `flex-row-reverse` so the giant word lands on the right
-          (reading-start) edge and the number + body on the left; in LTR the natural
-          order already puts the giant word on the right. */}
+          Each row is a CSS grid: [1fr auto].
+          Col 1 (inline-start): number ring + body paragraph.
+          Col 2 (inline-end): the giant display word.
+          CSS Grid respects writing-mode so the word is always at the inline-end
+          (right in RTL = reading-start, right in LTR = reading-end). This ensures
+          the word's inline-end edge is flush with the section-heading's inline-end
+          edge — both are bounded by the same `px-6 md:px-12 lg:px-20` padding. */}
       <div className="w-full">
         {pillars.rows.map((row, i) => (
           <div
             key={row.n}
-            className={`service-row-${i} border-t border-[rgba(255,255,255,0.1)] w-full px-6 md:px-12 lg:px-20 py-10 md:py-14 flex ${
-              isRtl ? 'flex-row-reverse' : 'flex-row'
-            } items-center gap-6 md:gap-12 lg:gap-16`}
+            className={`service-row-${i} border-t border-[rgba(255,255,255,0.1)] w-full px-6 md:px-12 lg:px-20 py-10 md:py-14 grid grid-cols-[1fr_auto] items-center gap-6 md:gap-12 lg:gap-16`}
           >
-            {/* Left cluster: number ring + body. */}
+            {/* Col 1: number ring + body. */}
             <div
-              className={`flex flex-1 min-w-0 ${
+              className={`flex min-w-0 ${
                 isRtl ? 'flex-row-reverse' : 'flex-row'
               } items-center gap-6 md:gap-12 lg:gap-16`}
             >
@@ -213,11 +212,12 @@ export default function Services() {
               </p>
             </div>
 
-            {/* Giant word — hidden on small screens, visible md+.
-                Rests against the right edge of the row in both directions. */}
-            <div className="hidden md:flex flex-1 min-w-0 justify-end">
+            {/* Col 2: Giant word — hidden on small screens, visible md+.
+                Sits at the inline-end of the grid column, flush with the section
+                heading's inline-end edge (same padding boundary). */}
+            <div className="hidden md:block">
               <span
-                className="service-giant-word font-[var(--font-display)] font-light text-white select-none whitespace-nowrap text-end leading-none"
+                className="service-giant-word block font-[var(--font-display)] font-light text-white select-none whitespace-nowrap leading-none"
                 style={{
                   fontSize: 'clamp(4rem, 12vw, 11rem)',
                   lineHeight: 0.88,
@@ -244,9 +244,9 @@ export default function Services() {
           tailClassName="text-white/45"
           className="services-closing max-w-2xl mb-10"
         />
-        {/* CTA sits on the reading-start side: right in RTL, left in LTR.
-            `justify-start` resolves to the inline-start edge, mirroring section dir. */}
-        <div className="services-cta flex justify-start">
+        {/* CTA sits on the reading-END side (left in RTL, right in LTR).
+            `justify-end` resolves to the inline-end edge: left in RTL, right in LTR. */}
+        <div className="services-cta flex justify-end">
           <Pill
             variant="ghost"
             href="#register"
