@@ -428,6 +428,27 @@ export default function Hero() {
         style={{ paddingBottom: 'clamp(10vh, 14vh, 18vh)' }}
       >
         <div ref={copyGroupRef} className="w-full flex flex-col items-center pointer-events-auto">
+          {/* Editorial eyebrow — flanked hairlines, warm-accent, spaced caps */}
+          <div
+            className="flex items-center gap-3 mb-3"
+            aria-hidden="true"
+          >
+            <span style={{ display: 'block', width: 28, height: 1, background: 'rgba(0,0,0,0.28)' }} />
+            <span
+              style={{
+                fontFamily: 'var(--font-hebrew)',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                letterSpacing: '0.22em',
+                color: '#e8855a',
+                textShadow: '0 1px 8px rgba(255,255,255,0.5)',
+                lineHeight: 1,
+              }}
+            >
+              וובינר
+            </span>
+            <span style={{ display: 'block', width: 28, height: 1, background: 'rgba(0,0,0,0.28)' }} />
+          </div>
           <h1
             className="font-bold"
             style={{
@@ -661,6 +682,24 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
         className="relative z-[4] flex w-full flex-col items-center px-6 text-center gap-6"
         style={{ paddingBottom: 'clamp(10vh, 14vh, 18vh)' }}
       >
+        {/* Editorial eyebrow — reduced-motion path */}
+        <div className="flex items-center gap-3" aria-hidden="true">
+          <span style={{ display: 'block', width: 28, height: 1, background: 'rgba(0,0,0,0.28)' }} />
+          <span
+            style={{
+              fontFamily: 'var(--font-hebrew)',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              letterSpacing: '0.22em',
+              color: '#e8855a',
+              textShadow: '0 1px 8px rgba(255,255,255,0.5)',
+              lineHeight: 1,
+            }}
+          >
+            וובינר
+          </span>
+          <span style={{ display: 'block', width: 28, height: 1, background: 'rgba(0,0,0,0.28)' }} />
+        </div>
         <h1
           className="font-bold leading-[0.95]"
           style={{
