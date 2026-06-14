@@ -1,3 +1,4 @@
+import Preloader from '@/components/sections/Preloader'
 import BonimNavbar from '@/components/layout/BonimNavbar'
 import Hero from '@/components/sections/Hero'
 import ChevronStrip from '@/components/sections/ChevronStrip'
@@ -17,6 +18,7 @@ import FloatingWebinarCta from '@/components/ui/FloatingWebinarCta'
 export default function Home() {
   return (
     <>
+      <Preloader />
       <BonimNavbar />
       {/* Dark scrim - sits behind BonimNavbar (z-[49]), above hero sky (z-0).
           Gives the transparent white navbar legibility at scroll-0 over the bright
