@@ -43,7 +43,7 @@
  *   p 0.14–0.22  subhead+CTA fade+lift out
  *   p 0.18–0.28  headline fade+lift out
  *   p 0.28–0.30  scroll nudge fades
- *   p 0.40–0.48  outline wordmark strokes in
+ *   p 0.36–0.44  outline wordmark strokes in (gap 0.28–0.36: pure building, no text)
  *   p ~0.50      HARD CUT: outline→0, fill→1
  *   p 0.50–0.58  brand micro-breath
  *   p 0.40–0.90  cloud bloom (driven by HeroClouds progressRef)
@@ -230,10 +230,11 @@ export default function Hero() {
         tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.22)
       }
 
-      // p 0.32–0.40  outline wordmark strokes in — moved from 0.40 to 0.32 to overlap
-      // the building pan, filling the narrative dead zone and creating "wordmark emerges from building"
-      tl.set(wordmark, { scale: 1, y: 0 }, 0.32)
-      tl.to(outline, { opacity: 1, duration: 0.08, ease: 'power1.out' }, 0.32)
+      // p 0.36–0.44  outline wordmark strokes in.
+      // Headline is fully gone by 0.28 → clean 8-progress-point dead zone (0.28–0.36)
+      // where only the building pan is visible — no headline/wordmark collision.
+      tl.set(wordmark, { scale: 1, y: 0 }, 0.36)
+      tl.to(outline, { opacity: 1, duration: 0.08, ease: 'power1.out' }, 0.36)
 
       // p ~0.50  HARD CUT: fill→1, outline→0, buildingImg→0 (steps(1)).
       tl.to(fill,        { opacity: 1, duration: 0.015, ease: 'steps(1)' }, 0.50)
@@ -291,12 +292,12 @@ export default function Hero() {
             top: 'clamp(46vh, 52vh, 58vh)',
             width: 'min(125vw, 1800px)',
             transform: 'translateX(-50%)',
-            backgroundColor: '#e8c49a',
             position: 'absolute',
+            // No background-color — sky gradient is continuous behind building (no seam)
           }}
           aria-hidden="true"
         >
-          {/* Same warm-filter treatment as animated path for visual consistency */}
+          {/* Same cool-dusk treatment as animated path for visual consistency */}
           <div style={{ display: 'block', lineHeight: 0, fontSize: 0, position: 'relative', zIndex: 1 }}>
             <Image
               src={images.heroBuildingCutout}
@@ -309,18 +310,19 @@ export default function Hero() {
               style={{
                 verticalAlign: 'top',
                 display: 'block',
-                filter: 'saturate(1.10) brightness(1.02) sepia(0.24) hue-rotate(-10deg) contrast(1.03)',
+                filter: 'saturate(0.96) brightness(0.97) hue-rotate(6deg) contrast(1.03)',
               }}
               sizes="(max-width: 768px) 125vw, 1800px"
             />
           </div>
+          {/* Cool rim light on glass faces */}
           <div
             aria-hidden="true"
             style={{
               position: 'absolute',
               inset: 0,
               zIndex: 2,
-              background: 'linear-gradient(to top, rgba(255,150,70,0.55) 0%, rgba(255,175,95,0.32) 28%, rgba(255,200,130,0.10) 55%, transparent 85%)',
+              background: 'linear-gradient(to bottom, rgba(100,140,195,0.28) 0%, rgba(120,155,205,0.18) 30%, rgba(140,170,210,0.08) 60%, transparent 85%)',
               WebkitMaskImage: `url(${images.heroBuildingCutout})`,
               WebkitMaskSize: '100% auto',
               WebkitMaskPosition: 'top center',
@@ -329,17 +331,18 @@ export default function Hero() {
               maskSize: '100% auto',
               maskPosition: 'top center',
               maskRepeat: 'no-repeat',
-              mixBlendMode: 'overlay' as const,
+              mixBlendMode: 'soft-light' as const,
               pointerEvents: 'none',
             }}
           />
+          {/* Cool base haze */}
           <div
             aria-hidden="true"
             style={{
               position: 'absolute',
               inset: 0,
               zIndex: 3,
-              background: 'linear-gradient(to top, rgba(248,220,175,0.55) 0%, rgba(252,230,190,0.28) 12%, rgba(255,240,210,0.08) 28%, transparent 42%)',
+              background: 'linear-gradient(to top, rgba(200,215,235,0.52) 0%, rgba(210,222,240,0.28) 12%, rgba(220,230,245,0.08) 28%, transparent 42%)',
               WebkitMaskImage: `url(${images.heroBuildingCutout})`,
               WebkitMaskSize: '100% auto',
               WebkitMaskPosition: 'top center',
@@ -358,11 +361,13 @@ export default function Hero() {
             <HeroClouds progressRef={progressRef} active={false} />
           </div>
         )}
-        {/* White veil — separates building + clouds from readable copy */}
+        {/* Cool dusk veil — separates building + clouds from readable copy.
+            Slightly cool-tinted blue-white so the veil feels part of the palette.
+            Dark ink text is fully legible on this near-white surface. */}
         <div
           aria-hidden="true"
           className="absolute inset-0 z-[3] pointer-events-none"
-          style={{ background: 'rgba(255,255,255,0.80)' }}
+          style={{ background: 'rgba(228,235,246,0.82)' }}
         />
         {/* Copy stack — headline + subhead + CTA fully over sky */}
         <div className="relative z-[4] flex w-full flex-col items-center px-6 text-center gap-6">
@@ -438,8 +443,9 @@ export default function Hero() {
           transform: 'translateX(-50%)',
           margin: 0,
           padding: 0,
-          // P1-D: fill warm sky color below the building during pan so no gap shows on mobile
-          backgroundColor: '#e8c49a',
+          // No background-color — sky gradient spans full hero height behind everything.
+          // A solid fill here creates a hard-edged rectangle seam visible at mid-scroll.
+          // Gap prevention handled by sky gradient continuity + building image extending below fold.
         }}
         aria-hidden="true"
       >
@@ -450,14 +456,14 @@ export default function Hero() {
           ref={buildingWrapRef}
           style={{ transformOrigin: 'center top', position: 'relative' }}
         >
-          {/* Building image — warm filter tints only the opaque pixel of the PNG.
+          {/* Building image — cool blue-hour grade. The building is naturally grey concrete +
+              glass, which already reads as cool. A subtle filter shifts it into dusk cohesion:
+              hue-rotate(+6deg) nudges residual warm tones slightly toward blue-steel,
+              saturate(0.96) desaturates slightly for a twilight feel,
+              brightness(0.97) drops it a touch to sit naturally in fading light,
+              contrast(1.03) keeps structural depth in the glass/facade details.
               CSS filter on <img> touches rendered pixels, NOT the transparent alpha channel,
-              so the sky gradient behind is completely unaffected.
-              saturate(1.10)   — lift colour vividness
-              brightness(1.02) — slight lift so warm cast reads bright, not muddy
-              sepia(0.24)      — push grey concrete toward warm beige/amber (stronger than before)
-              hue-rotate(-10deg) — rotate remaining hues toward orange-peach
-              contrast(1.03)   — micro-boost to keep shadow depth */}
+              so the sky gradient behind is completely unaffected. */}
           <div ref={buildingImgRef} style={{ display: 'block', lineHeight: 0, fontSize: 0, position: 'relative', zIndex: 1 }}>
             <Image
               src={images.heroBuildingCutout}
@@ -470,19 +476,18 @@ export default function Hero() {
               style={{
                 verticalAlign: 'top',
                 display: 'block',
-                filter: 'saturate(1.10) brightness(1.02) sepia(0.24) hue-rotate(-10deg) contrast(1.03)',
+                filter: 'saturate(0.96) brightness(0.97) hue-rotate(6deg) contrast(1.03)',
               }}
               sizes="(max-width: 768px) 125vw, 1800px"
             />
           </div>
 
-          {/* Directional warm glow — overlay amber gradient masked to the building silhouette.
-              mask-image alpha-clips the gradient so it ONLY paints onto opaque building pixels.
-              Gradient runs from warm amber at bottom (where sun rakes the facade) to transparent
-              ~85% up, giving a natural raking low-angle golden-hour light direction.
-              mix-blend-mode: overlay (stronger than soft-light) punches the warm tone onto the
-              concrete facade convincingly — selling sunlit glass-and-concrete in golden hour.
-              Lives inside buildingWrapRef → pans with building, clipped by outer wrapper → sky safe. */}
+          {/* Cool rim light — faint blue-steel glow on the building's upper glass faces.
+              Simulates ambient sky light reflecting off the glazing at dusk.
+              Low opacity (0.28 at base) keeps it tasteful — a sheen, not a tint.
+              mix-blend-mode: soft-light so it interacts with the actual building tones
+              rather than painting flat colour over them.
+              mask-image alpha-clips to building silhouette — sky stays clean. */}
           <div
             aria-hidden="true"
             style={{
@@ -490,7 +495,7 @@ export default function Hero() {
               inset: 0,
               zIndex: 2,
               background:
-                'linear-gradient(to top, rgba(255,150,70,0.55) 0%, rgba(255,175,95,0.32) 28%, rgba(255,200,130,0.10) 55%, transparent 85%)',
+                'linear-gradient(to bottom, rgba(100,140,195,0.28) 0%, rgba(120,155,205,0.18) 30%, rgba(140,170,210,0.08) 60%, transparent 85%)',
               WebkitMaskImage: `url(${images.heroBuildingCutout})`,
               WebkitMaskSize: '100% auto',
               WebkitMaskPosition: 'top center',
@@ -499,16 +504,15 @@ export default function Hero() {
               maskSize: '100% auto',
               maskPosition: 'top center',
               maskRepeat: 'no-repeat',
-              mixBlendMode: 'overlay' as const,
+              mixBlendMode: 'soft-light' as const,
               pointerEvents: 'none',
             }}
           />
 
-          {/* Base haze — warm atmospheric mist where building meets the bottom of frame.
-              Reads as ground-level ambient glow / soft mist dissolving the base.
-              Same mask as above → only touches building pixels, never the sky.
-              No mix-blend-mode here — straight warm white dissolve for mist effect.
-              Round 3: bumped amber slightly for stronger golden-hour integration. */}
+          {/* Cool base haze — blue-white atmospheric mist dissolving the building base.
+              Reads as ground fog or reflected sky light at the building's foundation.
+              rgba(200,215,235) is a cool steel-blue-white — cohesive with the dusk sky.
+              No blend mode needed here — straight cool-white dissolve for mist. */}
           <div
             aria-hidden="true"
             style={{
@@ -516,7 +520,7 @@ export default function Hero() {
               inset: 0,
               zIndex: 3,
               background:
-                'linear-gradient(to top, rgba(252,215,160,0.62) 0%, rgba(254,228,182,0.32) 12%, rgba(255,238,205,0.10) 28%, transparent 42%)',
+                'linear-gradient(to top, rgba(200,215,235,0.52) 0%, rgba(210,222,240,0.28) 12%, rgba(220,230,245,0.08) 28%, transparent 42%)',
               WebkitMaskImage: `url(${images.heroBuildingCutout})`,
               WebkitMaskSize: '100% auto',
               WebkitMaskPosition: 'top center',
@@ -531,12 +535,11 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Global warm light-wash — scene-wide golden-hour atmosphere.
-          Sits ABOVE building (z-[2]) and clouds (z-[1]) but BELOW wordmark (z-[3]) and copy (z-[4]).
-          Radial gradient from bottom-center: warm amber fading to transparent by 60% height.
-          mix-blend-mode: soft-light warms the cumulus and building together without mudding the
-          open sky above (opacity is near-zero at the top of the gradient so headline legibility
-          is unaffected). Pointer-events off — purely decorative atmosphere layer. */}
+      {/* Global cool atmosphere — subtle blue-indigo depth wash from the lower scene.
+          Reinforces the blue-hour dusk feel across building base + cumulus.
+          Very low opacity (0.14 at base) — purely atmospheric, no muddying.
+          Sits above building/clouds (z-[2]) but below wordmark (z-[3]) and copy (z-[4]).
+          Fades to zero by 55% height so headline zone is completely unaffected. */}
       <div
         aria-hidden="true"
         style={{
@@ -544,7 +547,7 @@ export default function Hero() {
           inset: 0,
           zIndex: 2,
           background:
-            'radial-gradient(ellipse 120% 60% at 50% 100%, rgba(255,170,90,0.22) 0%, rgba(255,185,110,0.10) 30%, transparent 60%)',
+            'radial-gradient(ellipse 110% 55% at 50% 100%, rgba(60,90,150,0.14) 0%, rgba(80,110,165,0.07) 30%, transparent 55%)',
           mixBlendMode: 'soft-light' as const,
           pointerEvents: 'none',
         }}
@@ -618,13 +621,14 @@ export default function Hero() {
           style={{ marginTop: 'clamp(2rem, 4.5vh, 3.5rem)' }}
         >
           <p
-            className="font-light text-[var(--color-ink)]"
+            className="font-light"
             style={{
               fontFamily: 'var(--font-body)',
               fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
               lineHeight: 1.6,
-              opacity: 0.78,
+              opacity: 0.88,
               maxWidth: '640px',
+              color: 'rgba(225,235,248,0.92)',
             }}
           >
             {c.hero.subhead}
@@ -647,7 +651,7 @@ export default function Hero() {
         aria-hidden="true"
         style={{ position: 'absolute', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', opacity: 0.45 }}
       >
-        <div className="w-px h-8 bg-[var(--color-ink)] opacity-50" />
+        <div className="w-px h-8 bg-white opacity-60" />
       </div>
     </section>
   )
@@ -700,7 +704,7 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
               key={`${i}-${line}`}
               ref={(node) => { itemRefs.current[i] = node }}
               aria-hidden={i === 0 ? undefined : 'true'}
-              className="flex shrink-0 items-center justify-center font-bold text-[var(--color-ink)] w-full text-center"
+              className="flex shrink-0 items-center justify-center font-bold w-full text-center"
               style={{
                 height: clipPx != null ? clipPx : 'auto',
                 minHeight: 'clamp(2.5rem, 8vw, 7.5rem)',
@@ -713,8 +717,9 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
                 paddingTop: '0.15em',
                 paddingBottom: '0.15em',
                 boxSizing: 'border-box',
-                // P2-E: soft white halo lifts headline off building facade
-                textShadow: '0 2px 14px rgba(255,255,255,0.50)',
+                color: '#ffffff',
+                // Soft cool shadow — depth without warm glow
+                textShadow: '0 2px 18px rgba(20,40,80,0.35)',
               }}
             >
               {line}
@@ -727,8 +732,11 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
 )
 
 // ─── Sky gradient ─────────────────────────────────────────────────────────────
-// Cinematic late-afternoon sky. Warm amber/peach band pushed into 44-75% range
-// so warmth reads ABOVE the roofline, not hidden under the building.
+// Blue-hour dusk — calm deep indigo at zenith, graduating through periwinkle steel
+// into a pale cool dove-grey at the horizon. The copy sits in the 10-40vh zone
+// which maps to roughly 0-40% of the gradient — we keep those stops in the lighter
+// periwinkle/steel range (#b8cce0 → #ccd8e8) so dark ink stays legible without
+// switching text color. Deepest indigo (#1e2d4a) is at very top where no copy lives.
 function SkyGradient() {
   return (
     <div
@@ -736,7 +744,7 @@ function SkyGradient() {
       className="absolute inset-0 z-0"
       style={{
         background:
-          'linear-gradient(to bottom, #8cb4cf 0%, #a5c3dc 14%, #bdd1e4 28%, #c4b5a8 44%, #d4a07a 60%, #e0b28a 75%, #ecbf94 88%, #f2c89e 100%)',
+          'linear-gradient(to bottom, #1e2d4a 0%, #2e4268 8%, #3d587f 18%, #6b82a6 30%, #8da3be 42%, #a8bdd4 54%, #beccdf 66%, #ccd8e8 78%, #d8e2ee 88%, #e2eaf3 100%)',
       }}
     />
   )
