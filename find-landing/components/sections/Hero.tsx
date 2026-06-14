@@ -281,10 +281,11 @@ export default function Hero() {
         className="relative flex min-h-screen w-full items-center justify-center overflow-hidden"
       >
         <SkyGradient />
-        {/* Building — wide, showing top half */}
+        {/* Building — wide, roofline at ~42vh from top (open sky above) */}
         <div
-          className="absolute top-0 left-1/2 z-[2]"
+          className="absolute left-1/2 z-[2]"
           style={{
+            top: 'clamp(30vh, 42vh, 48vh)',
             width: 'min(125vw, 1800px)',
             transform: 'translateX(-50%)',
           }}
@@ -347,16 +348,20 @@ export default function Hero() {
       )}
 
       {/* 3. Building — WIDER/PAN VERSION.
-          OUTER: centering only (translateX(-50%)). top-0 positions building so top
-          edge aligns to viewport top, lower half extends below fold.
-          INNER (buildingWrapRef): GSAP translateY target for the pan motion.
+          OUTER: centering only (translateX(-50%)). top: ~42vh positions the building's
+          ROOFLINE at ~42-45% from the viewport top, leaving the UPPER ~42% as OPEN SKY.
+          The building fills the lower ~58% at rest; lower half extends well below fold.
+          On scroll the INNER pans UP (GSAP translateY), revealing progressively lower floors.
           Width: min(125vw, 1800px) — bleeds off both side edges at all viewport sizes.
-          Aspect ratio 1024:946 ≈ 1.08:1 means rendered height ≈ 0.924 × width.
-          At 1800px wide: height ≈ 1662px ≈ 1.85× viewport → top half visible at rest. */}
+          Aspect ratio 1024:946 → height ≈ 0.924 × width.
+          At 1800px wide: height ≈ 1662px ≈ 1.85× a 900px viewport.
+          Rest: 0.42 × 900 = 378px from top. Bottom at 378+1662=2040px → entirely below fold.
+          Pan –48vh ≈ –432px: reveals mid-section and approaches ground-level base. */}
       <div
         ref={buildingOuterRef}
-        className="absolute top-0 left-1/2 z-[2]"
+        className="absolute left-1/2 z-[2]"
         style={{
+          top: 'clamp(30vh, 42vh, 48vh)',
           width: 'min(125vw, 1800px)',
           transform: 'translateX(-50%)',
           margin: 0,
@@ -425,12 +430,15 @@ export default function Hero() {
       )}
 
       {/* 7. Text stack — vertically + horizontally centred.
-          v2: generous breathing room between headline → subhead → CTA.
-          Positioned at ~38% from top so copy sits cleanly over sky at rest
-          (above where the building's upper mass starts). */}
+          v2 rest framing: building roofline at ~42vh, sky occupies top ~42%.
+          Copy sits in the sky zone: paddingTop ~10-14vh puts headline in the
+          upper third. Generous gaps between all three items (headline → subhead → CTA)
+          so nothing feels cramped. Total stack height ≈ headline + 3.5vh + subhead + 3.5vh + CTA
+          ≈ comfortably within the 42vh sky band at both 1440 and 390.
+          Copy must be fully over open sky at rest — zero overlap with building facade. */}
       <div
         className="absolute inset-0 z-[4] flex flex-col items-center justify-start px-6 text-center"
-        style={{ paddingTop: 'clamp(15vh, 20vh, 26vh)' }}
+        style={{ paddingTop: 'clamp(10vh, 13vh, 17vh)' }}
       >
         {/* Cycling headline */}
         <div ref={headlineRef} className="flex w-full flex-col items-center">
@@ -441,11 +449,11 @@ export default function Hero() {
           />
         </div>
 
-        {/* Subhead + CTA — generous gap below headline */}
+        {/* Subhead + CTA — generous breathing room below headline */}
         <div
           ref={subCtaRef}
           className="flex w-full flex-col items-center"
-          style={{ marginTop: 'clamp(1.75rem, 4vh, 3rem)' }}
+          style={{ marginTop: 'clamp(2rem, 4.5vh, 3.5rem)' }}
         >
           <p
             className="max-w-xl font-light text-[var(--color-ink)]"
@@ -459,7 +467,7 @@ export default function Hero() {
             {c.hero.subhead}
           </p>
           {/* CTA — comfortable gap below subhead */}
-          <div style={{ marginTop: 'clamp(1.5rem, 3.5vh, 2.5rem)' }}>
+          <div style={{ marginTop: 'clamp(1.75rem, 4vh, 3rem)' }}>
             <Pill variant="dark" href="#register" withArrow>
               {c.hero.cta}
             </Pill>

@@ -9,12 +9,16 @@ import { useContent } from '@/components/providers/LanguageProvider'
 /**
  * Stats — id="stats".
  *
- * A strong dark band of three large display numbers + muted labels, separated by
- * hairline rules. Bilingual via `c.stats`; RTL-aware (dir on <html> mirrors the
- * row order and the dividers use logical/border classes that flip automatically).
+ * v2: LIGHT CLOUD-WHITE background — continues the hero's persistent cloud veil
+ * seamlessly. Same soft-sky coloring; dark text on light for WCAG contrast.
+ * The cloud-bridge gradient at the top of this section is now a reinforcement
+ * overlay (since bg and veil are the same coloring, the seam is invisible).
  *
- * Reveal: numbers rise + fade with a stagger, gated on motionOk (static fallback
- * when reduced motion is requested). GPU transforms only (y + opacity).
+ * Three large display numbers + muted labels, separated by hairline rules.
+ * Bilingual via `c.stats`; RTL-aware.
+ * Reveal: numbers rise + fade with stagger (motionOk); static fallback otherwise.
+ * Next section (RewiredSteps) is bg-[var(--color-paper)] (#ffffff) — soft light→light
+ * handoff, no jarring jump.
  */
 export default function Stats() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -42,15 +46,21 @@ export default function Stats() {
     <section
       ref={sectionRef}
       id="stats"
-      className="relative bg-[var(--color-dark)] text-[var(--color-paper)] w-full"
+      className="relative w-full"
+      style={{
+        // Cloud-white / soft-sky background — same coloring as the hero's persistent
+        // veil. The section reads as a continuation of the hero cloud atmosphere.
+        // Slight warm-cool sky tint: #eef2f7 (soft blue-white, matching the cloud veil).
+        background: '#eef2f7',
+      }}
       aria-label={c.stats.map((s) => `${s.value} ${s.label}`).join(', ')}
     >
       {/*
-        Cloud-bridge: soft cloud-white gradient at the top of this section
-        continues the hero's persistent cloud veil seamlessly.
-        Same white/sky coloring — no hard color jump from the hero's cloud end-state.
-        Fades from near-white/sky top → transparent, exposing the dark section bg below.
-        Height is generous (180px) to absorb any scroll-position jitter.
+        Cloud-bridge reinforcement: the top of this section already matches the
+        hero veil coloring, so the seam is invisible. This subtle gradient just
+        softens the very top edge further — a gentle atmospheric continuation.
+        Starts cloud-white (matching the veil) → fades to transparent.
+        Much lighter than v1 (was dark bg → gradient was covering a big jump).
       */}
       <div
         aria-hidden="true"
@@ -59,25 +69,33 @@ export default function Stats() {
           top: 0,
           left: 0,
           right: 0,
-          height: '180px',
+          height: '120px',
           background:
-            'linear-gradient(to bottom, rgba(245,248,252,0.97) 0%, rgba(240,245,250,0.80) 30%, rgba(220,230,240,0.40) 65%, rgba(13,13,13,0) 100%)',
+            'linear-gradient(to bottom, rgba(240,247,255,0.85) 0%, rgba(238,242,247,0) 100%)',
           pointerEvents: 'none',
           zIndex: 1,
         }}
       />
       <div className="relative z-[2] w-full px-6 md:px-12 lg:px-20 py-16 md:py-24">
-        <ul className="stats-grid grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[rgba(255,255,255,0.12)]">
+        <ul className="stats-grid grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[rgba(17,17,17,0.10)]">
           {c.stats.map((stat) => (
             <li
               key={stat.value}
               className="stat-item flex flex-col items-center text-center gap-3 px-4 py-8 sm:py-2"
               style={{ willChange: 'transform, opacity' }}
             >
-              <span className="font-[var(--font-display)] font-light leading-none tracking-[-0.03em] text-white text-[clamp(2.75rem,7vw,5rem)] tabular-nums">
+              {/* Large display number — dark on light for WCAG contrast */}
+              <span
+                className="font-[var(--font-display)] font-light leading-none tracking-[-0.03em] text-[clamp(2.75rem,7vw,5rem)] tabular-nums"
+                style={{ color: 'var(--color-ink)' }}
+              >
                 {stat.value}
               </span>
-              <span className="text-[rgba(255,255,255,0.5)] text-sm md:text-base leading-snug max-w-[18ch]">
+              {/* Muted label — dark/55% on light */}
+              <span
+                className="text-sm md:text-base leading-snug max-w-[18ch]"
+                style={{ color: 'rgba(17,17,17,0.55)' }}
+              >
                 {stat.label}
               </span>
             </li>
