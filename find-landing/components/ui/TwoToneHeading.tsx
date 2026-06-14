@@ -27,6 +27,12 @@ export interface TwoToneHeadingProps {
   tailClassName?: string
   /** Render lead and tail on separate lines */
   stacked?: boolean
+  /**
+   * Per-instance size override — replaces the built-in `text-[clamp(...)]`
+   * for this instance only. When absent, the default sizeByTag value is used.
+   * Example: `sizeClassName="text-[clamp(4rem,9vw,8rem)] leading-[1.0] tracking-[-0.03em]"`
+   */
+  sizeClassName?: string
 }
 
 /**
@@ -78,12 +84,13 @@ export default function TwoToneHeading({
   leadClassName,
   tailClassName,
   stacked = false,
+  sizeClassName,
 }: TwoToneHeadingProps) {
   return (
     <Tag
       className={cn(
         'font-[var(--font-display)]',
-        sizeByTag[Tag],
+        sizeClassName ?? sizeByTag[Tag],
         className
       )}
     >

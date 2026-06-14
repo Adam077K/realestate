@@ -102,28 +102,28 @@ export default function OwnYourCareer() {
     <section
       id="founders"
       ref={sectionRef}
-      className="bg-[var(--color-paper)] px-6 md:px-12 lg:px-20 py-24 md:py-32 overflow-hidden"
+      className="bg-[var(--color-paper)] px-6 md:px-12 lg:px-20 py-24 md:py-36 overflow-hidden"
       aria-label={`${c.founders.heading.lead} ${c.founders.heading.tail}`}
     >
-      {/* Top row: label upper-start, heading spans the rest */}
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-10 md:mb-14">
-        <div className="md:w-1/4 pt-2 shrink-0">
-          <SectionLabel>{c.founders.heading.lead}</SectionLabel>
-        </div>
+      {/* Label sits above the heading on its own row so the 2× heading can span full width */}
+      <div className="mb-4 md:mb-6">
+        <SectionLabel>{c.founders.heading.lead}</SectionLabel>
+      </div>
 
-        <div className="md:w-3/4" ref={headingRef}>
-          <TwoToneHeading
-            lead={c.founders.heading.lead}
-            tail={c.founders.heading.tail}
-            as="h2"
-          />
-        </div>
+      {/* Full-width heading — 2× the default h2 clamp via sizeClassName override */}
+      <div ref={headingRef} className="mb-10 md:mb-14">
+        <TwoToneHeading
+          lead={c.founders.heading.lead}
+          tail={c.founders.heading.tail}
+          as="h2"
+          sizeClassName="text-[clamp(4rem,9vw,8rem)] leading-[1.0] tracking-[-0.035em]"
+        />
       </div>
 
       {/* Intro */}
       <p
         ref={introRef}
-        className="text-[var(--color-muted)] text-[clamp(1rem,1.6vw,1.25rem)] leading-relaxed max-w-2xl mb-16 md:mb-24 text-start"
+        className="text-[var(--color-muted)] text-[clamp(1rem,1.6vw,1.25rem)] leading-relaxed max-w-2xl mb-16 md:mb-28 text-start"
       >
         {c.founders.intro}
       </p>
@@ -164,7 +164,7 @@ export default function OwnYourCareer() {
 
             {/* Name + role + bio */}
             <figcaption className="mt-8 text-start">
-              <h3 className="host-text font-[var(--font-display)] text-[clamp(1.5rem,3vw,2.25rem)] leading-tight tracking-[-0.02em] text-[var(--color-ink)]">
+              <h3 className="host-text font-[var(--font-display)] text-[clamp(1.75rem,3.5vw,2.75rem)] leading-tight tracking-[-0.025em] text-[var(--color-ink)]">
                 {person.name}
               </h3>
               <p className="host-text text-xs md:text-sm font-medium tracking-wide uppercase text-[var(--color-muted)] mt-2">
