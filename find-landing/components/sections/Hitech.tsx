@@ -4,22 +4,18 @@ import { useRef } from 'react'
 import Image from 'next/image'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useContent } from '@/components/providers/LanguageProvider'
 
 /**
  * Hitech - id="hitech".
  *
- * Social proof: a heading plus a strip of tech-company logo images that
- * Bonim Atid clients work at. On the dark background logos are rendered as
- * bright marks using `brightness(0) invert(1)` so they appear uniformly white.
- *
- * When motion is allowed the strip auto-scrolls as a seamless, dir-neutral
- * marquee (list is duplicated and translated by 50%). When reduced motion is
- * requested it falls back to a centered wrapped static row.
- *
- * Section entrance: the heading wipes in word-by-word; the marquee track fades
- * up as a unit once it starts moving. GPU transform only (translateX).
+ * One-shot reveals use IntersectionObserver (via useScrollReveal), immune to
+ * the Hero pin-spacer math. The infinite marquee loop stays in useGsapContext
+ * because it is a continuous repeat:-1 tween, not a one-shot reveal.
+ * The heading word-split innerHTML runs inside the reveal spec's build()
+ * closure before the gsap.fromTo targeting .hitech-word-inner.
  */
 export default function Hitech() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -29,85 +25,84 @@ export default function Hitech() {
   const { hitech } = c
 
   // Duplicate the logo list so a -50% translate produces a seamless loop.
-  // motionOk is always true now; reducedMotion gates the loop itself.
   const marqueeLogos = !reducedMotion ? [...hitech.logos, ...hitech.logos] : hitech.logos
 
+  // Continuous marquee loop — gated on reducedMotion, stays on GSAP (not IO).
   useGsapContext(
     sectionRef,
     () => {
       if (!motionOk) return
 
-      // Section entrance: whole band drifts up
-      // fromTo + immediateRender:false prevents pin-spacer false triggers
-      gsap.fromTo(
-        sectionRef.current,
-        { opacity: 0, y: 30 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 82%' },
-        }
-      )
-
-      // Heading: word-by-word stagger reveal (split on spaces)
-      const headingEl = sectionRef.current?.querySelector('.hitech-heading')
-      if (headingEl) {
-        // Wrap each word in an overflow-hidden clip span for the slide-up reveal
-        const text = headingEl.textContent ?? ''
-        const words = text.split(/\s+/).filter(Boolean)
-        headingEl.innerHTML = words
-          .map(
-            (w) =>
-              `<span class="hitech-word-clip" style="display:inline-block;overflow:hidden;vertical-align:bottom"><span class="hitech-word-inner" style="display:inline-block">${w}</span></span>`
-          )
-          .join(' ')
-
-        gsap.fromTo(
-          '.hitech-word-inner',
-          { yPercent: 110, opacity: 0 },
-          {
-            yPercent: 0,
-            opacity: 1,
-            stagger: 0.045,
-            duration: 0.75,
-            ease: 'power3.out',
-            immediateRender: false,
-            scrollTrigger: { trigger: headingEl, start: 'top 86%' },
-          }
-        )
-      }
-
-      // Marquee track: fade in once it's moving
       const track = trackRef.current
-      if (track) {
-        gsap.fromTo(
-          track,
-          { opacity: 0 },
-          {
-            opacity: 1,
-            duration: 0.8,
-            delay: 0.2,
-            ease: 'power2.out',
-            immediateRender: false,
-            scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-          }
-        )
-
-        // Infinite marquee loop — gated on reducedMotion so it doesn't run
-        // when the OS preference is set. Scroll-reveal entrances above always run.
-        if (!reducedMotion) {
-          gsap.to(track, {
-            xPercent: -50,
-            duration: 26,
-            ease: 'none',
-            repeat: -1,
-          })
-        }
+      if (track && !reducedMotion) {
+        gsap.to(track, {
+          xPercent: -50,
+          duration: 26,
+          ease: 'none',
+          repeat: -1,
+        })
       }
     },
+    [motionOk, reducedMotion]
+  )
+
+  // One-shot reveals via IntersectionObserver — immune to pin-spacer position math.
+  useScrollReveal(
+    sectionRef,
+    [
+      // Section entrance: whole band drifts up
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.18, // 'top 82%'
+        build: () =>
+          gsap.fromTo(
+            sectionRef.current,
+            { opacity: 0, y: 30 },
+            { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', paused: true }
+          ),
+      },
+      // Heading: word-by-word stagger reveal — split innerHTML inside build()
+      {
+        trigger: '.hitech-heading',
+        revealAt: 0.14, // 'top 86%'
+        build: () => {
+          const headingEl = sectionRef.current?.querySelector('.hitech-heading')
+          if (headingEl) {
+            const text = headingEl.textContent ?? ''
+            const words = text.split(/\s+/).filter(Boolean)
+            headingEl.innerHTML = words
+              .map(
+                (w) =>
+                  `<span class="hitech-word-clip" style="display:inline-block;overflow:hidden;vertical-align:bottom"><span class="hitech-word-inner" style="display:inline-block">${w}</span></span>`
+              )
+              .join(' ')
+          }
+          return gsap.fromTo(
+            '.hitech-word-inner',
+            { yPercent: 110, opacity: 0 },
+            {
+              yPercent: 0,
+              opacity: 1,
+              stagger: 0.045,
+              duration: 0.75,
+              ease: 'power3.out',
+              paused: true,
+            }
+          )
+        },
+      },
+      // Marquee track: fade in once it's moving
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.2, // 'top 80%'
+        build: () =>
+          gsap.fromTo(
+            trackRef.current,
+            { opacity: 0 },
+            { opacity: 1, duration: 0.8, delay: 0.2, ease: 'power2.out', paused: true }
+          ),
+      },
+    ],
     [motionOk, reducedMotion]
   )
 
@@ -160,8 +155,6 @@ export default function Hitech() {
                     width: 'auto',
                     maxWidth: '130px',
                     objectFit: 'contain',
-                    // Render as uniform white light marks on the dark background.
-                    // On hover: brighten to full opacity for a tactile, premium reveal.
                     filter: 'brightness(0) invert(1) opacity(0.75)',
                     transition:
                       'filter 0.4s cubic-bezier(0.32, 0.72, 0, 1), transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
