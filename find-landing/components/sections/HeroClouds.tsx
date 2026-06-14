@@ -155,12 +155,15 @@ const BACK_LAYERS: CloudLayer[] = [
 // Near-invisible at rest; blooms to near-full veil ~p 0.78; thins to ~0.18 at p=1.
 // 5 nodes — under the 12-total limit.
 // ══════════════════════════════════════════════════════════════════════════════
+// A10: FRONT_LAYERS — desaturate+brighten toward pure white for the rising mask.
+// saturate(0) brightness(1.7) pushes photographic cloud PNGs as white as possible
+// while retaining enough form/texture for the veil leading edge to read as cloud.
 const FRONT_LAYERS: CloudLayer[] = [
   {
     id: 'near-1', src: SRC.c4,
     top: '28%', left: '-18%', width: 'clamp(620px, 86vw, 1360px)',
     baseOpacity: 0.03, blur: 0,
-    tint: 'saturate(1.0) brightness(1.04)',
+    tint: 'saturate(0) brightness(1.7)',
     flipX: false, rotate: -2,
     anim: 'hc-drift-c', duration: 71, delay: -14,
     coverage: 1, driftX: 18, parallax: 1.05,
@@ -169,7 +172,7 @@ const FRONT_LAYERS: CloudLayer[] = [
     id: 'near-2', src: SRC.c7,
     top: '32%', left: '44%', width: 'clamp(600px, 84vw, 1320px)',
     baseOpacity: 0.03, blur: 0,
-    tint: 'saturate(1.0) brightness(1.03)',
+    tint: 'saturate(0) brightness(1.7)',
     flipX: true, rotate: 1,
     anim: 'hc-drift-d', duration: 59, delay: -33,
     coverage: 1, driftX: -18, parallax: 1.10,
@@ -178,7 +181,7 @@ const FRONT_LAYERS: CloudLayer[] = [
     id: 'near-3', src: SRC.c5,
     top: '12%', left: '-22%', width: 'clamp(640px, 88vw, 1400px)',
     baseOpacity: 0.04, blur: 1,
-    tint: 'saturate(0.95) brightness(1.05)',
+    tint: 'saturate(0) brightness(1.7)',
     flipX: false, rotate: 3,
     anim: 'hc-drift-a', duration: 79, delay: -22,
     coverage: 1, driftX: 16, parallax: 1.00,
@@ -187,7 +190,7 @@ const FRONT_LAYERS: CloudLayer[] = [
     id: 'near-4', src: SRC.c3,
     top: '16%', left: '48%', width: 'clamp(620px, 86vw, 1380px)',
     baseOpacity: 0.04, blur: 1,
-    tint: 'saturate(0.95) brightness(1.04)',
+    tint: 'saturate(0) brightness(1.7)',
     flipX: true, rotate: -3,
     anim: 'hc-drift-b', duration: 67, delay: -8,
     coverage: 1, driftX: -16, parallax: 1.15,
@@ -196,7 +199,7 @@ const FRONT_LAYERS: CloudLayer[] = [
     id: 'near-5', src: SRC.c6,
     top: '54%', left: '4%', width: 'clamp(680px, 94vw, 1520px)',
     baseOpacity: 0.05, blur: 0,
-    tint: 'saturate(1.0) brightness(1.02)',
+    tint: 'saturate(0) brightness(1.7)',
     flipX: false, rotate: 1,
     anim: 'hc-drift-c', duration: 53, delay: -41,
     coverage: 1, driftX: 12, parallax: 1.25,
@@ -235,7 +238,7 @@ function layerState(p: number, layer: CloudLayer, variant: 'back' | 'front') {
     const veil = frontVeilIntensity(p)
     const fr = veil * layer.coverage
 
-    const NEAR_PEAK = 0.90  // never 1.0 — cloud texture must still read through
+    const NEAR_PEAK = 1.0  // A10: raised to 1.0 for pure-white mask
     const opacity   = clamp01(layer.baseOpacity + (NEAR_PEAK - layer.baseOpacity) * fr)
     const scale     = 1 + fr * 0.55
     const translateY = -p * 22 * layer.parallax + (-fr * 12)
@@ -463,7 +466,7 @@ export default function HeroClouds({
               ? frontVeilIntensity(0) * 0.87
               : frontVeilIntensity(staticRestP) * 0.87,
             background:
-              'radial-gradient(130% 100% at 50% 40%, rgba(255,255,255,0.72) 0%, rgba(250,252,255,0.90) 42%, rgba(255,255,255,0.97) 100%)',
+              'radial-gradient(130% 100% at 50% 40%, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.90) 42%, rgba(255,255,255,0.97) 100%)',
             filter: 'blur(6px)',
             willChange: animate ? 'opacity' : 'auto',
             pointerEvents: 'none',

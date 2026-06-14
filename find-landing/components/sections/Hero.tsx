@@ -138,13 +138,14 @@ export default function Hero() {
       const panPx = (window.innerHeight * panVH) / 100
 
       // ── Master scrubbed timeline (pin +=560%) ───────────────────────────
+      // A12: scrub: 0.8 for smoother premium feel
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
           end: '+=560%',
           pin: true,
-          scrub: true,
+          scrub: 0.8,
           anticipatePin: 1,
           onUpdate: (self) => {
             progressRef.current = self.progress
@@ -166,22 +167,30 @@ export default function Hero() {
       // p 0.40–0.44  Wordmark settles to final position as building tops out
       tl.to(wordmark, { scale: 1, y: 0, duration: 0.04, ease: 'power1.out' }, 0.40)
 
-      // p 0.44–0.52  OUTLINE FADES IN
-      tl.to(outline, { opacity: 1, duration: 0.08, ease: 'power2.out' }, 0.44)
+      // A8 — OUTLINE DRAW + SHORT WINDOW:
+      // p 0.44–0.48  outline fades in + stroke draws (strokeDashoffset 1→0)
+      tl.to(outline, { opacity: 1, duration: 0.04, ease: 'power2.out' }, 0.44)
+      if (outline) {
+        tl.to(outline.querySelectorAll('.wordmark-outline-text'), {
+          strokeDashoffset: 0,
+          duration: 0.08,
+          ease: 'power2.inOut',
+          stagger: 0.01,
+        }, 0.44)
+      }
 
-      // p 0.52–0.66  OUTLINE HOLDS — long beat (the defining moment).
-      // Very subtle scale intensifies the presence without moving off-center.
-      tl.to(outline, { scale: 1.02, duration: 0.14, ease: 'power1.inOut' }, 0.52)
+      // p 0.48–0.56  OUTLINE HOLDS briefly. Very subtle scale.
+      tl.to(outline, { scale: 1.02, duration: 0.08, ease: 'power1.inOut' }, 0.48)
 
-      // p 0.66–0.78  CROSS-DISSOLVE:
-      //   buildingImg: 1→0  (building photo fades behind wordmark)
+      // p 0.56–0.62  CROSS-DISSOLVE:
+      //   buildingImg: 1→0  (building photo fades)
       //   outline:     scale back + 1→0
       //   fill:        0→1  (image inside the letters appears)
-      tl.to(buildingImg, { opacity: 0, duration: 0.12, ease: 'sine.inOut' }, 0.66)
-      tl.to(outline,     { opacity: 0, scale: 1,       duration: 0.10, ease: 'power1.inOut' }, 0.66)
-      tl.to(fill,        { opacity: 1,                 duration: 0.12, ease: 'power1.inOut' }, 0.68)
+      tl.to(buildingImg, { opacity: 0, duration: 0.06, ease: 'sine.inOut' }, 0.56)
+      tl.to(outline,     { opacity: 0, scale: 1,       duration: 0.06, ease: 'power1.inOut' }, 0.56)
+      tl.to(fill,        { opacity: 1,                 duration: 0.06, ease: 'power1.inOut' }, 0.58)
 
-      // p 0.78–0.88  IMAGE-FILL WORDMARK HOLDS — visible, clouds drifting behind it
+      // p 0.62–0.86  IMAGE-FILL WORDMARK HOLDS — long defining beat (A8: extended hold)
 
       // p 0.86–0.94  WORDMARK LIFTS + FADES into the rising white mask
       tl.to(wordmark, { y: '-18%', scale: 1.06, opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.86)
@@ -225,42 +234,31 @@ export default function Hero() {
           <div style={{ display: 'block', lineHeight: 0, fontSize: 0, position: 'relative', zIndex: 1 }}>
             <Image
               src={images.heroBuildingCutout}
-              alt="Modern glass residential tower with green terraces"
+              alt="Modern residential tower at golden hour"
               width={1024}
-              height={946}
+              height={1024}
               priority
               quality={90}
               className="block h-auto w-full select-none"
               style={{
                 verticalAlign: 'top',
                 display: 'block',
-                filter: 'saturate(0.96) brightness(0.97) hue-rotate(6deg) contrast(1.03)',
+                filter: 'saturate(1.02) contrast(1.02)',
               }}
               sizes="(max-width: 768px) 70vw, 1008px"
             />
           </div>
+          {/* Warm rim light — replaces the old cool blue cast */}
           <div
             aria-hidden="true"
             style={{
               position: 'absolute', inset: 0, zIndex: 2,
-              background: 'linear-gradient(to bottom, rgba(100,140,195,0.28) 0%, rgba(120,155,205,0.18) 30%, rgba(140,170,210,0.08) 60%, transparent 85%)',
+              background: 'linear-gradient(to bottom, rgba(255,220,180,0.18) 0%, rgba(255,230,190,0.10) 30%, transparent 60%)',
               WebkitMaskImage: `url(${images.heroBuildingCutout})`,
               WebkitMaskSize: '100% auto', WebkitMaskPosition: 'top center', WebkitMaskRepeat: 'no-repeat',
               maskImage: `url(${images.heroBuildingCutout})`,
               maskSize: '100% auto', maskPosition: 'top center', maskRepeat: 'no-repeat',
               mixBlendMode: 'soft-light' as const, pointerEvents: 'none',
-            }}
-          />
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute', inset: 0, zIndex: 3,
-              background: 'linear-gradient(to top, rgba(200,215,235,0.52) 0%, rgba(210,222,240,0.28) 12%, rgba(220,230,245,0.08) 28%, transparent 42%)',
-              WebkitMaskImage: `url(${images.heroBuildingCutout})`,
-              WebkitMaskSize: '100% auto', WebkitMaskPosition: 'top center', WebkitMaskRepeat: 'no-repeat',
-              maskImage: `url(${images.heroBuildingCutout})`,
-              maskSize: '100% auto', maskPosition: 'top center', maskRepeat: 'no-repeat',
-              pointerEvents: 'none',
             }}
           />
         </div>
@@ -276,8 +274,11 @@ export default function Hero() {
           className="absolute inset-0 z-[3] pointer-events-none"
           style={{ background: 'rgba(228,235,246,0.82)' }}
         />
-        {/* Copy stack */}
-        <div className="relative z-[4] flex w-full flex-col items-center px-6 text-center gap-6">
+        {/* Copy stack — upward-biased via paddingBottom */}
+        <div
+          className="relative z-[4] flex w-full flex-col items-center px-6 text-center gap-6"
+          style={{ paddingBottom: 'clamp(10vh, 14vh, 18vh)' }}
+        >
           <h1
             className="font-bold leading-[0.95]"
             style={{
@@ -287,6 +288,7 @@ export default function Hero() {
               color: '#ffffff',
               whiteSpace: 'pre-line',
               textWrap: 'balance',
+              textShadow: '0 2px 16px rgba(10,18,40,0.35)',
             }}
           >
             {c.hero.title}
@@ -299,6 +301,7 @@ export default function Hero() {
               lineHeight: 1.65,
               color: '#ffffff',
               maxWidth: '560px',
+              textShadow: '0 1px 10px rgba(10,18,40,0.30)',
             }}
           >
             {c.hero.subhead}
@@ -333,16 +336,18 @@ export default function Hero() {
       )}
 
       {/* 3. Building — two-layer wrapper (CRITICAL: outer centering-only, inner GSAP pan target).
-          Building starts with only its TOP visible (bottom-flush to viewport bottom at rest). */}
+          Building starts with only its TOP visible (bottom-flush to viewport bottom at rest).
+          z-[3] so it occludes the copy group (z-[2]) as it rises (A7). */}
       <div
         ref={buildingOuterRef}
-        className="absolute left-1/2 z-[2]"
+        className="absolute left-1/2 z-[3]"
         style={{
           top: 'clamp(62vh, 66vh, 70vh)',
           width: 'min(70vw, 1008px)',
           transform: 'translateX(-50%)',
           margin: 0,
           padding: 0,
+          pointerEvents: 'none',
         }}
         aria-hidden="true"
       >
@@ -353,27 +358,27 @@ export default function Hero() {
           <div ref={buildingImgRef} style={{ display: 'block', lineHeight: 0, fontSize: 0, position: 'relative', zIndex: 1 }}>
             <Image
               src={images.heroBuildingCutout}
-              alt="Modern glass residential tower with green terraces"
+              alt="Modern residential tower at golden hour"
               width={1024}
-              height={946}
+              height={1024}
               priority
               quality={90}
               className="block h-auto w-full select-none"
               style={{
                 verticalAlign: 'top',
                 display: 'block',
-                filter: 'saturate(0.96) brightness(0.97) hue-rotate(6deg) contrast(1.03)',
+                filter: 'saturate(1.02) contrast(1.02)',
               }}
               sizes="(max-width: 768px) 70vw, 1008px"
             />
           </div>
 
-          {/* Cool rim light on glass faces */}
+          {/* Warm rim light — golden glow on the tower crown */}
           <div
             aria-hidden="true"
             style={{
               position: 'absolute', inset: 0, zIndex: 2,
-              background: 'linear-gradient(to bottom, rgba(100,140,195,0.28) 0%, rgba(120,155,205,0.18) 30%, rgba(140,170,210,0.08) 60%, transparent 85%)',
+              background: 'linear-gradient(to bottom, rgba(255,220,180,0.18) 0%, rgba(255,230,190,0.10) 30%, transparent 60%)',
               WebkitMaskImage: `url(${images.heroBuildingCutout})`,
               WebkitMaskSize: '100% auto', WebkitMaskPosition: 'top center', WebkitMaskRepeat: 'no-repeat',
               maskImage: `url(${images.heroBuildingCutout})`,
@@ -381,45 +386,21 @@ export default function Hero() {
               mixBlendMode: 'soft-light' as const, pointerEvents: 'none',
             }}
           />
-
-          {/* Cool base haze */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute', inset: 0, zIndex: 3,
-              background: 'linear-gradient(to top, rgba(200,215,235,0.52) 0%, rgba(210,222,240,0.28) 12%, rgba(220,230,245,0.08) 28%, transparent 42%)',
-              WebkitMaskImage: `url(${images.heroBuildingCutout})`,
-              WebkitMaskSize: '100% auto', WebkitMaskPosition: 'top center', WebkitMaskRepeat: 'no-repeat',
-              maskImage: `url(${images.heroBuildingCutout})`,
-              maskSize: '100% auto', maskPosition: 'top center', maskRepeat: 'no-repeat',
-              pointerEvents: 'none',
-            }}
-          />
         </div>
       </div>
 
-      {/* Global cool atmosphere wash */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute', inset: 0, zIndex: 2,
-          background: 'radial-gradient(ellipse 110% 55% at 50% 100%, rgba(60,90,150,0.14) 0%, rgba(80,110,165,0.07) 30%, transparent 55%)',
-          mixBlendMode: 'soft-light' as const, pointerEvents: 'none',
-        }}
-      />
-
-      {/* 4. Wordmark group — z-[3], centered.
+      {/* 4. Wordmark group — z-[5], centered (above building z-[3], below veil z-[6]).
           OUTLINE strokes in (long hold), then cross-dissolves to FILL. */}
       <div
         ref={wordmarkRef}
-        className="absolute inset-0 z-[3] flex items-center justify-center"
+        className="absolute inset-0 z-[5] flex items-center justify-center"
         style={{ transformOrigin: 'center center', textAlign: 'center' }}
         aria-hidden="true"
       >
         <div
           className="relative mx-auto w-full"
           style={{
-            maxWidth: 'clamp(336px, 62vw, 880px)',
+            maxWidth: 'clamp(437px, 80vw, 1144px)',
             paddingLeft: 'clamp(8px, 1.5vw, 24px)',
             paddingRight: 'clamp(8px, 1.5vw, 24px)',
           }}
@@ -441,9 +422,9 @@ export default function Hero() {
 
       {/* 5. HeroClouds FRONT — white mask that rises from the bottom at p≈0.86.
           veilRef forwarded so GSAP can drive y:40vh→0 (mask rises into frame).
-          z-[3] same as wordmark — the veil sits above it as it rises. */}
+          z-[6] above wordmark z-[5] — veil fully covers it as it rises. */}
       {mounted && (
-        <div className="absolute inset-0 z-[4]" aria-hidden="true">
+        <div className="absolute inset-0 z-[6]" aria-hidden="true">
           <HeroClouds
             progressRef={progressRef}
             active={motionOk}
@@ -454,9 +435,12 @@ export default function Hero() {
       )}
 
       {/* 6. Copy group — headline + subhead + CTA centered over the sky at rest.
+          z-[2] so the rising building (z-[3]) occludes it as it pans up (A7).
+          paddingBottom shifts copy above dead-center (A6).
           GSAP fades the whole group out (opacity→0, y→-40) as the building rises. */}
       <div
-        className="absolute inset-0 z-[5] flex flex-col items-center justify-center px-6 text-center pointer-events-none"
+        className="absolute inset-0 z-[2] flex flex-col items-center justify-center px-6 text-center pointer-events-none"
+        style={{ paddingBottom: 'clamp(10vh, 14vh, 18vh)' }}
       >
         <div ref={copyGroupRef} className="w-full flex flex-col items-center pointer-events-auto">
           <h1
@@ -469,6 +453,7 @@ export default function Hero() {
               color: '#ffffff',
               whiteSpace: 'pre-line',
               textWrap: 'balance',
+              textShadow: '0 2px 16px rgba(10,18,40,0.35)',
             }}
           >
             {c.hero.title}
@@ -485,6 +470,7 @@ export default function Hero() {
               color: '#ffffff',
               textAlign: 'center',
               marginTop: 'clamp(0.6rem, 1.6vh, 1.2rem)',
+              textShadow: '0 1px 10px rgba(10,18,40,0.30)',
             }}
           >
             {c.hero.subhead}
@@ -498,14 +484,66 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Scroll nudge */}
+      {/* Scroll nudge — z-[6] matches veil level so it never gets buried */}
       <div
         ref={scrollNudgeRef}
-        className="pointer-events-none z-[5] flex flex-col items-center gap-2"
+        className="pointer-events-none z-[6] flex flex-col items-center gap-2"
         aria-hidden="true"
         style={{ position: 'absolute', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', opacity: 0.45 }}
       >
         <div className="w-px h-8 bg-white opacity-60" />
+      </div>
+
+      {/* A9 — Thin high cloud line: always-visible wispy cirrus strip near top of viewport.
+          z-[4]: above back-clouds (z-[1]), below wordmark (z-[5]). GPU: opacity + transform only. */}
+      <div className="absolute inset-0 z-[4] pointer-events-none" aria-hidden="true">
+        {/* Wisp A — drifts slowly left */}
+        <img
+          src="/images/clouds/cloud-7.png"
+          alt=""
+          role="presentation"
+          draggable={false}
+          style={{
+            position: 'absolute',
+            top: '3%',
+            left: '-10%',
+            width: 'clamp(480px, 70vw, 1100px)',
+            height: 'auto',
+            opacity: 0.28,
+            mixBlendMode: 'screen',
+            filter: 'saturate(0) brightness(1.6)',
+            animation: 'hc-drift-a 137s ease-in-out -22s infinite',
+            willChange: 'transform',
+            // @ts-expect-error CSS custom props
+            '--cov-scale': '1',
+            '--cov-ty': '0vh',
+            '--cov-tx': '0vw',
+          }}
+        />
+        {/* Wisp B — drifts slowly right, slightly higher */}
+        <img
+          src="/images/clouds/cloud-7.png"
+          alt=""
+          role="presentation"
+          draggable={false}
+          style={{
+            position: 'absolute',
+            top: '6%',
+            left: '38%',
+            width: 'clamp(400px, 58vw, 900px)',
+            height: 'auto',
+            opacity: 0.22,
+            mixBlendMode: 'screen',
+            filter: 'saturate(0) brightness(1.7) scaleX(-1)',
+            transform: 'scaleX(-1)',
+            animation: 'hc-drift-b 151s ease-in-out -68s infinite',
+            willChange: 'transform',
+            // @ts-expect-error CSS custom props
+            '--cov-scale': '1',
+            '--cov-ty': '0vh',
+            '--cov-tx': '0vw',
+          }}
+        />
       </div>
     </section>
   )
@@ -544,6 +582,7 @@ function BrandWordmarkOutline({ subWord }: BrandWordmarkOutlineProps) {
       overflow="visible"
       preserveAspectRatio="xMidYMid meet"
     >
+      {/* A8: strokeDasharray/strokeDashoffset on both text nodes enables draw animation via GSAP */}
       <text
         x="50%"
         y={mainY}
@@ -558,6 +597,10 @@ function BrandWordmarkOutline({ subWord }: BrandWordmarkOutlineProps) {
         stroke="#ffffff"
         strokeWidth={2.5}
         strokeLinejoin="round"
+        pathLength={1}
+        strokeDasharray={1}
+        strokeDashoffset={1}
+        className="wordmark-outline-text"
         style={{ filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.4))' }}
       >
         בונים עתיד
@@ -577,6 +620,10 @@ function BrandWordmarkOutline({ subWord }: BrandWordmarkOutlineProps) {
           stroke="#ffffff"
           strokeWidth={1.5}
           strokeLinejoin="round"
+          pathLength={1}
+          strokeDasharray={1}
+          strokeDashoffset={1}
+          className="wordmark-outline-text"
           style={{ filter: 'drop-shadow(0 0 3px rgba(255,255,255,0.35))' }}
         >
           {subWord}

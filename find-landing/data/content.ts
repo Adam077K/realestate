@@ -21,9 +21,9 @@ export const images = {
   heroBuilding: '/images/hero-building.jpg',
   // Golden-hour building with the background keyed out to transparency — used as the
   // hero centerpiece (sits over the sky) AND the fill for the clip-mask wordmark.
-  // New glass-tower building (transparent cutout). Fresh filename to bust the Next.js
-  // image-optimizer cache that was still serving the previous building at the old URL.
-  heroBuildingCutout: '/images/hero-tower-v3.png',
+  // Golden-hour building (transparent cutout, 1024×1024). Fresh filename to bust the
+  // Next.js image-optimizer cache that was still serving the previous building.
+  heroBuildingCutout: '/images/hero-tower-v4.png',
   // Opaque, content-trimmed tower — fill for the clip-mask wordmark.
   heroBuildingFill: '/images/hero-tower-fill-v3.jpg',
   cityStreet: '/images/city-street.jpg',
