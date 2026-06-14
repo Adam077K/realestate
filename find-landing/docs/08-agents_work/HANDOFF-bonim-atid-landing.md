@@ -57,12 +57,26 @@ in-flight awwwards-grade Hebrew/RTL real-estate webinar landing page. Read it fu
   robust `ScrollTrigger.refresh()` schedule + converting some sections to `fromTo`+`immediateRender:false`.
 
 ## 4. IN-FLIGHT / NEXT WORK (prioritized)
-### 4.1 VERIFY the reveal fix is real (HIGHEST — this is the founder's #1 recurring complaint)
-The founder has said "no animations" repeatedly. The fix is committed but **must be verified visually + by an
-arming test**: park each of ['services','stats','founders'] just below the viewport → its heading must be
-opacity≈0 (ARMED), then scroll in → animates to 1. If ANY section still reports opacity 1 below the fold, convert
-its `gsap.from(...{clearProps})` reveals to `gsap.fromTo(hidden, shown, {immediateRender:false})` (no clearProps) —
-ChevronStrip/BuyerGroups already show the pattern. Don't declare it fixed until you SEE reveals on a fresh load.
+### 4.1 REVEALS ARE STILL BROKEN — VERIFIED (HIGHEST PRIORITY — founder's #1 recurring complaint)
+**Status: confirmed broken after the `refreshPriority`+refresh attempt (commit `1e8f885`).** Decisive test (forced
+`reducedMotion:'reduce'`, measuring the ACTUAL animated target `.tt-word`): at scroll 0 the deep `services` and
+`buyer-groups` `.tt-word` are `opacity:1` (NOT armed) and stay 1 after scrolling in. So reveals fire at load / never
+arm. `refreshPriority:1` + the refresh schedule did NOT fix it. Root-cause leads to chase:
+  1. **Creation order:** the hero pin lives in a `useGsapContext` gated on `[motionOk, mounted]`; `mounted` flips on
+     a 2nd render, so the pin (and its ~10×vh spacer) is created AFTER the section reveal triggers → those triggers
+     compute positions as if the pin spacer doesn't exist → they evaluate "already in view" and play once at load.
+     `ScrollTrigger.refresh()` afterward can't un-fire a trigger whose tween already completed (toggleActions
+     'play none none none' + any clearProps).
+  2. **Two sections aren't even decoupled:** `Services.tsx` and `CtaFooter.tsx` use a separate `useReducedMotion()`
+     hook (NOT the provider's always-true `motionOk`), so under the founder's reduce-motion machine they SKIP
+     animation entirely (stay opacity 1). Switch them to `useSmoothScroll().motionOk`.
+  3. **Recommended robust fix (do this — stop fighting ScrollTrigger+pin ordering):** replace the per-section
+     scroll-reveal GSAP with a single bulletproof **IntersectionObserver** reveal utility (add a `.is-revealed`
+     class on enter; CSS/GSAP transitions the hidden→shown). IO is immune to pin/Lenis position math. Keep GSAP for
+     the hero pin + marquees only. Alternatively: create the hero pin FIRST (un-gate it from `mounted`, or create a
+     placeholder pin synchronously) so section triggers see the spacer, then `ScrollTrigger.refresh()`.
+**Acceptance:** fresh load at scroll 0 → every below-fold heading `.tt-word` is opacity≈0; scrolling each section in
+animates it to 1; founder visibly sees motion site-wide. Do NOT declare done until this passes on a fresh load.
 
 ### 4.2 Wordmark single-SVG (was in progress at handoff)
 Founder wants: white outline sits on the building → building fades → letters fill with the building image, with the
