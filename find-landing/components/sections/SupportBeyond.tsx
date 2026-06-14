@@ -3,6 +3,7 @@
 import { useRef } from 'react'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 import { useLang, useContent } from '@/components/providers/LanguageProvider'
 import Pill from '@/components/ui/Pill'
@@ -13,12 +14,15 @@ import Pill from '@/components/ui/Pill'
  * Motion language:
  * - Section rises as a unit
  * - Eyebrow + title fade-rise together
- * - Ghost numeral parallax drift
+ * - Ghost numeral parallax drift (scrub — kept on ScrollTrigger)
  * - Hero date: clip-reveal + scale settle (directional wipe, RTL-aware)
  * - Rail hairline draws top→bottom
  * - Rows cascade in with stagger
  * - CTA pill bounces in last
- * - All clearProps on onComplete for safety
+ *
+ * One-shot reveals use IntersectionObserver (via useScrollReveal), immune to
+ * the Hero pin-spacer math. The ghost numeral parallax scrub stays on
+ * ScrollTrigger because it is a continuous, not one-shot, tween.
  */
 export default function SupportBeyond() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -43,42 +47,13 @@ export default function SupportBeyond() {
 
   const reserveLabel = c.nav.cta
 
+  // Scrub-based parallax on the ghost numeral — continuous, not a one-shot reveal.
+  // Keep on ScrollTrigger (IO doesn't support scrub).
   useGsapContext(
     sectionRef,
     () => {
       if (!motionOk) return
 
-      // Section entrance: dark block drifts up as a unit
-      // All fromTo + immediateRender:false prevents premature trigger firing
-      gsap.fromTo(
-        sectionRef.current,
-        { opacity: 0, y: 36 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.85,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 92%' },
-        }
-      )
-
-      // Eyebrow + section title fade-rise.
-      gsap.fromTo(
-        '.wb-intro > *',
-        { y: 20, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.09,
-          duration: 0.75,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.wb-stage', start: 'top 82%' },
-        }
-      )
-
-      // Ghost numeral parallax drift.
       gsap.fromTo(
         '.wb-ghost',
         { yPercent: -6, opacity: 0 },
@@ -95,94 +70,126 @@ export default function SupportBeyond() {
           },
         }
       )
-
-      // Hero date clip-reveals (directional wipe, RTL-aware) + scale settle.
-      const wipeFrom =
-        dir === 'rtl' ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)'
-      gsap.fromTo(
-        '.wb-bigdate',
-        { clipPath: wipeFrom, scale: 1.05 },
-        {
-          clipPath: 'inset(0 0% 0 0%)',
-          scale: 1,
-          duration: 1.3,
-          ease: 'power3.inOut',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.wb-bigdate', start: 'top 85%' },
-        }
-      )
-
-      gsap.fromTo(
-        '.wb-year',
-        { opacity: 0, y: 28 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.7,
-          ease: 'power2.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.wb-bigdate', start: 'top 80%' },
-        }
-      )
-
-      // The pass rail's hairline draws top→bottom.
-      gsap.fromTo(
-        '.wb-rail-line',
-        { scaleY: 0, transformOrigin: 'top center' },
-        {
-          scaleY: 1,
-          duration: 1.1,
-          ease: 'power3.inOut',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.wb-rail', start: 'top 80%' },
-        }
-      )
-
-      // Perforation draw
-      gsap.fromTo(
-        '.wb-perf',
-        { scaleX: 0, opacity: 0 },
-        {
-          scaleX: 1,
-          opacity: 1,
-          duration: 0.85,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.wb-rail', start: 'top 82%' },
-        }
-      )
-
-      // Rows stagger in
-      gsap.fromTo(
-        '.wb-row',
-        { y: 26, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.1,
-          duration: 0.7,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.wb-rail', start: 'top 78%' },
-        }
-      )
-
-      // CTA: scale + rise
-      gsap.fromTo(
-        '.wb-cta',
-        { y: 18, opacity: 0, scale: 0.95 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.7,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: '.wb-rail', start: 'top 70%' },
-        }
-      )
     },
-    [motionOk, dir]
+    [motionOk]
+  )
+
+  // One-shot reveals — use IntersectionObserver, immune to pin-spacer position math.
+  useScrollReveal(
+    sectionRef,
+    [
+      // Section entrance: dark block drifts up as a unit
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.08, // 'top 92%'
+        build: () =>
+          gsap.fromTo(
+            sectionRef.current,
+            { opacity: 0, y: 36 },
+            { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out', paused: true }
+          ),
+      },
+      // Eyebrow + section title fade-rise
+      {
+        trigger: '.wb-stage',
+        revealAt: 0.18, // 'top 82%'
+        build: () =>
+          gsap.fromTo(
+            '.wb-intro > *',
+            { y: 20, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              stagger: 0.09,
+              duration: 0.75,
+              ease: 'power3.out',
+              paused: true,
+            }
+          ),
+      },
+      // Hero date clip-reveals (directional wipe, RTL-aware) + scale settle
+      {
+        trigger: '.wb-bigdate',
+        revealAt: 0.15, // 'top 85%'
+        build: () => {
+          const wipeFrom = dir === 'rtl' ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)'
+          return gsap.fromTo(
+            '.wb-bigdate',
+            { clipPath: wipeFrom, scale: 1.05 },
+            {
+              clipPath: 'inset(0 0% 0 0%)',
+              scale: 1,
+              duration: 1.3,
+              ease: 'power3.inOut',
+              paused: true,
+            }
+          )
+        },
+      },
+      // Year fade-rise after bigdate
+      {
+        trigger: '.wb-bigdate',
+        revealAt: 0.2, // 'top 80%'
+        build: () =>
+          gsap.fromTo(
+            '.wb-year',
+            { opacity: 0, y: 28 },
+            { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out', paused: true }
+          ),
+      },
+      // Rail hairline draws top→bottom
+      {
+        trigger: '.wb-rail',
+        revealAt: 0.2, // 'top 80%'
+        build: () =>
+          gsap.fromTo(
+            '.wb-rail-line',
+            { scaleY: 0, transformOrigin: 'top center' },
+            { scaleY: 1, duration: 1.1, ease: 'power3.inOut', paused: true }
+          ),
+      },
+      // Perforation draw
+      {
+        trigger: '.wb-rail',
+        revealAt: 0.18, // 'top 82%'
+        build: () =>
+          gsap.fromTo(
+            '.wb-perf',
+            { scaleX: 0, opacity: 0 },
+            { scaleX: 1, opacity: 1, duration: 0.85, ease: 'power3.out', paused: true }
+          ),
+      },
+      // Rows stagger in
+      {
+        trigger: '.wb-rail',
+        revealAt: 0.22, // 'top 78%'
+        build: () =>
+          gsap.fromTo(
+            '.wb-row',
+            { y: 26, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              stagger: 0.1,
+              duration: 0.7,
+              ease: 'power3.out',
+              paused: true,
+            }
+          ),
+      },
+      // CTA: scale + rise
+      {
+        trigger: '.wb-rail',
+        revealAt: 0.3, // 'top 70%'
+        build: () =>
+          gsap.fromTo(
+            '.wb-cta',
+            { y: 18, opacity: 0, scale: 0.95 },
+            { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: 'power3.out', paused: true }
+          ),
+      },
+    ],
+    [dir]
   )
 
   return (
