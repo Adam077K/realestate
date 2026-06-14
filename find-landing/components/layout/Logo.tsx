@@ -61,16 +61,22 @@ export interface BrandWordmarkMaskProps {
   subWord?: string
   /**
    * Initial opacity of the interior fill images. Defaults to 1.
-   * Set to 0 in the Hero "outline" phase — the white rim stays visible,
-   * letters appear as hollow outlines. GSAP tweens this to 1 for the fill phase.
-   * The white rim stays at opacity 1 throughout (no shift, no misalign).
+   * Set to 0 in the Hero "outline" phase — the outline shows, interiors are transparent.
+   * GSAP tweens this to 1 for the fill phase.
    */
   fillImageOpacity?: number
   /**
    * Optional ref forwarded to a wrapper <g> that wraps ONLY the fill images.
-   * GSAP uses this ref to tween opacity 0→1 without touching the white rim.
+   * GSAP uses this ref to tween opacity 0→1 without touching the outline group.
    */
   fillGroupRef?: React.RefObject<SVGGElement | null>
+  /**
+   * Optional ref forwarded to the outline <g> (wm-outline-group).
+   * GSAP uses this to:
+   *   1. Animate the clip-path wipe draw-in (reveal from right → left, RTL reading direction)
+   *   2. Fade opacity 1→0 once interiors are filled (removes white rim cleanly)
+   */
+  outlineRef?: React.RefObject<SVGGElement | null>
 }
 
 /**
@@ -84,18 +90,48 @@ export interface BrandWordmarkMaskProps {
  *
  * When subWord is provided, a second <text> at fontSize 69 (50% of 138) is added
  * below the main word. The viewBox height expands from 175 → 285 to fit both.
+ *
+ * Outline draw animation:
+ *   The `.wm-outline-group` uses a CSS clip-path wipe for the draw-in effect.
+ *   GSAP animates `clipPath` on the group element from `inset(0 100% 0 0)` → `inset(0 0% 0 0)`,
+ *   which reveals the stroked text from right to left — RTL reading-start direction.
+ *   This is more reliable cross-browser than strokeDashoffset on text elements.
+ *   After the fill phase, GSAP fades the outline group opacity 1→0.
  */
-export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacity = 1, fillGroupRef }: BrandWordmarkMaskProps) {
+export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacity = 1, fillGroupRef, outlineRef }: BrandWordmarkMaskProps) {
   const rawId = useId()
   const safeId = rawId.replace(/[:]/g, '')
   const clipId = `brand-wordmark-clip-${safeId}`
   const clipIdSub = `brand-wordmark-sub-clip-${safeId}`
-  // Unique filter IDs for the dilate rim — one per word to allow different radii if needed
-  const dilateId = `brand-wordmark-dilate-${safeId}`
-  const dilateIdSub = `brand-wordmark-dilate-sub-${safeId}`
 
   const viewBoxH = subWord ? 285 : 175
   const mainY = subWord ? '38%' : '50%'
+
+  // Shared text attributes for the main word — outline and clipPath texts must match exactly.
+  const mainTextAttrs = {
+    x: '50%' as const,
+    y: mainY,
+    dominantBaseline: 'central' as const,
+    textAnchor: 'middle' as const,
+    direction: 'rtl' as const,
+    fontFamily: 'var(--font-hebrew), system-ui, sans-serif',
+    fontWeight: '800' as const,
+    fontSize: '138' as const,
+    letterSpacing: '-2' as const,
+  }
+
+  // Shared text attributes for the sub-word.
+  const subTextAttrs = {
+    x: '50%' as const,
+    y: '80%' as const,
+    dominantBaseline: 'central' as const,
+    textAnchor: 'middle' as const,
+    direction: 'rtl' as const,
+    fontFamily: 'var(--font-hebrew), system-ui, sans-serif',
+    fontWeight: '800' as const,
+    fontSize: '69' as const,
+    letterSpacing: '-1' as const,
+  }
 
   return (
     <svg
@@ -106,47 +142,19 @@ export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacit
       className={className}
       overflow="visible"
       preserveAspectRatio="xMidYMid meet"
-      style={{ filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.28))' }}
+      style={{ filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.22))' }}
     >
       <defs>
-        {/* Dilate filter for main word rim — expands the white glyph outward */}
-        <filter id={dilateId} x="-10%" y="-10%" width="120%" height="120%">
-          <feMorphology operator="dilate" radius="2.5" />
-        </filter>
-        {/* Dilate filter for sub-word rim */}
-        {subWord && (
-          <filter id={dilateIdSub} x="-10%" y="-10%" width="120%" height="120%">
-            <feMorphology operator="dilate" radius="2" />
-          </filter>
-        )}
+        {/* ClipPath for main word fill image */}
         <clipPath id={clipId}>
-          <text
-            x="50%"
-            y={mainY}
-            dominantBaseline="central"
-            textAnchor="middle"
-            direction="rtl"
-            fontFamily="var(--font-hebrew), system-ui, sans-serif"
-            fontWeight="800"
-            fontSize="138"
-            letterSpacing="-2"
-          >
+          <text {...mainTextAttrs}>
             בונים עתיד
           </text>
         </clipPath>
+        {/* ClipPath for sub-word fill image */}
         {subWord && (
           <clipPath id={clipIdSub}>
-            <text
-              x="50%"
-              y="80%"
-              dominantBaseline="central"
-              textAnchor="middle"
-              direction="rtl"
-              fontFamily="var(--font-hebrew), system-ui, sans-serif"
-              fontWeight="800"
-              fontSize="69"
-              letterSpacing="-1"
-            >
+            <text {...subTextAttrs}>
               {subWord}
             </text>
           </clipPath>
@@ -154,67 +162,67 @@ export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacit
       </defs>
 
       {/*
-        Paint order (critical):
-          1. White-dilated main text  — the outer rim halo, painted BEHIND the image
-          2. Clipped image main       — covers glyph interior + counters → only rim peeks out
-          3. White-dilated sub text   — same technique for the sub-word
-          4. Clipped image sub        — covers sub-word interior
+        Paint order (critical — SVG document order = painter's algorithm):
+          1. Outline group (hollow stroked text) — BEHIND the fill group.
+             Initially hidden via clip-path wipe; GSAP reveals RTL then fades it out.
+          2. Fill group (clipped image fill) — ABOVE the outline group.
+             GSAP tweens opacity 0→1 during cross-dissolve.
 
-        Because each image is clipped to the SAME glyph shape as its white text,
-        the image paints over the glyph interior (including counter holes like ם/ב),
-        leaving only the dilated white border as a clean outer rim.
+        This stacking means:
+          - Outline phase: fill opacity=0, outline strokes visible, building shows through.
+          - Fill phase: fill floods interiors; outline fades away → clean image-filled letterforms.
       */}
 
-      {/* 1 — White dilated rim for main word (BEHIND image) */}
-      <text
-        x="50%"
-        y={mainY}
-        dominantBaseline="central"
-        textAnchor="middle"
-        direction="rtl"
-        fontFamily="var(--font-hebrew), system-ui, sans-serif"
-        fontWeight="800"
-        fontSize="138"
-        letterSpacing="-2"
-        fill="#ffffff"
-        filter={`url(#${dilateId})`}
+      {/*
+        1 — OUTLINE GROUP
+        Stroked hollow text — fill:none so building shows through interiors.
+        GSAP draws this in via clipPath wipe: inset(0 100% 0 0) → inset(0 0% 0 0)
+        (reveals right-to-left = RTL reading direction start).
+        Then GSAP fades opacity 1→0 once fillGroup is mostly visible.
+        The overflow:visible on the SVG ensures the stroke isn't clipped at the SVG edge.
+      */}
+      <g
+        ref={outlineRef as React.RefObject<SVGGElement>}
         aria-hidden="true"
+        className="wm-outline-group"
+        style={{
+          clipPath: 'inset(0 100% 0 0)',
+          // Start hidden via clip-path wipe (GSAP will animate this to inset(0 0% 0 0))
+        }}
       >
-        בונים עתיד
-      </text>
-
-      {/*
-        Sub-word white rim must be rendered BEFORE the unified fill group,
-        so it sits BEHIND the fill images (SVG paint order = document order).
-        This keeps both rims (main + sub) always visible regardless of fill opacity.
-      */}
-      {subWord && (
-        /* 3 — White dilated rim for sub-word (BEHIND sub fill image) */
+        {/* Main word — thin white hollow stroke */}
         <text
-          x="50%"
-          y="80%"
-          dominantBaseline="central"
-          textAnchor="middle"
-          direction="rtl"
-          fontFamily="var(--font-hebrew), system-ui, sans-serif"
-          fontWeight="800"
-          fontSize="69"
-          letterSpacing="-1"
-          fill="#ffffff"
-          filter={`url(#${dilateIdSub})`}
-          aria-hidden="true"
+          {...mainTextAttrs}
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+          strokeLinecap="round"
         >
-          {subWord}
+          בונים עתיד
         </text>
-      )}
+        {/* Sub-word — slightly thinner stroke at smaller scale */}
+        {subWord && (
+          <text
+            {...subTextAttrs}
+            fill="none"
+            stroke="#ffffff"
+            strokeWidth="0.9"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          >
+            {subWord}
+          </text>
+        )}
+      </g>
 
       {/*
-        UNIFIED fill group — wraps ALL interior fill images (main + sub).
+        2 — UNIFIED FILL GROUP
+        Wraps ALL interior fill images (main + sub).
         GSAP targets this single <g> to tween opacity 0→1:
-          opacity 0 = "outline" phase — white rims show, interiors are transparent
+          opacity 0 = "outline" phase — building shows through, outline strokes visible
           opacity 1 = "fill" phase — building image floods the letter interiors
-        The white rim texts above never change opacity, so there's no shift or
-        misalignment during the cross-dissolve. One SVG, one transform. Always stable.
+        The outline group above never blocks this layer once it fades; clean separation.
       */}
       <g
         ref={fillGroupRef as React.RefObject<SVGGElement>}
@@ -222,7 +230,7 @@ export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacit
         aria-hidden="true"
         className="wm-fill-group"
       >
-        {/* 2 — Clipped image fills main word */}
+        {/* Clipped image fills main word */}
         <image
           href={fillSrc}
           x="0"
@@ -233,7 +241,7 @@ export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacit
           clipPath={`url(#${clipId})`}
           className="wm-fill-image"
         />
-        {/* 4 — Clipped image fills sub-word */}
+        {/* Clipped image fills sub-word */}
         {subWord && (
           <image
             href={fillSrc}

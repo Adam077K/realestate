@@ -86,8 +86,10 @@ export default function Hero() {
   const wordmarkRef      = useRef<HTMLDivElement>(null)
   // fillGroupRef — targets the <g className="wm-fill-group"> inside BrandWordmarkMask.
   // GSAP tweens its opacity 0→1 during the cross-dissolve beat.
-  // The white rim texts in the same SVG never change opacity — zero shift/misalign.
   const fillGroupRef     = useRef<SVGGElement>(null)
+  // outlineRef — targets the <g className="wm-outline-group"> inside BrandWordmarkMask.
+  // GSAP animates the clip-path wipe draw-in, then fades opacity 1→0 after fill.
+  const outlineRef       = useRef<SVGGElement>(null)
   const scrollNudgeRef   = useRef<HTMLDivElement>(null)
   // cloudFrontVeilRef - forwarded to HeroClouds front-variant veil div.
   // GSAP animates translateY: 40vh→0 for the rising white mask effect.
@@ -166,6 +168,7 @@ export default function Hero() {
       const buildingImg  = buildingImgRef.current
       const wordmark     = wordmarkRef.current
       const fillGroup    = fillGroupRef.current
+      const outline      = outlineRef.current
       const scrollNudge  = scrollNudgeRef.current
       const cloudVeil    = cloudFrontVeilRef.current
 
@@ -174,14 +177,15 @@ export default function Hero() {
       // ── REST state (p = 0) ───────────────────────────────────────────────
       gsap.set(buildingWrap, { y: 0 })
       gsap.set(buildingImg,  { opacity: 1 })
-      // fillGroup starts transparent — white rim shows through transparent interiors.
-      // The white rim is baked into BrandWordmarkMask at full opacity always.
+      // fillGroup starts transparent — outline shows through transparent interiors.
       if (fillGroup) gsap.set(fillGroup, { opacity: 0 })
+      // outlineGroup starts with clip-path fully concealing it (draw-in starts at p0.42)
+      if (outline) gsap.set(outline, { clipPath: 'inset(0 100% 0 0)', opacity: 1 })
       gsap.set(copyGroup,    { opacity: 1, y: 0 })
-      // Wordmark (entire SVG container) starts hidden at rest; settles during rise.
+      // Wordmark (entire SVG container) starts hidden at rest; appears at p0.42
       gsap.set(wordmark,     { opacity: 0, scale: 0.96, y: 20 })
       if (scrollNudge) gsap.set(scrollNudge, { opacity: 0.45 })
-      // Cloud veil starts pushed BELOW the frame (40vh down). GSAP pans it up p0.86–1.0.
+      // Cloud veil starts pushed BELOW the frame (40vh down). GSAP pans it up p0.90–1.0.
       if (cloudVeil) gsap.set(cloudVeil, { y: '40vh' })
 
       // Enable GPU compositing during the pin
@@ -189,6 +193,7 @@ export default function Hero() {
         buildingWrap, copyGroup, wordmark,
       ]
       if (fillGroup) willChangeTargets.push(fillGroup as unknown as Element)
+      if (outline) willChangeTargets.push(outline as unknown as Element)
       if (cloudVeil) willChangeTargets.push(cloudVeil)
       gsap.set(willChangeTargets.filter(Boolean) as Element[], { willChange: 'transform, opacity' })
 
@@ -231,41 +236,47 @@ export default function Hero() {
         },
       })
 
-      // ── NEW CONSTANT-VELOCITY BEAT TABLE (all ease:'none' except noted) ──
+      // ── CONSTANT-VELOCITY BEAT TABLE (all ease:'none' — even velocity, one smooth flow) ──
 
       // p 0.00–0.06  Scroll nudge fades immediately on first scroll input
       if (scrollNudge) {
         tl.to(scrollNudge, { opacity: 0, duration: 0.06, ease: 'none' }, 0.00)
       }
 
-      // p 0.06–0.44  BUILDING PANS UP - LINEAR (even velocity, no slow-fast-slow)
-      tl.to(buildingWrap, { y: -panPx, duration: 0.38, ease: 'none' }, 0.06)
+      // p 0.06–0.42  BUILDING PANS UP - LINEAR (even velocity, no slow-fast-slow)
+      tl.to(buildingWrap, { y: -panPx, duration: 0.36, ease: 'none' }, 0.06)
 
       // p 0.10–0.24  COPY GROUP FADES OUT - fades as building rises over it
       tl.to(copyGroup, { opacity: 0, y: -40, duration: 0.14, ease: 'none' }, 0.10)
 
-      // p 0.40–0.50  Wordmark container settles to final position as building tops out
-      tl.to(wordmark, { scale: 1, y: 0, duration: 0.10, ease: 'none' }, 0.40)
+      // ~p 0.42  Wordmark container appears (quick settle) and outline begins drawing
+      tl.to(wordmark, { opacity: 1, scale: 1, y: 0, duration: 0.04, ease: 'none' }, 0.42)
 
-      // p 0.44–0.54  WORDMARK APPEARS: container opacity 0→1
-      //   White rim is baked into BrandWordmarkMask — becomes visible as the container fades in.
-      //   Interior (fillGroup) stays at opacity:0 → letters appear as hollow white outlines
-      //   floating over the risen building. No stroke-draw needed (no BrandWordmarkOutline).
-      tl.to(wordmark, { opacity: 1, duration: 0.10, ease: 'none' }, 0.44)
-
-      // p 0.54–0.68  CROSS-DISSOLVE (stretched to 0.14 — no fast snap):
-      //   buildingImg: 1→0  (building photo fades out)
-      //   fillGroup:   0→1  (building texture floods letter interiors)
-      //   White rim: unchanged (never moves → no shift, no misalign)
-      tl.to(buildingImg, { opacity: 0, duration: 0.14, ease: 'none' }, 0.54)
-      if (fillGroup) {
-        tl.to(fillGroup,   { opacity: 1, duration: 0.14, ease: 'none' }, 0.54)
+      // p 0.42–0.56  OUTLINE DRAWS IN - clip-path wipe reveals right→left (RTL reading direction)
+      //   The stroked hollow text sweeps in from the right side (reading start in RTL).
+      //   fillGroup stays at opacity:0 → letter interiors are transparent, building shows through.
+      //   This is the "pen drawing" effect: a clean premium line-draw reveal.
+      if (outline) {
+        tl.to(outline, { clipPath: 'inset(0 0% 0 0)', duration: 0.14, ease: 'none' }, 0.42)
       }
 
-      // p 0.66–0.90  WORDMARK PRESENCE - slow continuous drift replaces dead hold.
-      // Every scroll tick changes something (fill+wordmark slowly drift + scale-creep).
-      // This 0.24-long span is the ~40%-longer wordmark beat.
-      tl.to(wordmark, { y: '-3%', scale: 1.035, duration: 0.24, ease: 'none' }, 0.66)
+      // p 0.56–0.70  IMAGE FILLS + BUILDING FADES:
+      //   fillGroup: 0→1  (building texture floods letter interiors)
+      //   buildingImg: 1→0  (building photo behind fades — letters float in open sky)
+      tl.to(buildingImg, { opacity: 0, duration: 0.14, ease: 'none' }, 0.56)
+      if (fillGroup) {
+        tl.to(fillGroup, { opacity: 1, duration: 0.14, ease: 'none' }, 0.56)
+      }
+
+      // p 0.66–0.74  REMOVE OUTLINE — white stroke fades once interiors are mostly filled.
+      //   Clean image-filled letters with NO white rim: the premium settled state.
+      if (outline) {
+        tl.to(outline, { opacity: 0, duration: 0.08, ease: 'none' }, 0.66)
+      }
+
+      // p 0.74–0.90  WORDMARK PRESENCE - slow continuous drift.
+      //   Every scroll tick changes something (wordmark slowly drifts + scale-creep).
+      tl.to(wordmark, { y: '-3%', scale: 1.035, duration: 0.16, ease: 'none' }, 0.74)
 
       // p 0.90–1.00  RELEASE INTO WHITE:
       //   cloudVeil → y:'0vh' (power1.in - ONE eased beat so white arrives decisively)
@@ -395,6 +406,7 @@ export default function Hero() {
             fillSrc={images.heroBuildingFill}
             subWord="וובינר"
             fillGroupRef={fillGroupRef}
+            outlineRef={outlineRef}
             fillImageOpacity={0}
             className="block h-auto w-full"
           />
