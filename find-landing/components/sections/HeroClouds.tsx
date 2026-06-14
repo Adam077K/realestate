@@ -214,15 +214,16 @@ const expo = (n: number) => {
 /**
  * Full-screen soft veil intensity for the FRONT field, 0..1.
  *
- * v5 — BATCH 5 LONGER WORDMARK HOLD: bloom starts at p≈0.80 (was 0.63), peaks at p≈0.98
- * (was 0.97). Wordmark cross-dissolve spans p0.70–0.90 — veil delay ensures the fill
- * wordmark holds fully visible ~p0.82–0.94 before white screen covers it.
- * Stats overlay appears p0.92–1.0 on the bloomed veil surface.
- * Stays at peak from p=0.98 → p=1.0. Continuous into white RewiredSteps.
+ * v6 — BATCH 7 WHITE MASK RISES FROM BOTTOM: bloom starts at p≈0.86, peaks at p≈1.0.
+ * Hero GSAP also drives the veil's translateY from 40vh→0 over p0.86–1.0 so the veil
+ * appears to climb from below (white mask rising effect). The opacity bloom here makes
+ * the veil opaque as it rises, and cloud PNG layers climb with it for a textured leading edge.
+ * The veil is now rendered at z-[4] (above the wordmark) to fully cover it as it rises.
+ * Continuous into white RewiredSteps below.
  */
 function frontVeilIntensity(p: number): number {
-  // Blooms from 0 at p=0.80 to 1 by p=0.98. Stays at 1 through p=1.0.
-  return expo(clamp01((p - 0.80) / 0.18))
+  // Blooms from 0 at p=0.86 to 1 by p=1.0. Stays at 1 through p=1.0.
+  return expo(clamp01((p - 0.86) / 0.14))
 }
 
 /**
@@ -268,9 +269,9 @@ export default function HeroClouds({
   const [reducedMotion, setReducedMotion] = useState(false)
 
   const layers      = variant === 'front' ? FRONT_LAYERS : BACK_LAYERS
-  // staticRestP for front variant updated to match new delayed bloom p0.80–0.98.
-  // 0.74 puts the static veil at partial bloom (not full wash, not invisible).
-  const staticRestP = variant === 'front' ? 0.74 : 0.45
+  // staticRestP for front variant: bloom starts p0.86. 0.90 gives a full static bloom
+  // for reduced-motion (which shows the end-state composed view).
+  const staticRestP = variant === 'front' ? 0.90 : 0.45
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return
