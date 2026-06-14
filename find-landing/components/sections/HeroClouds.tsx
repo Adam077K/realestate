@@ -340,9 +340,15 @@ export default function HeroClouds({
       return
     }
 
+    // P5: dirty-check — skip the ~21 style writes/frame when scroll hasn't moved.
+    // Threshold 0.0005 is sub-pixel at typical scroll distances.
+    let lastP = -1
     const tick = () => {
       const p = progressRef?.current ?? 0
-      apply(p)
+      if (Math.abs(p - lastP) >= 0.0005) {
+        apply(p)
+        lastP = p
+      }
       rafRef.current = requestAnimationFrame(tick)
     }
     rafRef.current = requestAnimationFrame(tick)
