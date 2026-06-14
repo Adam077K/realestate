@@ -323,10 +323,9 @@ export default function Hero() {
           clamp is the SSR/fallback value; JS overrides it once the image is measured. */}
       <div
         ref={buildingOuterRef}
-        className="absolute left-1/2 z-[3]"
+        className="absolute left-1/2 z-[3] w-[112vw] max-w-none md:w-[min(78vw,1140px)]"
         style={{
           top: 'clamp(55vh, 59vh, 63vh)',
-          width: 'min(78vw, 1140px)',
           transform: 'translateX(-50%)',
           margin: 0,
           padding: 0,
@@ -352,7 +351,7 @@ export default function Hero() {
                 display: 'block',
                 filter: 'saturate(1.02) contrast(1.02)',
               }}
-              sizes="(max-width: 768px) 78vw, 1140px"
+              sizes="(max-width: 767px) 112vw, 1140px"
             />
           </div>
 
@@ -598,10 +597,9 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
       {/* Building */}
       <div
         ref={buildingOuterRef}
-        className="absolute left-1/2 z-[2]"
+        className="absolute left-1/2 z-[2] w-[112vw] max-w-none md:w-[min(78vw,1140px)]"
         style={{
           top: 'clamp(55vh, 59vh, 63vh)',
-          width: 'min(78vw, 1140px)',
           transform: 'translateX(-50%)',
         }}
         aria-hidden="true"
@@ -620,7 +618,7 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
               display: 'block',
               filter: 'saturate(1.02) contrast(1.02)',
             }}
-            sizes="(max-width: 768px) 78vw, 1140px"
+            sizes="(max-width: 767px) 112vw, 1140px"
           />
         </div>
         {/* Warm rim light */}
