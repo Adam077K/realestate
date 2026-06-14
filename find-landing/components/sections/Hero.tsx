@@ -153,15 +153,16 @@ export default function Hero() {
         },
       })
 
-      // p 0.12–0.52  BUILDING PANS UP - longer rise (92vh) reveals ~80-90% of building
-      tl.to(buildingWrap, { y: -panPx, duration: 0.40, ease: 'power2.inOut' }, 0.12)
+      // p 0.04–0.52  BUILDING PANS UP - starts almost immediately (short rest hold),
+      // longer rise (92vh) reveals ~80-90% of building by p≈0.52
+      tl.to(buildingWrap, { y: -panPx, duration: 0.48, ease: 'power2.inOut' }, 0.04)
 
-      // p 0.18–0.36  COPY GROUP FADES OUT - headline+subhead+CTA together, as building rises over them
-      tl.to(copyGroup, { opacity: 0, y: -40, duration: 0.18, ease: 'power3.in' }, 0.18)
+      // p 0.10–0.28  COPY GROUP FADES OUT - headline+subhead+CTA together, as building rises over them
+      tl.to(copyGroup, { opacity: 0, y: -40, duration: 0.18, ease: 'power3.in' }, 0.10)
 
-      // p 0.10–0.18  Scroll nudge fades shortly after first scroll input
+      // p 0.02–0.10  Scroll nudge fades almost immediately on first scroll input
       if (scrollNudge) {
-        tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.10)
+        tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.02)
       }
 
       // p 0.50–0.54  Wordmark settles to final position as building tops out

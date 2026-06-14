@@ -115,8 +115,8 @@ export default function ChevronStrip() {
                 }}
                 className="group relative shrink-0 grow-0 will-change-transform"
                 style={{
-                  width: 'clamp(150px, 17vw, 230px)',
-                  height: 'clamp(320px, 40vw, 560px)',
+                  width: 'clamp(180px, 21vw, 290px)',
+                  height: 'clamp(240px, 30vw, 420px)',
                 }}
               >
                 {/* clip-path on MaskedImage contains the image scale within the chevron shape */}
