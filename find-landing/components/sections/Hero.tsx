@@ -428,7 +428,7 @@ export default function Hero() {
         style={{ paddingBottom: 'clamp(10vh, 14vh, 18vh)' }}
       >
         <div ref={copyGroupRef} className="w-full flex flex-col items-center pointer-events-auto">
-          {/* Editorial eyebrow — flanked hairlines, warm-accent, spaced caps */}
+          {/* Editorial eyebrow — flanked hairlines, ink, spaced caps */}
           <div
             className="flex items-center gap-3 mb-4"
             aria-hidden="true"
@@ -440,7 +440,7 @@ export default function Hero() {
                 fontSize: 'clamp(0.95rem, 1.5vw, 1.15rem)',
                 fontWeight: 600,
                 letterSpacing: '0.22em',
-                color: '#d9743f',
+                color: '#111',
                 textShadow: '0 1px 8px rgba(255,255,255,0.5)',
                 lineHeight: 1,
               }}
@@ -483,10 +483,13 @@ export default function Hero() {
             {c.hero.subhead}
           </p>
 
-          <div style={{ marginTop: 'clamp(1rem, 2.5vh, 1.75rem)' }}>
+          <div style={{ marginTop: 'clamp(1rem, 2.5vh, 1.75rem)' }} className="flex items-center justify-center gap-3">
             <Pill variant="dark" href="#register" className="text-sm px-5 py-3 min-h-[42px] !bg-black text-white">
               {c.hero.cta}
             </Pill>
+            <span aria-hidden="true" className="shrink-0 inline-flex items-center justify-center rounded-full overflow-hidden h-[46px] w-[46px] ring-1 ring-black/10 shadow-[0_4px_14px_rgba(0,0,0,0.18)]">
+              <Image src="/images/logos/zoom.png" alt="" width={46} height={46} className="h-full w-full object-cover scale-[1.14]" />
+            </span>
           </div>
         </div>
       </div>
@@ -691,7 +694,7 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
               fontSize: 'clamp(0.95rem, 1.5vw, 1.15rem)',
               fontWeight: 600,
               letterSpacing: '0.22em',
-              color: '#d9743f',
+              color: '#111',
               textShadow: '0 1px 8px rgba(255,255,255,0.5)',
               lineHeight: 1,
             }}
@@ -728,10 +731,13 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
         >
           {c.hero.subhead}
         </p>
-        <div>
+        <div className="flex items-center justify-center gap-3">
           <Pill variant="dark" href="#register" className="text-sm px-5 py-3 min-h-[42px] !bg-black text-white">
             {c.hero.cta}
           </Pill>
+          <span aria-hidden="true" className="shrink-0 inline-flex items-center justify-center rounded-full overflow-hidden h-[46px] w-[46px] ring-1 ring-black/10 shadow-[0_4px_14px_rgba(0,0,0,0.18)]">
+            <Image src="/images/logos/zoom.png" alt="" width={46} height={46} className="h-full w-full object-cover scale-[1.14]" />
+          </span>
         </div>
       </div>
     </section>
