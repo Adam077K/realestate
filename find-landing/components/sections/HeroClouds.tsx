@@ -491,7 +491,9 @@ export default function HeroClouds({
               : frontVeilIntensity(staticRestP) * 0.87,
             background:
               'radial-gradient(130% 100% at 50% 40%, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.90) 42%, rgba(255,255,255,0.97) 100%)',
-            filter: 'blur(6px)',
+            // P1: blur removed — mutating filter on a full-screen div every rAF
+            // invalidates the GPU layer cache each tick. The gradient edge is
+            // already soft at these opacities; visual change is imperceptible.
             willChange: animate ? 'opacity' : 'auto',
             pointerEvents: 'none',
           }}
