@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import Image from 'next/image'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
@@ -9,13 +10,15 @@ import { useContent } from '@/components/providers/LanguageProvider'
 /**
  * Hitech — id="hitech".
  *
- * Social proof: a heading plus a strip of tech-company names (text logos) that
- * Bonim Atid clients work at. When motion is allowed the strip auto-scrolls as a
- * seamless, dir-neutral marquee (the list is duplicated and translated by 50%).
- * When reduced motion is requested it falls back to a centered, wrapped static
- * row — no animation, full legibility.
+ * Social proof: a heading plus a strip of tech-company logo images that
+ * Bonim Atid clients work at. On the dark background logos are rendered as
+ * bright marks using `brightness(0) invert(1)` so they appear uniformly white.
  *
- * Bilingual via `c.hitech`. The marquee uses a GPU transform (translateX) only.
+ * When motion is allowed the strip auto-scrolls as a seamless, dir-neutral
+ * marquee (list is duplicated and translated by 50%). When reduced motion is
+ * requested it falls back to a centered wrapped static row.
+ *
+ * Bilingual via `c.hitech`. GPU transform only (translateX).
  */
 export default function Hitech() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -84,16 +87,29 @@ export default function Hitech() {
             className={
               motionOk
                 ? 'flex w-max items-center gap-12 md:gap-16 will-change-transform'
-                : 'flex flex-wrap items-center justify-center gap-x-10 gap-y-6 md:gap-x-16'
+                : 'flex flex-wrap items-center justify-center gap-x-10 gap-y-8 md:gap-x-16'
             }
           >
             {marqueeLogos.map((logo, i) => (
               <li
-                key={`${logo}-${i}`}
+                key={`${logo.name}-${i}`}
                 aria-hidden={motionOk && i >= hitech.logos.length ? true : undefined}
-                className="font-[var(--font-display)] text-lg md:text-xl lg:text-2xl font-medium tracking-[0.02em] text-[rgba(255,255,255,0.7)] whitespace-nowrap select-none"
+                className="flex items-center justify-center"
               >
-                {logo}
+                <Image
+                  src={logo.img}
+                  alt={logo.name}
+                  width={140}
+                  height={40}
+                  style={{
+                    height: '30px',
+                    width: 'auto',
+                    maxWidth: '130px',
+                    objectFit: 'contain',
+                    // Render as uniform white light marks on the dark background
+                    filter: 'brightness(0) invert(1) opacity(0.75)',
+                  }}
+                />
               </li>
             ))}
           </ul>

@@ -69,23 +69,37 @@ export default function OwnYourCareer() {
       // Each host card — image clip-path reveal + text rise
       const people = personRefs.current.filter(Boolean) as HTMLElement[]
       people.forEach((person, i) => {
-        const imageWrap = person.querySelector('.host-image')
+        const imageWrap = person.querySelector<HTMLElement>('.host-image')
         const textBlock = person.querySelectorAll('.host-text')
+
+        // Set the hidden FROM state via GSAP (not inline style) so it is
+        // automatically cleared on completion even if the trigger never fires.
+        if (imageWrap) {
+          gsap.set(imageWrap, { clipPath: 'inset(100% 0 0 0)' })
+        }
 
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: person,
-            start: 'top 80%',
+            start: 'top 85%',
+            // onLeaveBack: restart is acceptable — but crucially, ensure the
+            // to-state is always applied regardless.
           },
           delay: i * 0.08,
+          onComplete() {
+            // Safety: clear clip-path so images are never left hidden
+            if (imageWrap) {
+              gsap.set(imageWrap, { clearProps: 'clipPath' })
+            }
+          },
         })
 
         if (imageWrap) {
-          tl.fromTo(
-            imageWrap,
-            { clipPath: 'inset(100% 0 0 0)' },
-            { clipPath: 'inset(0% 0 0 0)', duration: 1.0, ease: 'power3.out' }
-          )
+          tl.to(imageWrap, {
+            clipPath: 'inset(0% 0 0 0)',
+            duration: 1.0,
+            ease: 'power3.out',
+          })
         }
 
         tl.from(
@@ -148,7 +162,8 @@ export default function OwnYourCareer() {
               <div
                 className="host-image relative overflow-hidden rounded-sm bg-[var(--color-ink)]/[0.03] ring-1 ring-[var(--color-ink)]/10 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.45)]"
                 style={{
-                  clipPath: motionOk ? 'inset(100% 0 0 0)' : undefined,
+                  // No initial clipPath here — GSAP sets it via gsap.set() so
+                  // the element is NEVER permanently hidden if the animation fails.
                   aspectRatio: '4 / 5',
                 }}
               >

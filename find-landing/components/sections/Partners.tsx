@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import Image from 'next/image'
 import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
@@ -10,12 +11,11 @@ import SectionLabel from '@/components/ui/SectionLabel'
 /**
  * Partners — id="partners".
  *
- * A light band that names the firms Bonim Atid works alongside, rendered as a row
- * of tracked, muted text logos (no raster assets — the brand list is text-native).
- * Bilingual via `c.partners`; RTL-aware (the flex row mirrors with `dir`).
+ * Real-estate / investment partner logos rendered as images (grayscale by default,
+ * full-color on hover). Bilingual via `c.partners`; RTL-aware.
  *
  * Reveal: heading + logos fade/rise on scroll, gated on motionOk with a static
- * fallback. Each logo lifts to full ink on hover for a tactile, premium feel.
+ * fallback. Each logo lifts to full-color on hover for a tactile, premium feel.
  */
 export default function Partners() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -59,14 +59,28 @@ export default function Partners() {
           <SectionLabel>{c.partners.heading}</SectionLabel>
         </div>
 
-        <ul className="partners-row flex flex-wrap items-center justify-center gap-x-8 gap-y-6 md:gap-x-14 lg:gap-x-16">
+        <ul className="partners-row flex flex-wrap items-center justify-center gap-x-8 gap-y-8 md:gap-x-12 lg:gap-x-14">
           {c.partners.logos.map((logo) => (
             <li
-              key={logo}
-              className="partner-logo font-[var(--font-display)] text-base md:text-lg lg:text-xl font-medium uppercase tracking-[0.14em] text-[var(--color-muted)] transition-colors duration-300 hover:text-[var(--color-ink)] select-none"
+              key={logo.name}
+              className="partner-logo group flex items-center justify-center"
               style={{ willChange: 'transform, opacity' }}
             >
-              {logo}
+              <Image
+                src={logo.img}
+                alt={logo.name}
+                width={160}
+                height={48}
+                style={{
+                  height: '36px',
+                  width: 'auto',
+                  maxWidth: '140px',
+                  objectFit: 'contain',
+                  filter: 'grayscale(1) opacity(0.55)',
+                  transition: 'filter 0.3s ease',
+                }}
+                className="group-hover:[filter:grayscale(0)_opacity(1)] motion-reduce:transition-none"
+              />
             </li>
           ))}
         </ul>

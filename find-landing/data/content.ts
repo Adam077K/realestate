@@ -224,7 +224,20 @@ export const content = {
     headline2: 'עסקאות נדל״ן יוצאות דופן מצריכות מומחיות יוצאת דופן.',
     partners: {
       heading: 'השותפים שלנו לדרך',
-      logos: ['AVIV', 'אקרו נדל״ן', 'תדהר', 'גרופיניטי', 'שיכון ובינוי', 'KEDEM', 'KTV', 'arad'],
+      logos: [
+        { name: 'שיכון ובינוי', img: '/images/logos/shikun-binui.png' },
+        { name: 'תדהר', img: '/images/logos/tidhar.png' },
+        { name: 'גרופיניטי', img: '/images/logos/groupinity.png' },
+        { name: 'AVIV', img: '/images/logos/aviv.png' },
+        { name: 'Acro', img: '/images/logos/acro.png' },
+        { name: 'אזורים', img: '/images/logos/azorim.png' },
+        { name: 'גולן', img: '/images/logos/golan.png' },
+        { name: 'Arad', img: '/images/logos/arad.png' },
+        { name: 'KTV', img: '/images/logos/ktv.png' },
+        { name: 'Kedem', img: '/images/logos/kedem.jpg' },
+        { name: 'Captain Invest', img: '/images/logos/captain-invest.png' },
+        { name: 'RE-INVEST', img: '/images/logos/re-invest.webp' },
+      ],
     },
     advantages: {
       heading: { lead: 'גלו את', tail: 'היתרונות שלנו' },
@@ -274,7 +287,17 @@ export const content = {
     },
     hitech: {
       heading: 'רבים מלקוחותינו עובדים בחברות הייטק המובילות',
-      logos: ['monday', 'Microsoft', 'intel', 'amazon', 'Payoneer', 'logz.io', 'WIX', 'Playtika'],
+      logos: [
+        { name: 'monday.com', img: '/images/logos/monday.png' },
+        { name: 'Microsoft', img: '/images/logos/microsoft.png' },
+        { name: 'Intel', img: '/images/logos/intel.png' },
+        { name: 'Amazon', img: '/images/logos/amazon.png' },
+        { name: 'Payoneer', img: '/images/logos/payoneer.png' },
+        { name: 'Logz.io', img: '/images/logos/logz-io.png' },
+        { name: 'Wix', img: '/images/logos/wix.png' },
+        { name: 'Playtika', img: '/images/logos/playtika.png' },
+        { name: 'Moon Active', img: '/images/logos/moon-active.png' },
+      ],
     },
   },
   en: {
@@ -440,7 +463,20 @@ export const content = {
     headline2: 'Exceptional real-estate deals demand exceptional expertise.',
     partners: {
       heading: 'Our partners',
-      logos: ['AVIV', 'Acro', 'Tidhar', 'Groupinity', 'Shikun & Binui', 'KEDEM', 'KTV', 'arad'],
+      logos: [
+        { name: 'Shikun & Binui', img: '/images/logos/shikun-binui.png' },
+        { name: 'Tidhar', img: '/images/logos/tidhar.png' },
+        { name: 'Groupinity', img: '/images/logos/groupinity.png' },
+        { name: 'AVIV', img: '/images/logos/aviv.png' },
+        { name: 'Acro', img: '/images/logos/acro.png' },
+        { name: 'Azorim', img: '/images/logos/azorim.png' },
+        { name: 'Golan', img: '/images/logos/golan.png' },
+        { name: 'Arad', img: '/images/logos/arad.png' },
+        { name: 'KTV', img: '/images/logos/ktv.png' },
+        { name: 'Kedem', img: '/images/logos/kedem.jpg' },
+        { name: 'Captain Invest', img: '/images/logos/captain-invest.png' },
+        { name: 'RE-INVEST', img: '/images/logos/re-invest.webp' },
+      ],
     },
     advantages: {
       heading: { lead: 'Discover our', tail: 'advantages' },
@@ -489,7 +525,17 @@ export const content = {
     },
     hitech: {
       heading: 'Many of our clients work at leading tech companies',
-      logos: ['monday', 'Microsoft', 'intel', 'amazon', 'Payoneer', 'logz.io', 'WIX', 'Playtika'],
+      logos: [
+        { name: 'monday.com', img: '/images/logos/monday.png' },
+        { name: 'Microsoft', img: '/images/logos/microsoft.png' },
+        { name: 'Intel', img: '/images/logos/intel.png' },
+        { name: 'Amazon', img: '/images/logos/amazon.png' },
+        { name: 'Payoneer', img: '/images/logos/payoneer.png' },
+        { name: 'Logz.io', img: '/images/logos/logz-io.png' },
+        { name: 'Wix', img: '/images/logos/wix.png' },
+        { name: 'Playtika', img: '/images/logos/playtika.png' },
+        { name: 'Moon Active', img: '/images/logos/moon-active.png' },
+      ],
     },
   },
 } as const
