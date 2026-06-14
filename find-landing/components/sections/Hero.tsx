@@ -140,8 +140,16 @@ export default function Hero() {
     }
 
     window.addEventListener('resize', onResize)
+    // Mobile browsers change window.innerHeight when the address bar shows/hides
+    // without firing a normal 'resize' event. visualViewport fires 'resize' for this.
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', onResize)
+    }
     return () => {
       window.removeEventListener('resize', onResize)
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', onResize)
+      }
       cancelAnimationFrame(rafId)
     }
   }, [mounted]) // re-run once mounted so ref is available
