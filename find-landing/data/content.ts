@@ -83,7 +83,7 @@ export const content = {
         'מה חובה לבדוק לפני עסקה?',
       ],
       subhead:
-        'איך לנצל את מצב השוק לטובתכם — וובינר חינם עם עידן פלג ורועי פישמן.',
+        'איך לנצל את מצב השוק לטובתכם - וובינר חינם עם עידן פלג ורועי פישמן.',
       cta: 'שריינו לי מקום עכשיו',
     },
     arrows: {
@@ -299,7 +299,7 @@ export const content = {
         'What to check before\nsigning any deal?',
       ],
       subhead:
-        'A free webinar on navigating Israel\'s 2026 market — with Idan Peleg & Roey Fishman.',
+        'A free webinar on navigating Israel\'s 2026 market - with Idan Peleg & Roey Fishman.',
       cta: 'Reserve my spot now',
     },
     arrows: {

@@ -48,13 +48,13 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
 
       const lenis = new LenisClass({
         autoRaf: false,
-        duration: 1.05,
+        duration: 1.5,
         lerp: 0.1,
         easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         orientation: 'vertical',
         gestureOrientation: 'vertical',
         smoothWheel: true,
-        wheelMultiplier: 1,
+        wheelMultiplier: 0.7,
         touchMultiplier: 2,
       })
 

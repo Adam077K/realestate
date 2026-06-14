@@ -65,8 +65,8 @@ import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 const HeroClouds = dynamic(() => import('./HeroClouds'), { ssr: false })
 
 // ─── Tuning constants ──────────────────────────────────────────────────────────
-const BUILDING_PAN_VH = 78
-const BUILDING_PAN_VH_MOBILE = 42
+const BUILDING_PAN_VH = 92
+const BUILDING_PAN_VH_MOBILE = 48
 
 function getBuildingPanVH(): number {
   if (typeof window === 'undefined') return BUILDING_PAN_VH
@@ -153,8 +153,8 @@ export default function Hero() {
         },
       })
 
-      // p 0.12–0.50  BUILDING PANS UP — longer rise reveals full building base
-      tl.to(buildingWrap, { y: -panPx, duration: 0.38, ease: 'power2.inOut' }, 0.12)
+      // p 0.12–0.52  BUILDING PANS UP — longer rise (92vh) reveals ~80-90% of building
+      tl.to(buildingWrap, { y: -panPx, duration: 0.40, ease: 'power2.inOut' }, 0.12)
 
       // p 0.18–0.36  COPY GROUP FADES OUT — headline+subhead+CTA together, as building rises over them
       tl.to(copyGroup, { opacity: 0, y: -40, duration: 0.18, ease: 'power3.in' }, 0.18)
@@ -164,34 +164,34 @@ export default function Hero() {
         tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.10)
       }
 
-      // p 0.46–0.50  Wordmark settles to final position as building tops out
-      tl.to(wordmark, { scale: 1, y: 0, duration: 0.04, ease: 'power1.out' }, 0.46)
+      // p 0.50–0.54  Wordmark settles to final position as building tops out
+      tl.to(wordmark, { scale: 1, y: 0, duration: 0.04, ease: 'power1.out' }, 0.50)
 
-      // A8 — OUTLINE DRAW + SHORT WINDOW:
-      // p 0.50–0.55  outline fades in + stroke draws (strokeDashoffset 1→0)
-      // Building must be FULLY revealed (base in view) BEFORE this fires
-      tl.to(outline, { opacity: 1, duration: 0.05, ease: 'power2.out' }, 0.50)
+      // A8 — OUTLINE DRAW + HOLD WINDOW:
+      // p 0.54–0.60  outline fades in + stroke draws (strokeDashoffset 1→0)
+      // Building is FULLY revealed (base in view) and holding BEFORE this fires
+      tl.to(outline, { opacity: 1, duration: 0.05, ease: 'power2.out' }, 0.54)
       if (outline) {
         tl.to(outline.querySelectorAll('.wordmark-outline-text'), {
           strokeDashoffset: 0,
-          duration: 0.09,
+          duration: 0.08,
           ease: 'power2.inOut',
           stagger: 0.01,
-        }, 0.50)
+        }, 0.54)
       }
 
-      // p 0.55–0.58  OUTLINE HOLDS briefly. Very subtle scale.
-      tl.to(outline, { scale: 1.02, duration: 0.03, ease: 'power1.inOut' }, 0.55)
+      // p 0.60–0.62  OUTLINE HOLDS. Very subtle scale.
+      tl.to(outline, { scale: 1.02, duration: 0.02, ease: 'power1.inOut' }, 0.60)
 
-      // p 0.58–0.64  CROSS-DISSOLVE:
-      //   buildingImg: 1→0  (building photo fades)
+      // p 0.64–0.70  CROSS-DISSOLVE:
+      //   buildingImg: 1→0  (building photo fades — held fully revealed until now)
       //   outline:     scale back + 1→0
       //   fill:        0→1  (image inside the letters appears)
-      tl.to(buildingImg, { opacity: 0, duration: 0.06, ease: 'sine.inOut' }, 0.58)
-      tl.to(outline,     { opacity: 0, scale: 1,       duration: 0.06, ease: 'power1.inOut' }, 0.58)
-      tl.to(fill,        { opacity: 1,                 duration: 0.06, ease: 'power1.inOut' }, 0.60)
+      tl.to(buildingImg, { opacity: 0, duration: 0.06, ease: 'sine.inOut' }, 0.64)
+      tl.to(outline,     { opacity: 0, scale: 1,       duration: 0.06, ease: 'power1.inOut' }, 0.64)
+      tl.to(fill,        { opacity: 1,                 duration: 0.06, ease: 'power1.inOut' }, 0.66)
 
-      // p 0.64–0.86  IMAGE-FILL WORDMARK HOLDS — long defining beat (A8: extended hold)
+      // p 0.70–0.86  IMAGE-FILL WORDMARK HOLDS — long defining beat (A8: extended hold)
 
       // p 0.86–0.94  WORDMARK LIFTS + FADES into the rising white mask
       tl.to(wordmark, { y: '-18%', scale: 1.06, opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.86)
@@ -226,7 +226,7 @@ export default function Hero() {
         <div
           className="absolute left-1/2 z-[2]"
           style={{
-            top: 'clamp(62vh, 66vh, 70vh)',
+            top: 'clamp(58vh, 62vh, 66vh)',
             width: 'min(70vw, 1008px)',
             transform: 'translateX(-50%)',
           }}
@@ -284,7 +284,7 @@ export default function Hero() {
             className="font-bold leading-[0.95]"
             style={{
               fontFamily: 'var(--font-hebrew-display)',
-              fontSize: 'clamp(1.92rem, 5.2vw, 4.8rem)',
+              fontSize: 'clamp(1.78rem, 5.95vw, 5.76rem)',
               letterSpacing: '-0.03em',
               color: '#000000',
               whiteSpace: 'pre-line',
@@ -343,7 +343,7 @@ export default function Hero() {
         ref={buildingOuterRef}
         className="absolute left-1/2 z-[3]"
         style={{
-          top: 'clamp(62vh, 66vh, 70vh)',
+          top: 'clamp(58vh, 62vh, 66vh)',
           width: 'min(70vw, 1008px)',
           transform: 'translateX(-50%)',
           margin: 0,
@@ -448,7 +448,7 @@ export default function Hero() {
             className="font-bold"
             style={{
               fontFamily: 'var(--font-hebrew-display)',
-              fontSize: 'clamp(1.48rem, 4.96vw, 4.8rem)',
+              fontSize: 'clamp(1.78rem, 5.95vw, 5.76rem)',
               lineHeight: 0.95,
               letterSpacing: '-0.03em',
               color: '#000000',
