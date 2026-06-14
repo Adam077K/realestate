@@ -12,19 +12,8 @@ import TwoToneHeading from '@/components/ui/TwoToneHeading'
  * BuyerGroups - id="buyer-groups".
  *
  * A continuously-moving, infinite marquee carousel of the four PRE-DESIGNED city
- * cards (`c.buyerGroups.cards`: Holon / Haifa / Tel Aviv / Herzliya). The card
- * images already have all their text/labels baked in, so they are rendered AS-IS:
- * no overlay, no scrim, no darkening, no cropping. Each card keeps its native
- * ~590×348 (≈1.7:1) aspect ratio so it "fits exactly".
- *
- * Motion: the track is two back-to-back copies of the cards; we tween it by exactly
- * one copy's width on an infinite, GPU-transform (x) timeline, then modulo-wrap -
- * giving a seamless, premium loop. Direction follows `dir` (RTL scrolls the other
- * way). Hover pauses. With reduced motion (motionOk === false) the track is a static,
- * wrapping row (no auto-move) and the duplicate copy is hidden from a11y.
- *
- * Heading (`c.buyerGroups.heading`) sits above via TwoToneHeading; the section id
- * is preserved.
+ * cards. Motion language: section rises → heading words stagger → marquee fades in
+ * as a unit → cards drift. Richer entrance than before.
  */
 export default function BuyerGroups() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -35,34 +24,80 @@ export default function BuyerGroups() {
   const c = useContent()
   const { buyerGroups } = c
 
-  // Heading reveal (gated on motionOk).
+  // Section entrance + heading word reveal (gated on motionOk).
   useGsapContext(
     sectionRef,
     () => {
       if (!motionOk) return
+
+      // Section: rise from below as a unified block
+      gsap.from(sectionRef.current, {
+        opacity: 0,
+        y: 40,
+        duration: 0.9,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        onComplete() {
+          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
+        },
+      })
+
+      // Heading word stagger
       gsap.from('.bg-heading .tt-word', {
         yPercent: 110,
         opacity: 0,
-        stagger: 0.04,
+        stagger: 0.045,
         duration: 0.85,
         ease: 'power3.out',
-        scrollTrigger: { trigger: '.bg-heading', start: 'top 82%' },
+        scrollTrigger: { trigger: '.bg-heading', start: 'top 80%' },
+        onComplete() {
+          gsap.set('.bg-heading .tt-word', { clearProps: 'yPercent,opacity' })
+        },
       })
+
+      // Sub-line below the heading fades up
+      gsap.from('.bg-subline', {
+        opacity: 0,
+        y: 16,
+        duration: 0.7,
+        delay: 0.18,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: '.bg-heading', start: 'top 80%' },
+        onComplete() {
+          gsap.set('.bg-subline', { clearProps: 'opacity,transform' })
+        },
+      })
+
+      // Marquee viewport: clip-wipe reveal from reading-start
+      const carouselEl = sectionRef.current?.querySelector('.bg-carousel')
+      if (carouselEl) {
+        gsap.fromTo(
+          carouselEl,
+          { clipPath: 'inset(0 100% 0 0)', opacity: 0 },
+          {
+            clipPath: 'inset(0 0% 0 0)',
+            opacity: 1,
+            duration: 1.1,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: carouselEl, start: 'top 82%' },
+            onComplete() {
+              gsap.set(carouselEl, { clearProps: 'clipPath,opacity' })
+            },
+          }
+        )
+      }
     },
     [motionOk]
   )
 
-  // Auto-playing infinite marquee. One copy = half the track (cards duplicated once).
+  // Auto-playing infinite marquee.
   useEffect(() => {
     const track = trackRef.current
     if (!track || !motionOk) return
 
-    // Distance to travel = width of a single copy (half of the full duplicated track).
     const distance = () => track.scrollWidth / 2
-    // RTL reads right→left, so cards should drift toward the start (positive x in RTL,
-    // negative x in LTR) for a natural "incoming" feel.
     const direction = dir === 'rtl' ? 1 : -1
-    const SPEED = 60 // px per second - calm, premium drift
+    const SPEED = 60
 
     const ctx = gsap.context(() => {
       gsap.set(track, { x: 0 })
@@ -72,7 +107,6 @@ export default function BuyerGroups() {
         ease: 'none',
         repeat: -1,
         modifiers: {
-          // Wrap within a single copy so the loop is seamless.
           x: (value) => {
             const d = distance()
             if (d === 0) return '0px'
@@ -92,8 +126,6 @@ export default function BuyerGroups() {
   const pause = () => tweenRef.current?.pause()
   const resume = () => tweenRef.current?.play()
 
-  // Render one set of cards; when animating we render a second, aria-hidden copy
-  // for the seamless loop. Static (reduced-motion) shows a single wrapping row.
   const cards = buyerGroups.cards
   const cities = buyerGroups.groups
 
@@ -105,7 +137,7 @@ export default function BuyerGroups() {
       aria-label={`${buyerGroups.heading.lead} ${buyerGroups.heading.tail}`}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="bg-heading mb-14 md:mb-20 max-w-3xl">
+        <div className="bg-heading mb-4 max-w-3xl">
           <TwoToneHeading
             as="h2"
             lead={buyerGroups.heading.lead}
@@ -113,11 +145,13 @@ export default function BuyerGroups() {
             className="text-[clamp(2.25rem,5vw,4.5rem)] leading-[1.05]"
           />
         </div>
+        {/* Decorative eyebrow-style sub-line beneath heading */}
+        <div className="bg-subline mb-14 md:mb-20 h-px w-16 bg-[var(--color-ink)]/20" aria-hidden="true" />
       </div>
 
-      {/* Carousel viewport - full-bleed within the section padding box */}
+      {/* Carousel viewport */}
       <div
-        className="relative overflow-hidden"
+        className="bg-carousel relative overflow-hidden"
         onMouseEnter={pause}
         onMouseLeave={resume}
         onFocusCapture={pause}
@@ -162,8 +196,7 @@ export default function BuyerGroups() {
 
 /**
  * A single pre-designed buyer-group card image, shown AS-IS at its native
- * ~1.7:1 aspect ratio (object-contain so nothing is cropped or distorted).
- * No overlay, no scrim - the artwork carries its own labels.
+ * ~1.7:1 aspect ratio. Richer hover: deeper lift, shadow bloom, image scale.
  */
 function BuyerCard({
   src,
@@ -181,19 +214,21 @@ function BuyerCard({
       aria-hidden={ariaHidden || undefined}
       className="group shrink-0 w-[min(85vw,560px)] sm:w-[min(60vw,520px)] md:w-[440px] lg:w-[480px]"
     >
-      {/* Hover: card lifts + shadow deepens; image zooms in subtly */}
-      <div
-        className="relative w-full overflow-hidden rounded-2xl ring-1 ring-[var(--color-ink)]/10 shadow-[0_24px_60px_-32px_rgba(0,0,0,0.5)] transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-y-1 group-hover:shadow-[0_32px_72px_-24px_rgba(0,0,0,0.6)] motion-reduce:transition-none motion-reduce:transform-none"
-        style={{ aspectRatio: '590 / 348' }}
-      >
-        <Image
-          src={src}
-          alt={alt}
-          fill
-          sizes="(max-width: 640px) 85vw, (max-width: 768px) 60vw, 480px"
-          className="object-contain transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.03] motion-reduce:transform-none motion-reduce:transition-none"
-          priority={index === 0}
-        />
+      {/* Double-bezel outer shell for depth */}
+      <div className="p-[3px] rounded-[1.375rem] bg-[var(--color-ink)]/[0.04] ring-1 ring-[var(--color-ink)]/8 transition-[box-shadow,transform] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-y-[3px] group-hover:shadow-[0_28px_60px_-16px_rgba(0,0,0,0.28)] motion-reduce:transition-none motion-reduce:transform-none">
+        <div
+          className="relative w-full overflow-hidden rounded-[calc(1.375rem-3px)] ring-1 ring-[var(--color-ink)]/10 shadow-[0_20px_50px_-28px_rgba(0,0,0,0.45)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.55)]"
+          style={{ aspectRatio: '590 / 348' }}
+        >
+          <Image
+            src={src}
+            alt={alt}
+            fill
+            sizes="(max-width: 640px) 85vw, (max-width: 768px) 60vw, 480px"
+            className="object-contain transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.04] motion-reduce:transform-none motion-reduce:transition-none"
+            priority={index === 0}
+          />
+        </div>
       </div>
     </div>
   )

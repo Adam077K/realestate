@@ -10,18 +10,15 @@ import Pill from '@/components/ui/Pill'
 /**
  * Webinar details - id="webinar". "The Pass" concept.
  *
- * A premium, dark "save the date" moment. The event DATE is the hero: the day's
- * numeral (e.g. 22.06) is rendered colossal, filled with a refined monochrome
- * white→gray gradient, clip-revealed on scroll, layered over a faded ghost
- * numeral for depth. The
- * logistics (full date / time / duration / platform) are woven into an elegant
- * boarding-pass rail - labelled rows on a single drawn hairline - instead of four
- * identical squares. A perforated divider sells the ticket/pass motif, and a CTA
- * pill reserves a spot (links to #register).
- *
- * Sits between the dark Hitech strip and the dark register band, so it stays dark
- * for a seamless flow. RTL-correct (Hebrew default). Motion is gated on
- * useSmoothScroll().motionOk with a fully static fallback; GPU transforms only.
+ * Motion language:
+ * - Section rises as a unit
+ * - Eyebrow + title fade-rise together
+ * - Ghost numeral parallax drift
+ * - Hero date: clip-reveal + scale settle (directional wipe, RTL-aware)
+ * - Rail hairline draws top→bottom
+ * - Rows cascade in with stagger
+ * - CTA pill bounces in last
+ * - All clearProps on onComplete for safety
  */
 export default function SupportBeyond() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -31,17 +28,12 @@ export default function SupportBeyond() {
   const w = c.webinar
   const isHebrew = c.register.fields.name === 'שם מלא'
 
-  // Pull the day/month out of the date string for the giant numeral.
-  // he: "יום שני, 22.06.26" · en: "Monday, 22.06.26" → "22.06"
   const dateDigits = w.date.match(/(\d{1,2})\.(\d{1,2})/)
   const bigDate = dateDigits ? `${dateDigits[1]}.${dateDigits[2]}` : w.date
   const yearMatch = w.date.match(/\d{1,2}\.\d{1,2}\.(\d{2,4})/)
   const bigYear = yearMatch ? `'${yearMatch[1]}` : ''
-  // The weekday prefix before the comma (e.g. "יום שני" / "Monday").
   const weekday = w.date.split(',')[0]?.trim() ?? w.date
 
-  // Boarding-pass rail rows. The date hero carries the day itself, so the rail
-  // leads with the weekday, then time / duration / platform.
   const rows = [
     { key: 'day', caption: isHebrew ? 'יום' : 'Day', value: weekday },
     { key: 'time', caption: isHebrew ? 'שעה' : 'Time', value: w.time },
@@ -56,14 +48,29 @@ export default function SupportBeyond() {
     () => {
       if (!motionOk) return
 
+      // Section entrance: dark block drifts up as a unit
+      gsap.from(sectionRef.current, {
+        opacity: 0,
+        y: 36,
+        duration: 0.85,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        onComplete() {
+          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
+        },
+      })
+
       // Eyebrow + section title fade-rise.
       gsap.from('.wb-intro > *', {
-        y: 18,
+        y: 20,
         opacity: 0,
-        stagger: 0.08,
-        duration: 0.7,
+        stagger: 0.09,
+        duration: 0.75,
         ease: 'power3.out',
         scrollTrigger: { trigger: '.wb-stage', start: 'top 82%' },
+        onComplete() {
+          gsap.set('.wb-intro > *', { clearProps: 'y,opacity' })
+        },
       })
 
       // Ghost numeral parallax drift.
@@ -83,62 +90,83 @@ export default function SupportBeyond() {
         }
       )
 
-      // Hero date clip-reveals (directional wipe, RTL-aware) + slight scale settle.
+      // Hero date clip-reveals (directional wipe, RTL-aware) + scale settle.
       const wipeFrom =
         dir === 'rtl' ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)'
       gsap.fromTo(
         '.wb-bigdate',
-        { clipPath: wipeFrom, scale: 1.04 },
+        { clipPath: wipeFrom, scale: 1.05 },
         {
           clipPath: 'inset(0 0% 0 0%)',
           scale: 1,
-          duration: 1.2,
+          duration: 1.3,
           ease: 'power3.inOut',
           scrollTrigger: { trigger: '.wb-bigdate', start: 'top 85%' },
+          onComplete() {
+            gsap.set('.wb-bigdate', { clearProps: 'clipPath,scale' })
+          },
         }
       )
 
       gsap.from('.wb-year', {
         opacity: 0,
-        y: 24,
+        y: 28,
         duration: 0.7,
         ease: 'power2.out',
         scrollTrigger: { trigger: '.wb-bigdate', start: 'top 80%' },
+        onComplete() {
+          gsap.set('.wb-year', { clearProps: 'opacity,y' })
+        },
       })
 
       // The pass rail's hairline draws top→bottom.
       gsap.from('.wb-rail-line', {
         scaleY: 0,
         transformOrigin: 'top center',
-        duration: 1,
+        duration: 1.1,
         ease: 'power3.inOut',
         scrollTrigger: { trigger: '.wb-rail', start: 'top 80%' },
+        onComplete() {
+          gsap.set('.wb-rail-line', { clearProps: 'scaleY,transformOrigin' })
+        },
       })
 
-      // Perforation + rows stagger in.
+      // Perforation draw
       gsap.from('.wb-perf', {
         scaleX: 0,
         opacity: 0,
-        duration: 0.8,
+        duration: 0.85,
         ease: 'power3.out',
         scrollTrigger: { trigger: '.wb-rail', start: 'top 82%' },
+        onComplete() {
+          gsap.set('.wb-perf', { clearProps: 'scaleX,opacity' })
+        },
       })
 
+      // Rows stagger in
       gsap.from('.wb-row', {
-        y: 22,
+        y: 26,
         opacity: 0,
         stagger: 0.1,
-        duration: 0.65,
+        duration: 0.7,
         ease: 'power3.out',
         scrollTrigger: { trigger: '.wb-rail', start: 'top 78%' },
+        onComplete() {
+          gsap.set('.wb-row', { clearProps: 'y,opacity' })
+        },
       })
 
+      // CTA: scale + rise
       gsap.from('.wb-cta', {
-        y: 16,
+        y: 18,
         opacity: 0,
+        scale: 0.95,
         duration: 0.7,
         ease: 'power3.out',
         scrollTrigger: { trigger: '.wb-rail', start: 'top 70%' },
+        onComplete() {
+          gsap.set('.wb-cta', { clearProps: 'y,opacity,scale' })
+        },
       })
     },
     [motionOk, dir]
@@ -151,7 +179,7 @@ export default function SupportBeyond() {
       className="relative w-full overflow-hidden bg-[var(--color-dark)] text-[var(--color-paper)]"
       aria-labelledby="webinar-heading"
     >
-      {/* Atmospheric neutral glow anchored to the date side (subtle, monochrome). */}
+      {/* Atmospheric neutral glow */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
@@ -167,7 +195,7 @@ export default function SupportBeyond() {
         <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
           {/* ── Hero date ── */}
           <div className="relative">
-            {/* Faded ghost numeral for depth (layered type). */}
+            {/* Faded ghost numeral for depth */}
             <span
               aria-hidden="true"
               className="wb-ghost pointer-events-none absolute -top-10 select-none font-[var(--font-hebrew-display)] font-extrabold leading-none tracking-[-0.04em] text-white/[0.04] md:-top-16"
@@ -220,7 +248,7 @@ export default function SupportBeyond() {
           {/* ── Boarding-pass rail ── */}
           <div className="wb-rail relative">
             <div className="relative ps-7 md:ps-9">
-              {/* The drawn hairline that the rows hang from. */}
+              {/* The drawn hairline */}
               <span
                 aria-hidden="true"
                 className="wb-rail-line absolute inset-y-1 start-0 w-px bg-gradient-to-b from-[rgba(255,255,255,0.55)] via-[rgba(255,255,255,0.22)] to-transparent"
@@ -234,7 +262,7 @@ export default function SupportBeyond() {
                     className="wb-row relative flex flex-col gap-1.5 py-5 md:py-6"
                     style={{ willChange: 'transform, opacity' }}
                   >
-                    {/* Node dot on the rail. */}
+                    {/* Node dot on the rail */}
                     <span
                       aria-hidden="true"
                       className="absolute top-7 h-1.5 w-1.5 rounded-full bg-[rgba(255,255,255,0.6)] md:top-8"
@@ -257,7 +285,7 @@ export default function SupportBeyond() {
               </ul>
             </div>
 
-            {/* Perforated edge - the ticket/pass tear line. */}
+            {/* Perforated edge */}
             <span
               aria-hidden="true"
               className="wb-perf mt-8 block h-px w-full"

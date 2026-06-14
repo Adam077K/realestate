@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { gsap } from '@/lib/gsap'
+import { useGsapContext } from '@/hooks/useGsapContext'
 import { useLang, useContent } from '@/components/providers/LanguageProvider'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 
@@ -120,9 +122,44 @@ function UnitBlock({ value, label, revealed, motionOk, delay }: UnitBlockProps) 
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function Countdown() {
+  const sectionRef = useRef<HTMLElement>(null)
   const { dir } = useLang()
   const c = useContent()
   const { motionOk } = useSmoothScroll()
+
+  // Section entrance: the dark band rises from below on scroll-in.
+  // This supplements the CSS mount-animation on the digit blocks.
+  useGsapContext(
+    sectionRef,
+    () => {
+      if (!motionOk) return
+
+      gsap.from(sectionRef.current, {
+        opacity: 0,
+        y: 32,
+        duration: 0.85,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        onComplete() {
+          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
+        },
+      })
+
+      // Lead line: stronger reveal after section settles
+      gsap.from('.countdown-lead', {
+        opacity: 0,
+        y: 16,
+        duration: 0.6,
+        delay: 0.18,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        onComplete() {
+          gsap.set('.countdown-lead', { clearProps: 'opacity,transform' })
+        },
+      })
+    },
+    [motionOk]
+  )
 
   // HYDRATION-SAFE: never call Date during the initial render.
   // `mounted` stays false on the server and during the first client render,
@@ -163,6 +200,7 @@ export default function Countdown() {
 
   return (
     <section
+      ref={sectionRef}
       id="countdown"
       dir={dir}
       className="relative w-full overflow-hidden bg-[var(--color-dark)]"
@@ -187,7 +225,7 @@ export default function Countdown() {
       <div className="relative mx-auto w-full max-w-5xl px-6 py-16 md:px-12 md:py-24">
         {/* Lead line */}
         <p
-          className="mb-10 text-center font-[var(--font-display)] text-sm font-medium uppercase tracking-[0.28em] text-[rgba(255,255,255,0.5)] md:mb-12 md:text-[13px]"
+          className="countdown-lead mb-10 text-center font-[var(--font-display)] text-sm font-medium uppercase tracking-[0.28em] text-[rgba(255,255,255,0.5)] md:mb-12 md:text-[13px]"
           style={
             motionOk
               ? {

@@ -14,8 +14,8 @@ import SectionLabel from '@/components/ui/SectionLabel'
  * Real-estate / investment partner logos rendered as images (grayscale by default,
  * full-color on hover). Bilingual via `c.partners`; RTL-aware.
  *
- * Reveal: heading + logos fade/rise on scroll, gated on motionOk with a static
- * fallback. Each logo lifts to full-color on hover for a tactile, premium feel.
+ * Reveal: section rises as a unit, then heading, then logos cascade in with a
+ * clip-path wipe from below + stagger. Each logo lifts to full-color on hover.
  */
 export default function Partners() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -27,22 +27,47 @@ export default function Partners() {
     () => {
       if (!motionOk) return
 
-      gsap.from('.partners-heading', {
-        y: 18,
+      // Section entrance: whole band drifts up
+      gsap.from(sectionRef.current, {
         opacity: 0,
-        duration: 0.7,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: '.partners-heading', start: 'top 88%' },
+        y: 28,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 82%' },
+        onComplete() {
+          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
+        },
       })
 
-      gsap.from('.partner-logo', {
-        y: 16,
+      // Heading subtle rise
+      gsap.from('.partners-heading', {
+        y: 22,
         opacity: 0,
-        stagger: 0.06,
-        duration: 0.6,
+        duration: 0.75,
         ease: 'power3.out',
-        scrollTrigger: { trigger: '.partners-row', start: 'top 88%' },
+        scrollTrigger: { trigger: '.partners-heading', start: 'top 86%' },
+        onComplete() {
+          gsap.set('.partners-heading', { clearProps: 'opacity,transform' })
+        },
       })
+
+      // Logos: clip-path wipe from below, staggered cascade
+      gsap.fromTo(
+        '.partner-logo',
+        { clipPath: 'inset(100% 0 0 0)', opacity: 0, y: 8 },
+        {
+          clipPath: 'inset(0% 0 0 0)',
+          opacity: 1,
+          y: 0,
+          stagger: 0.055,
+          duration: 0.65,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: '.partners-row', start: 'top 86%' },
+          onComplete() {
+            gsap.set('.partner-logo', { clearProps: 'clipPath,opacity,transform' })
+          },
+        }
+      )
     },
     [motionOk]
   )
@@ -77,9 +102,10 @@ export default function Partners() {
                   maxWidth: '140px',
                   objectFit: 'contain',
                   filter: 'grayscale(1) opacity(0.55)',
-                  transition: 'filter 0.45s cubic-bezier(0.32, 0.72, 0, 1), transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
+                  transition:
+                    'filter 0.45s cubic-bezier(0.32, 0.72, 0, 1), transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
                 }}
-                className="group-hover:[filter:grayscale(0)_opacity(1)] group-hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:transform-none"
+                className="group-hover:[filter:grayscale(0)_opacity(1)] group-hover:-translate-y-[3px] motion-reduce:transition-none motion-reduce:transform-none"
               />
             </li>
           ))}

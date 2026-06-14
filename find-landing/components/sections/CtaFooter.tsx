@@ -88,28 +88,71 @@ export default function CtaFooter() {
     () => {
       if (!motionOk) return
 
+      // Urgency badge fades in first
+      gsap.from('.reg-badge', {
+        opacity: 0,
+        y: 14,
+        scale: 0.95,
+        duration: 0.55,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: '.reg-band', start: 'top 80%' },
+        onComplete() {
+          gsap.set('.reg-badge', { clearProps: 'opacity,transform' })
+        },
+      })
+
+      // Register heading: word-by-word stagger (split manually since it's a plain h2)
+      const regHeading = footerRef.current?.querySelector<HTMLElement>('#register-heading')
+      if (regHeading) {
+        const text = regHeading.textContent ?? ''
+        const words = text.split(/\s+/).filter(Boolean)
+        regHeading.innerHTML = words
+          .map(
+            (w) =>
+              `<span style="display:inline-block;overflow:hidden;vertical-align:bottom"><span class="reg-heading-word" style="display:inline-block">${w}</span></span>`
+          )
+          .join(' ')
+
+        gsap.from('.reg-heading-word', {
+          yPercent: 110,
+          opacity: 0,
+          stagger: 0.04,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: regHeading, start: 'top 84%' },
+          onComplete() {
+            gsap.set('.reg-heading-word', { clearProps: 'yPercent,opacity' })
+          },
+        })
+      }
+
       // Scroll-reveal for the registration composition: panel + card stagger up.
       gsap.from('.reg-reveal', {
-        y: 34,
+        y: 36,
         opacity: 0,
-        duration: 0.8,
+        duration: 0.85,
         ease: 'power3.out',
-        stagger: 0.12,
-        scrollTrigger: { trigger: '.reg-band', start: 'top 80%' },
+        stagger: 0.14,
+        scrollTrigger: { trigger: '.reg-band', start: 'top 78%' },
+        onComplete() {
+          gsap.set('.reg-reveal', { clearProps: 'y,opacity' })
+        },
       })
 
       // Form rows cascade in just after the card.
       gsap.from('.reg-field', {
-        y: 16,
+        y: 18,
         opacity: 0,
-        duration: 0.5,
+        duration: 0.55,
         ease: 'power2.out',
-        stagger: 0.07,
+        stagger: 0.08,
         scrollTrigger: { trigger: '.reg-card', start: 'top 85%' },
+        onComplete() {
+          gsap.set('.reg-field', { clearProps: 'y,opacity' })
+        },
       })
 
-      // Subtle parallax on the background image - drifts 8% over section height.
-      // GPU-safe: transform/yPercent only, no top/left.
+      // Subtle parallax on the background image.
       const bg = regBgRef.current
       if (bg) {
         gsap.fromTo(
@@ -127,6 +170,19 @@ export default function CtaFooter() {
           }
         )
       }
+
+      // Footer columns stagger in from below
+      gsap.from('.footer-col', {
+        opacity: 0,
+        y: 28,
+        stagger: 0.09,
+        duration: 0.75,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: '.footer-cols', start: 'top 86%' },
+        onComplete() {
+          gsap.set('.footer-col', { clearProps: 'opacity,transform' })
+        },
+      })
     },
     [motionOk]
   )
@@ -217,7 +273,7 @@ export default function CtaFooter() {
           <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
             {/* ── Value / urgency panel ── */}
             <div className="reg-reveal flex flex-col items-start text-start">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.28)] bg-[rgba(255,255,255,0.07)] px-4 py-1.5 text-xs font-medium tracking-wide text-white backdrop-blur-sm">
+              <span className="reg-badge inline-flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.28)] bg-[rgba(255,255,255,0.07)] px-4 py-1.5 text-xs font-medium tracking-wide text-white backdrop-blur-sm">
                 <span
                   className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-sky-orange)]"
                   aria-hidden="true"
@@ -364,10 +420,10 @@ export default function CtaFooter() {
       >
         <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 lg:px-20 py-16 md:py-20">
           {/* 4-column grid - RTL: cols flow right→left in the page */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
+          <div className="footer-cols grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
 
             {/* ── Col 1 (RTL reading-start - rightmost on desktop): Logo + tagline + CTA ── */}
-            <div className="flex flex-col items-start gap-6">
+            <div className="footer-col flex flex-col items-start gap-6">
               {/* Building-icon: render full logo, filter white, crop to icon portion */}
               <a href="#" aria-label="בונים עתיד – דף הבית" className="flex-shrink-0">
                 <div
@@ -409,7 +465,7 @@ export default function CtaFooter() {
             </div>
 
             {/* ── Col 2: מפת אתר (Sitemap) ── */}
-            <nav aria-label={c.newFooter.columns.sitemap}>
+            <nav className="footer-col" aria-label={c.newFooter.columns.sitemap}>
               <h3 className="mb-5 text-base font-semibold text-white">
                 {c.newFooter.columns.sitemap}
               </h3>
@@ -428,7 +484,7 @@ export default function CtaFooter() {
             </nav>
 
             {/* ── Col 3: השירותים שלנו (Services) ── */}
-            <nav aria-label={c.newFooter.columns.services}>
+            <nav className="footer-col" aria-label={c.newFooter.columns.services}>
               <h3 className="mb-5 text-base font-semibold text-white">
                 {c.newFooter.columns.services}
               </h3>
@@ -456,7 +512,7 @@ export default function CtaFooter() {
             </nav>
 
             {/* ── Col 4 (leftmost on desktop): דברו איתנו (Contact) ── */}
-            <div>
+            <div className="footer-col">
               <h3 className="mb-5 text-base font-semibold text-white">
                 {c.newFooter.columns.contact}
               </h3>

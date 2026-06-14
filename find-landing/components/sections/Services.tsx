@@ -12,16 +12,13 @@ import Pill from '@/components/ui/Pill'
 /**
  * Services → "How Bonim Atid helps you" - dark giant-type pillars.
  *
- * Bilingual + RTL aware. Content comes from `c.pillars` (he/en).
- * Layout: an ENORMOUS thin display word on one side, number + body on the other.
- * The giant word sits on the READING-START side so the eye lands on it first:
- *   - RTL (Hebrew): giant word on the RIGHT, number + body on the LEFT.
- *   - LTR (English): giant word on the RIGHT as well (matches the reference), number
- *     + body on the LEFT.
- * The row is laid out with an explicit, direction-aware flex template
- * (`flex-row` vs `flex-row-reverse`) so the sides read naturally regardless of the
- * implicit inline-flow mirroring. The clip-path wipe origin follows reading order so
- * the word emerges from its resting (right) edge.
+ * Motion language:
+ * - Section rises as a unit
+ * - Header words stagger
+ * - Each row: number ring draws, giant word wipes in, body fades up
+ * - Closing line words stagger
+ * - CTA pill bounces in
+ * - All onComplete clearProps for safety
  */
 export default function Services() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -32,37 +29,55 @@ export default function Services() {
 
   const isRtl = dir === 'rtl'
 
-  // The giant word always rests against the RIGHT edge of the section. In RTL that is
-  // the reading-start side; in LTR it matches the reference. The number + body cluster
-  // sits on the LEFT. We achieve "giant word on the right" by reversing the row's flex
-  // direction in RTL (whose default inline start is the right) and keeping the natural
-  // order in LTR (whose default inline start is the left).
-
   useGsapContext(
     sectionRef,
     () => {
       if (!motionOk) return
 
-      // Stagger heading words on entry
-      gsap.from('.services-heading .tt-word', {
-        yPercent: 110,
+      // Section entrance: dark block rises into place
+      gsap.from(sectionRef.current, {
         opacity: 0,
-        stagger: 0.04,
-        duration: 0.8,
+        y: 36,
+        duration: 0.85,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        onComplete() {
+          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
+        },
+      })
+
+      // Header section label + heading words stagger
+      gsap.from('.services-label', {
+        opacity: 0,
+        y: 16,
+        duration: 0.6,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: '.services-header', start: 'top 82%' },
+        onComplete() {
+          gsap.set('.services-label', { clearProps: 'opacity,transform' })
+        },
+      })
+
+      gsap.from('.services-heading .tt-word', {
+        yPercent: 115,
+        opacity: 0,
+        stagger: 0.045,
+        duration: 0.85,
         ease: 'power3.out',
         scrollTrigger: {
           trigger: '.services-heading',
           start: 'top 80%',
         },
+        onComplete() {
+          gsap.set('.services-heading .tt-word', { clearProps: 'yPercent,opacity' })
+        },
       })
 
-      // Each row: giant word wipes in + number ring draws
+      // Each row: giant word wipes in + number ring draws + body rises
       pillars.rows.forEach((_row, i) => {
         const rowEl = `.service-row-${i}`
 
-        // Giant word: clip-path wipe. The word rests against the right edge, so it
-        // reveals from the right - the right side stays anchored while the left side
-        // opens up (inset left 100% → 0).
+        // Giant word: clip-path wipe from the inline-end → inline-start
         const hiddenClip = 'inset(0 0 0 100%)'
         const fromX = isRtl ? -40 : 40
 
@@ -73,11 +88,14 @@ export default function Services() {
             clipPath: 'inset(0 0% 0 0)',
             x: 0,
             opacity: 1,
-            duration: 1.0,
+            duration: 1.1,
             ease: 'power3.out',
             scrollTrigger: {
               trigger: rowEl,
-              start: 'top 75%',
+              start: 'top 76%',
+            },
+            onComplete() {
+              gsap.set(`${rowEl} .service-giant-word`, { clearProps: 'clipPath,x,opacity' })
             },
           }
         )
@@ -88,51 +106,77 @@ export default function Services() {
           { strokeDashoffset: 100 },
           {
             strokeDashoffset: 0,
-            duration: 0.8,
-            ease: 'power2.out',
+            duration: 0.9,
+            ease: 'power3.out',
             scrollTrigger: {
               trigger: rowEl,
-              start: 'top 75%',
+              start: 'top 76%',
             },
           }
         )
 
-        // Body text fade up
-        gsap.from(`${rowEl} .service-body`, {
-          yPercent: 20,
+        // Number label fade
+        gsap.from(`${rowEl} .service-num-label`, {
           opacity: 0,
-          duration: 0.7,
-          delay: 0.15,
+          duration: 0.5,
+          delay: 0.35,
           ease: 'power2.out',
           scrollTrigger: {
             trigger: rowEl,
-            start: 'top 75%',
+            start: 'top 76%',
+          },
+          onComplete() {
+            gsap.set(`${rowEl} .service-num-label`, { clearProps: 'opacity' })
+          },
+        })
+
+        // Body text blur-fade up
+        gsap.from(`${rowEl} .service-body`, {
+          yPercent: 22,
+          opacity: 0,
+          filter: 'blur(3px)',
+          duration: 0.75,
+          delay: 0.18,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: rowEl,
+            start: 'top 76%',
+          },
+          onComplete() {
+            gsap.set(`${rowEl} .service-body`, { clearProps: 'yPercent,opacity,filter' })
           },
         })
       })
 
       // Closing line words
       gsap.from('.services-closing .tt-word', {
-        yPercent: 110,
+        yPercent: 115,
         opacity: 0,
-        stagger: 0.03,
-        duration: 0.8,
+        stagger: 0.04,
+        duration: 0.85,
         ease: 'power3.out',
         scrollTrigger: {
           trigger: '.services-closing',
-          start: 'top 85%',
+          start: 'top 84%',
+        },
+        onComplete() {
+          gsap.set('.services-closing .tt-word', { clearProps: 'yPercent,opacity' })
         },
       })
 
-      // CTA pill fade up
+      // CTA pill: scale + fade
       gsap.from('.services-cta', {
-        y: 20,
+        y: 22,
         opacity: 0,
-        duration: 0.6,
-        ease: 'power2.out',
+        scale: 0.94,
+        duration: 0.65,
+        ease: 'power3.out',
         scrollTrigger: {
           trigger: '.services-cta',
           start: 'top 90%',
+        },
+        onComplete() {
+          gsap.set('.services-cta', { clearProps: 'y,opacity,scale' })
         },
       })
     },
@@ -147,8 +191,8 @@ export default function Services() {
       aria-label={pillars.heading.lead}
     >
       {/* Header row */}
-      <div className="w-full px-6 md:px-12 lg:px-20 pt-20 pb-16 md:pt-28 md:pb-20">
-        <SectionLabel variant="light" className="mb-6 block">
+      <div className="services-header w-full px-6 md:px-12 lg:px-20 pt-20 pb-16 md:pt-28 md:pb-20">
+        <SectionLabel variant="light" className="services-label mb-6 block">
           {pillars.heading.lead}
         </SectionLabel>
         <TwoToneHeading
@@ -162,14 +206,7 @@ export default function Services() {
         />
       </div>
 
-      {/* Pillar rows - full-width hairline dividers.
-          Each row is a CSS grid: [1fr auto].
-          Col 1 (inline-start): number ring + body paragraph.
-          Col 2 (inline-end): the giant display word.
-          CSS Grid respects writing-mode so the word is always at the inline-end
-          (right in RTL = reading-start, right in LTR = reading-end). This ensures
-          the word's inline-end edge is flush with the section-heading's inline-end
-          edge - both are bounded by the same `px-6 md:px-12 lg:px-20` padding. */}
+      {/* Pillar rows */}
       <div className="w-full">
         {pillars.rows.map((row, i) => (
           <div
@@ -201,7 +238,7 @@ export default function Services() {
                     strokeDashoffset={motionOk ? 100 : 0}
                   />
                 </svg>
-                <span className="relative text-xs font-light text-[rgba(255,255,255,0.65)] select-none tabular-nums">
+                <span className="service-num-label relative text-xs font-light text-[rgba(255,255,255,0.65)] select-none tabular-nums">
                   {row.n}
                 </span>
               </div>
@@ -212,9 +249,7 @@ export default function Services() {
               </p>
             </div>
 
-            {/* Col 2: Giant word - hidden on small screens, visible md+.
-                Sits at the inline-end of the grid column, flush with the section
-                heading's inline-end edge (same padding boundary). */}
+            {/* Col 2: Giant word - hidden on small screens */}
             <div className="hidden md:block">
               <span
                 className="service-giant-word block font-[var(--font-display)] font-light text-white select-none whitespace-nowrap leading-none"
@@ -244,8 +279,6 @@ export default function Services() {
           tailClassName="text-white/45"
           className="services-closing max-w-2xl mb-10"
         />
-        {/* CTA sits on the reading-END side (left in RTL, right in LTR).
-            `justify-end` resolves to the inline-end edge: left in RTL, right in LTR. */}
         <div className="services-cta flex justify-end">
           <Pill
             variant="ghost"

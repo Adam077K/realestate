@@ -10,8 +10,7 @@ import TwoToneHeading from '@/components/ui/TwoToneHeading'
 import { images } from '@/data/content'
 
 // Per-image alt text and object-position tuning so faces/subjects stay centred
-// within the chevron clip shape. The new images are landscape/square; center
-// positioning keeps the subject visible in the tall crop.
+// within the chevron clip shape.
 const IMAGE_META: { alt: string; objectPosition: string }[] = [
   { alt: 'משפחה מאושרת בדירה חדשה', objectPosition: 'center center' },
   { alt: 'רכישת דירה - חוזה ומפתח', objectPosition: 'center center' },
@@ -30,43 +29,81 @@ export default function ChevronStrip() {
     () => {
       if (!motionOk) return
 
-      const items = itemRefs.current.filter(Boolean) as HTMLDivElement[]
-      if (items.length === 0) return
+      // Section entrance: the whole section rises
+      gsap.from(sectionRef.current, {
+        opacity: 0,
+        y: 40,
+        duration: 0.9,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        onComplete() {
+          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
+        },
+      })
 
       // Heading words stagger reveal
       const headingWords = sectionRef.current?.querySelectorAll('.chevron-heading .tt-word')
       if (headingWords && headingWords.length > 0) {
         gsap.from(headingWords, {
-          yPercent: 110,
+          yPercent: 115,
           opacity: 0,
-          stagger: 0.05,
+          stagger: 0.055,
           ease: 'power3.out',
-          duration: 0.85,
+          duration: 0.9,
           scrollTrigger: {
             trigger: '.chevron-heading',
-            start: 'top 84%',
+            start: 'top 82%',
+          },
+          onComplete() {
+            gsap.set(headingWords, { clearProps: 'yPercent,opacity' })
           },
         })
       }
 
-      // Left→right "opening" reveal: arrows enter in sequence from the left, each
-      // sliding in from a slight leftward offset with a fade. The stagger makes the
-      // ❯❯❯❯ chain appear to open rightward (frames 015→019). GPU transforms only
-      // (opacity + translateX via xPercent).
-      gsap.from(items, {
-        opacity: 0,
-        xPercent: -22,
-        stagger: {
-          each: 0.14,
-          from: 'start', // arrow 1 first … arrow 4 last
-        },
-        ease: 'power3.out',
-        duration: 0.8,
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 80%',
-        },
-      })
+      // Arrow row: entire row wipes in via clip-path from the left — gives a
+      // "parting curtain" reveal as the ❯❯❯❯ chain opens rightward.
+      const arrowRow = sectionRef.current?.querySelector('.chevron-arrow-row')
+      if (arrowRow) {
+        gsap.fromTo(
+          arrowRow,
+          { clipPath: 'inset(0 100% 0 0)' },
+          {
+            clipPath: 'inset(0 0% 0 0)',
+            duration: 1.1,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: arrowRow,
+              start: 'top 84%',
+            },
+            onComplete() {
+              gsap.set(arrowRow, { clearProps: 'clipPath' })
+            },
+          }
+        )
+      }
+
+      // Individual arrows stagger inside the clip: rise + fade
+      const items = itemRefs.current.filter(Boolean) as HTMLDivElement[]
+      if (items.length > 0) {
+        gsap.from(items, {
+          opacity: 0,
+          y: 18,
+          stagger: {
+            each: 0.1,
+            from: 'start',
+          },
+          ease: 'power3.out',
+          duration: 0.75,
+          delay: 0.15,
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top 80%',
+          },
+          onComplete() {
+            gsap.set(items, { clearProps: 'opacity,transform' })
+          },
+        })
+      }
     },
     [motionOk]
   )
@@ -86,20 +123,12 @@ export default function ChevronStrip() {
       </div>
 
       {/*
-        Arrow row - 4 EQUAL chevron-arrow panels in a centered horizontal row.
-        Every panel is identical width/height with flex-shrink:0, so the four arrows
-        are always the same size (no unequal flex-basis, no negative margins). A small
-        consistent gap between panels yields a clean white chevron-shaped gap between
-        every arrow: the tip (100% 50%) of arrow N points toward the concave notch
-        (42% 50%) of arrow N+1, so the empty space between them reads as a white ❯.
-        overflow-hidden guards against sub-pixel clip bleed creating a scrollbar.
-
-        The chevron clip shape is intrinsically directional (points right); the row is
-        a fixed left→right visual motif, so we pin dir="ltr" on the arrow row regardless
-        of page direction so the arrows always point the same way and never collide.
+        Arrow row - 4 EQUAL chevron-arrow panels.
+        overflow-hidden guards against sub-pixel clip bleed.
+        dir="ltr" pins the directional visual motif regardless of page direction.
       */}
       <div className="overflow-hidden px-4" dir="ltr">
-        <div className="flex items-stretch justify-center gap-[clamp(0px,0.15vw,4px)]">
+        <div className="chevron-arrow-row flex items-stretch justify-center gap-[clamp(0px,0.15vw,4px)]">
           {chevronImages.map((src, i) => {
             const meta =
               IMAGE_META[i] ?? {
@@ -129,7 +158,7 @@ export default function ChevronStrip() {
                   objectFit="cover"
                   objectPosition={meta.objectPosition}
                   priority={i === 0}
-                  imgClassName="transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.06] motion-reduce:transform-none motion-reduce:transition-none"
+                  imgClassName="transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.07] motion-reduce:transform-none motion-reduce:transition-none"
                 />
               </div>
             )

@@ -10,13 +10,12 @@ import TwoToneHeading from '@/components/ui/TwoToneHeading'
 /**
  * "What you'll learn" - id="learn".
  *
- * Editorial numbered list of the 4 webinar topics. The elegant numbered-steps
- * layout is repurposed: a left-column heading + a right-column list of numbered
- * rows (mono index, bold lead, muted tail) separated by hairline dividers.
- *
- * RTL-correct: the layout uses logical classes (text-start, ms-/me-, dir-aware
- * flex order) so the index column, dividers, and reveal all mirror with `dir`.
- * Dividers grow from the inline-start edge (right in RTL, left in LTR).
+ * Editorial numbered list. Motion language:
+ * - Section block rises as a unit (strong entrance)
+ * - Heading words stagger-reveal with overflow-hidden clip
+ * - Dividers scaleX 0→1 from reading-start
+ * - Each row cascades in with a stagger (opacity + translateY)
+ * - clearProps on all onComplete so elements are never left hidden
  */
 export default function RewiredSteps() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -26,8 +25,6 @@ export default function RewiredSteps() {
   const { dir } = useLang()
   const c = useContent()
 
-  // Hairline dividers grow from the reading-start edge so the reveal feels native
-  // in both directions: left→right in LTR, right→left in RTL.
   const dividerOrigin = dir === 'rtl' ? 'right center' : 'left center'
 
   useGsapContext(
@@ -35,23 +32,38 @@ export default function RewiredSteps() {
     () => {
       if (!motionOk) return
 
-      // Big heading words
+      // Section entrance: the whole section rises first
+      gsap.from(sectionRef.current, {
+        opacity: 0,
+        y: 44,
+        duration: 0.9,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 78%' },
+        onComplete() {
+          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
+        },
+      })
+
+      // Heading words: stronger stagger-reveal (word-clip overflow-hidden)
       const headingWords = sectionRef.current?.querySelectorAll('.learn-heading .tt-word')
       if (headingWords && headingWords.length > 0) {
         gsap.from(headingWords, {
-          yPercent: 110,
+          yPercent: 115,
           opacity: 0,
-          stagger: 0.04,
+          stagger: 0.05,
           ease: 'power3.out',
-          duration: 0.9,
+          duration: 0.95,
           scrollTrigger: {
             trigger: '.learn-heading',
-            start: 'top 80%',
+            start: 'top 82%',
+          },
+          onComplete() {
+            gsap.set(headingWords, { clearProps: 'yPercent,opacity' })
           },
         })
       }
 
-      // Items: dividers scaleX 0 → 1 then row fades in
+      // Items: dividers scaleX 0→1 then row fades in
       const items = itemRefs.current.filter(Boolean) as HTMLLIElement[]
       const dividers = dividerRefs.current.filter(Boolean) as HTMLSpanElement[]
 
@@ -69,19 +81,30 @@ export default function RewiredSteps() {
           tl.fromTo(
             divider,
             { scaleX: 0, transformOrigin: dividerOrigin },
-            { scaleX: 1, duration: 0.5, ease: 'power2.out' }
+            {
+              scaleX: 1,
+              duration: 0.6,
+              ease: 'power3.out',
+              onComplete() {
+                gsap.set(divider, { clearProps: 'scaleX,transformOrigin' })
+              },
+            }
           )
         }
 
+        // Row number + content rise together, slightly offset from divider
         tl.from(
           item.querySelectorAll('.item-content'),
           {
             opacity: 0,
-            y: 12,
-            duration: 0.5,
-            ease: 'power2.out',
+            y: 18,
+            duration: 0.6,
+            ease: 'power3.out',
+            onComplete() {
+              gsap.set(item.querySelectorAll('.item-content'), { clearProps: 'opacity,transform' })
+            },
           },
-          '-=0.2'
+          '-=0.25'
         )
       })
     },
@@ -96,7 +119,7 @@ export default function RewiredSteps() {
       aria-label={`${c.learn.heading.lead} ${c.learn.heading.tail}`}
     >
       <div className="flex flex-col md:flex-row md:gap-16 lg:gap-24 max-w-7xl mx-auto">
-        {/* HEADING - giant stacked, top of the inline-start column */}
+        {/* HEADING */}
         <div className="md:w-5/12 lg:w-[42%] mb-16 md:mb-0 flex flex-col justify-start">
           <div className="learn-heading">
             <TwoToneHeading
@@ -120,7 +143,7 @@ export default function RewiredSteps() {
                 }}
                 className="relative"
               >
-                {/* Hairline divider - animates scaleX 0→1 from the reading-start edge */}
+                {/* Hairline divider */}
                 <span
                   ref={(el) => {
                     dividerRefs.current[i] = el
@@ -135,7 +158,7 @@ export default function RewiredSteps() {
 
                 {/* Row content */}
                 <div className="item-content flex items-start gap-4 md:gap-6 py-8 md:py-10">
-                  {/* Index - sits on the reading-start side, mono + muted */}
+                  {/* Index */}
                   <span className="shrink-0 text-xs font-mono text-[var(--color-muted)] pt-1 w-6 text-end select-none">
                     {item.n}
                   </span>

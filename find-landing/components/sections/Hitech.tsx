@@ -18,7 +18,8 @@ import { useContent } from '@/components/providers/LanguageProvider'
  * marquee (list is duplicated and translated by 50%). When reduced motion is
  * requested it falls back to a centered wrapped static row.
  *
- * Bilingual via `c.hitech`. GPU transform only (translateX).
+ * Section entrance: the heading wipes in word-by-word; the marquee track fades
+ * up as a unit once it starts moving. GPU transform only (translateX).
  */
 export default function Hitech() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -35,16 +36,58 @@ export default function Hitech() {
     () => {
       if (!motionOk) return
 
-      gsap.from('.hitech-heading', {
-        y: 16,
+      // Section entrance: whole band drifts up
+      gsap.from(sectionRef.current, {
         opacity: 0,
-        duration: 0.7,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: '.hitech-heading', start: 'top 88%' },
+        y: 30,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 82%' },
+        onComplete() {
+          gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
+        },
       })
 
+      // Heading: word-by-word stagger reveal (split on spaces)
+      const headingEl = sectionRef.current?.querySelector('.hitech-heading')
+      if (headingEl) {
+        // Wrap each word in an overflow-hidden clip span for the slide-up reveal
+        const text = headingEl.textContent ?? ''
+        const words = text.split(/\s+/).filter(Boolean)
+        headingEl.innerHTML = words
+          .map(
+            (w) =>
+              `<span class="hitech-word-clip" style="display:inline-block;overflow:hidden;vertical-align:bottom"><span class="hitech-word-inner" style="display:inline-block">${w}</span></span>`
+          )
+          .join(' ')
+
+        gsap.from('.hitech-word-inner', {
+          yPercent: 110,
+          opacity: 0,
+          stagger: 0.045,
+          duration: 0.75,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: headingEl, start: 'top 86%' },
+          onComplete() {
+            gsap.set('.hitech-word-inner', { clearProps: 'yPercent,opacity' })
+          },
+        })
+      }
+
+      // Marquee track: fade in once it's moving
       const track = trackRef.current
       if (track) {
+        gsap.from(track, {
+          opacity: 0,
+          duration: 0.8,
+          delay: 0.2,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+          onComplete() {
+            gsap.set(track, { clearProps: 'opacity' })
+          },
+        })
+
         // Loop across exactly one copy's width (the list is doubled).
         gsap.to(track, {
           xPercent: -50,
@@ -109,9 +152,10 @@ export default function Hitech() {
                     // Render as uniform white light marks on the dark background.
                     // On hover: brighten to full opacity for a tactile, premium reveal.
                     filter: 'brightness(0) invert(1) opacity(0.75)',
-                    transition: 'filter 0.4s cubic-bezier(0.32, 0.72, 0, 1), transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
+                    transition:
+                      'filter 0.4s cubic-bezier(0.32, 0.72, 0, 1), transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
                   }}
-                  className="group-hover:[filter:brightness(0)_invert(1)_opacity(1)] group-hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:transform-none"
+                  className="group-hover:[filter:brightness(0)_invert(1)_opacity(1)] group-hover:-translate-y-[3px] motion-reduce:transition-none motion-reduce:transform-none"
                 />
               </li>
             ))}
