@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Colors ── */
+  --color-ink: #111111;
+  --color-muted: #9a9a9a;
+  --color-paper: #ffffff;
+  --color-paper-warm: #f2f2f0;
+  --color-dark: #0d0d0d;
+  --color-dark-2: #161616;
+
+  /* Sky gradient stops */
+  --color-sky-peach: #f5c5a3;
+  --color-sky-orange: #e8855a;
+  --color-sky-rose: #c9607a;
+  --color-sky-violet: #7b6fad;
+  --color-sky-blue: #4a7fcb;
+  --color-sky-deep: #2a5298;
+
+  /* ── Fonts ── */
+  /* Latin grotesks, with the Hebrew face (Assistant) as fallback so HE renders
+     cleanly. Onest/Hanken carry no Hebrew glyphs, so Hebrew text falls through to
+     Assistant — a refined, humanist, premium Hebrew display/body face. */
+  --font-display: var(--font-onest), var(--font-hebrew);
+  --font-body: var(--font-hanken-grotesk), var(--font-hebrew);
+  /* Hebrew-first stack for giant display type (hero headline, pillar words, footer
+     wordmark) where we want Assistant's strong Hebrew letterforms to lead. */
+  --font-hebrew-display: var(--font-hebrew), var(--font-onest), system-ui, sans-serif;
+
+  /* ── Spacing (8px grid base) ── */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
+  --spacing-32: 8rem;
+  --spacing-40: 10rem;
+  --spacing-48: 12rem;
+  --spacing-64: 16rem;
+
+  /* ── Border radius ── */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-full: 9999px;
+
+  /* ── Transitions ── */
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+/* ── Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body), var(--font-hebrew), system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display), var(--font-hebrew), system-ui, sans-serif;
+  line-height: 1.1;
+  margin: 0;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Hebrew typography refinement (RTL)
+
+   Hebrew has no ascenders/descenders or letter-case, so it sits as a denser,
+   more even band than Latin. It needs DIFFERENT metrics than the Latin grotesks
+   the layout was tuned for:
+     • Latin grotesks here are tracked tight (-0.02 … -0.05em). That negative
+       tracking collapses Hebrew counters and hurts legibility — Hebrew should
+       sit near 0 (or slightly positive for large display). We neutralise it.
+     • Hebrew reads better with a touch more leading, so body gets ~1.7 and
+       headings get a little extra room vs. the Latin defaults.
+   The hero display type sets its metrics via INLINE styles + the SVG wordmark,
+   so these rules deliberately do not reach it — the big hero stays strong.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Body copy: comfortable Hebrew leading + open default tracking. */
+:root[dir='rtl'] body {
+  line-height: 1.7;
+  letter-spacing: 0;
+  word-spacing: 0.01em;
+}
+
+/* Headings: Assistant leads, tracking opens up to ~0 (never the tight Latin
+   negative tracking), with a hair more leading so Hebrew heads breathe. */
+:root[dir='rtl'] h1,
+:root[dir='rtl'] h2,
+:root[dir='rtl'] h3,
+:root[dir='rtl'] h4,
+:root[dir='rtl'] h5,
+:root[dir='rtl'] h6 {
+  font-family: var(--font-hebrew-display);
+  letter-spacing: -0.005em;
+  line-height: 1.18;
+}
+
+/* Component-level headings/body in sections hardcode tight Latin tracking
+   (tracking-[-0.02em] … -[-0.025em]) and snug leading. Override for Hebrew so
+   section heads and paragraphs are polished, open and legible. Utility-class
+   trackings are reset to ~0; large display words get a hair of positive
+   tracking, which suits Assistant's even Hebrew rhythm. The hero is exempt
+   (inline-styled) and stays compact. */
+:root[dir='rtl'] [class*="tracking-[-0"] {
+  letter-spacing: -0.005em;
+}
+
+/* Paragraph / body-copy blocks in sections: generous Hebrew leading. */
+:root[dir='rtl'] p,
+:root[dir='rtl'] li,
+:root[dir='rtl'] blockquote {
+  line-height: 1.7;
+  letter-spacing: 0;
+}
+
+/* Buttons / CTAs in Hebrew: keep labels open, never compressed. */
+:root[dir='rtl'] button,
+:root[dir='rtl'] a {
+  letter-spacing: 0;
+}
+
+/* Giant pillar words (Services) and the footer/date wordmarks set their own
+   tight Latin tracking for the Latin build. In Hebrew, Assistant's letterforms
+   want near-zero tracking so the heavy weights stay crisp rather than crushed. */
+:root[dir='rtl'] .service-giant-word,
+:root[dir='rtl'] .wb-ghost,
+:root[dir='rtl'] .wb-bigdate {
+  letter-spacing: -0.01em;
+}
+
+/* ── Utility: hairline border ── */
+.hairline {
+  border: 1px solid rgba(17, 17, 17, 0.12);
+}
+
+.hairline-light {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ── Utility: 2-tone text helper ── */
+.text-2tone-lead {
+  color: var(--color-ink);
+}
+
+.text-2tone-tail {
+  color: var(--color-muted);
+}
+
+/* ── Word overflow clip for GSAP stagger ── */
+.word-clip {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.word-inner {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* ── Reduced motion overrides ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
