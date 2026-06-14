@@ -243,7 +243,7 @@ export default function Services() {
           tailClassName="text-white/45"
           className="services-closing max-w-2xl mb-10"
         />
-        <div className="services-cta flex justify-end">
+        <div className="services-cta flex justify-center md:justify-end">
           <Pill
             variant="ghost"
             href="#register"
