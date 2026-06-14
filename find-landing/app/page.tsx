@@ -3,6 +3,7 @@ import Hero from '@/components/sections/Hero'
 import ChevronStrip from '@/components/sections/ChevronStrip'
 import RewiredSteps from '@/components/sections/RewiredSteps'
 import SupportBeyond from '@/components/sections/SupportBeyond'
+import Countdown from '@/components/sections/Countdown'
 import OwnYourCareer from '@/components/sections/OwnYourCareer'
 import Partners from '@/components/sections/Partners'
 import Services from '@/components/sections/Services'
@@ -37,6 +38,7 @@ export default function Home() {
         <Hero />
         <RewiredSteps />
         <SupportBeyond />
+        <Countdown />
         <ChevronStrip />
         <OwnYourCareer />
         <Partners />

@@ -299,6 +299,16 @@ export const content = {
         { name: 'Moon Active', img: '/images/logos/moon-active.png' },
       ],
     },
+    countdown: {
+      lead: 'הוובינר מתחיל בעוד',
+      started: 'הוובינר התחיל',
+      units: {
+        days: 'ימים',
+        hours: 'שעות',
+        minutes: 'דקות',
+        seconds: 'שניות',
+      },
+    },
   },
   en: {
     brand: 'בונים עתיד',
@@ -536,6 +546,16 @@ export const content = {
         { name: 'Playtika', img: '/images/logos/playtika.png' },
         { name: 'Moon Active', img: '/images/logos/moon-active.png' },
       ],
+    },
+    countdown: {
+      lead: 'The webinar starts in',
+      started: 'The webinar has started',
+      units: {
+        days: 'Days',
+        hours: 'Hours',
+        minutes: 'Minutes',
+        seconds: 'Seconds',
+      },
     },
   },
 } as const
