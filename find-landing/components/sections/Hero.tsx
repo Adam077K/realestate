@@ -227,7 +227,7 @@ export default function Hero() {
           className="absolute left-1/2 z-[2]"
           style={{
             top: 'clamp(58vh, 62vh, 66vh)',
-            width: 'min(70vw, 1008px)',
+            width: 'min(85vw, 1240px)',
             transform: 'translateX(-50%)',
           }}
           aria-hidden="true"
@@ -246,7 +246,7 @@ export default function Hero() {
                 display: 'block',
                 filter: 'saturate(1.02) contrast(1.02)',
               }}
-              sizes="(max-width: 768px) 70vw, 1008px"
+              sizes="(max-width: 768px) 85vw, 1240px"
             />
           </div>
           {/* Warm rim light - replaces the old cool blue cast */}
@@ -284,7 +284,7 @@ export default function Hero() {
             className="font-bold leading-[0.95]"
             style={{
               fontFamily: 'var(--font-hebrew-display)',
-              fontSize: 'clamp(1.78rem, 5.95vw, 5.76rem)',
+              fontSize: 'clamp(2.1rem, 7vw, 7rem)',
               letterSpacing: '-0.03em',
               color: '#000000',
               whiteSpace: 'pre-line',
@@ -298,7 +298,7 @@ export default function Hero() {
             className="font-light"
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(0.55rem, 2.35vw, 1.2rem)',
+              fontSize: 'clamp(0.58rem, 2.6vw, 1.4rem)',
               lineHeight: 1.65,
               color: '#000000',
               whiteSpace: 'nowrap',
@@ -344,7 +344,7 @@ export default function Hero() {
         className="absolute left-1/2 z-[3]"
         style={{
           top: 'clamp(58vh, 62vh, 66vh)',
-          width: 'min(70vw, 1008px)',
+          width: 'min(85vw, 1240px)',
           transform: 'translateX(-50%)',
           margin: 0,
           padding: 0,
@@ -370,7 +370,7 @@ export default function Hero() {
                 display: 'block',
                 filter: 'saturate(1.02) contrast(1.02)',
               }}
-              sizes="(max-width: 768px) 70vw, 1008px"
+              sizes="(max-width: 768px) 85vw, 1240px"
             />
           </div>
 
@@ -448,7 +448,7 @@ export default function Hero() {
             className="font-bold"
             style={{
               fontFamily: 'var(--font-hebrew-display)',
-              fontSize: 'clamp(1.78rem, 5.95vw, 5.76rem)',
+              fontSize: 'clamp(2.1rem, 7vw, 7rem)',
               lineHeight: 0.95,
               letterSpacing: '-0.03em',
               color: '#000000',
@@ -463,7 +463,7 @@ export default function Hero() {
           <p
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(0.55rem, 2.35vw, 1.2rem)',
+              fontSize: 'clamp(0.58rem, 2.6vw, 1.4rem)',
               fontWeight: 300,
               lineHeight: 1.65,
               letterSpacing: '0.005em',
