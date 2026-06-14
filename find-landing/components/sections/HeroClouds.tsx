@@ -12,7 +12,8 @@
  *         saturate(0.85) mild tint, parallax 0.55-0.68x.
  *
  *  NEAR/VEIL (front bloom, 5 nodes): blur 0-1px, opacity 0.03-0.05,
- *         saturate(1.0), parallax 1.0-1.25x. Bloom to near-full at p 0.45-0.78.
+ *         saturate(1.0), parallax 1.0-1.25x. Bloom to near-full at p 0.40-0.90,
+ *         then STAYS at peak (no thin-out). Bridges into next section via Stats' cloud-white top.
  *
  * KEY CRAFT:
  *  1. mix-blend-mode: screen on EVERY cloud PNG — kills ~80% of "stickered-on" look.
@@ -204,15 +205,18 @@ const expo = (n: number) => {
 
 /**
  * Full-screen soft veil intensity for the FRONT field, 0..1.
- * P2.1 — bloom starts at p≈0.40 (was 0.45), end stays ~0.90, so building is
- * still scaling WHILE clouds thicken (≥50% overlap with grow phase).
- * Gentle ease-in across the range. Peak veil ≤~0.90 (soft, textured, not flat scrim).
- * Then thins to ~0.18 at p=1.0 as the next section emerges through it.
+ *
+ * v2 — PERSIST: veil blooms in and STAYS at peak. No thin-out at end.
+ * The next section (Stats) has a matching cloud-white gradient top so the
+ * seam is invisible — same cloud coloring carries across the boundary.
+ *
+ * Bloom: starts at p≈0.40, peaks at p≈0.90.
+ * Peak ≤~0.90 (soft, textured — not a flat opaque scrim; cloud PNGs still read through).
+ * No lift term — veil stays at peak from p=0.90 → p=1.0.
  */
 function frontVeilIntensity(p: number): number {
-  const bloom = expo(clamp01((p - 0.40) / 0.50))    // 0 at p=0.40, 1 by p=0.90
-  const lift  = smooth(clamp01((p - 0.78) / 0.22))  // 0 until 0.78, 1 by p=1.0
-  return clamp01(bloom - lift * 0.82)                // peaks ~1, thins to ~0.18
+  // Blooms from 0 at p=0.40 to 1 by p=0.90. Stays at 1 through p=1.0.
+  return expo(clamp01((p - 0.40) / 0.50))
 }
 
 /**
@@ -429,8 +433,9 @@ export default function HeroClouds({
       })}
 
       {/* FRONT veil — soft near-white radial wash that fills the WHOLE viewport at
-          the end of the hero (frame_011), then thins as the next section emerges
-          through the same clouds (frame_012). blur(6px) keeps it reading as cloud,
+          the end of the hero, then STAYS at peak (no thin-out). The next section
+          (Stats) has a matching cloud-white gradient at its top so the seam between
+          hero and next section is invisible. blur(6px) keeps it reading as cloud,
           not a flat scrim. Opacity driven by frontVeilIntensity each rAF frame.
           NOTE: blur on a simple gradient div (not a promoted+blurred PNG) is safe;
           only 1 GPU layer with no costly re-composition. */}

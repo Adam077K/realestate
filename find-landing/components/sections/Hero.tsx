@@ -3,42 +3,53 @@
 /**
  * Hero — Signature pinned scroll experience for בונים עתיד (Bonim Atid).
  *
- * Building: hero-tower-v3.png — 1024×946 green-terraced glass tower (transparent top rows + semi-transparent base row removed).
- * Because the image is square (not portrait), we render it at min(78vw, 880px)
- * wide so the upper terraces show flush at viewport bottom at rest. REST_SCALE 0.57
- * (desktop) / 0.80 (mobile) means at 1440px the building base is flush to the
- * bottom and roofline sits ~65% from top, leaving clean sky for the headline.
- * GROWN_SCALE 1.9 lets the building dominate.
+ * v2 — FOUNDER DIRECTION CHANGES:
+ *
+ * 1. BUILDING — WIDER, HALF AT REST.
+ *    Rendered at min(125vw, 1800px) wide so it bleeds off BOTH side edges.
+ *    Positioned with top: 0 so the UPPER HALF of the building (penthouse,
+ *    upper terraces) is visible at rest, with the lower half extending below
+ *    the viewport fold.
+ *
+ * 2. BUILDING MOTION — CONSTANT-SIZE VERTICAL PAN (not a zoom).
+ *    No scale animation. On scroll, the building translates UPWARD (negative Y)
+ *    at fixed size — reveals progressively lower floors. Reads as "camera
+ *    descending the facade". Pan range: 0 → ~-45vh.
+ *
+ * 3. SPACING — headline / subhead / CTA rhythm balanced.
+ *    Generous, intentional gaps: headline → subhead → CTA.
+ *
+ * 4. CLOUDS — PERSIST + COLOR-BRIDGE INTO NEXT SECTION.
+ *    Cloud veil STAYS at peak opacity (no thin-out at end). Stats section
+ *    gets a cloud-white gradient top so the seam is invisible.
+ *
+ * Architecture unchanged:
+ *   - progressRef (plain useRef<number>) — zero React re-renders per tick.
+ *   - Single rAF in HeroClouds, cancelled on unmount.
+ *   - GSAP context revert on cleanup.
+ *   - @ts-expect-error CSS-var pattern preserved.
+ *   - Reduced-motion: static composed end-state (persistent veil look, no pin/rAF).
+ *   - RTL: fully centered — reads identically in dir=rtl and dir=ltr.
+ *   - GPU: transform/opacity only; will-change toggled around pin.
  *
  * Two-layer building wrapper (CRITICAL — DO NOT COLLAPSE):
- *   OUTER  — absolute bottom-0 left-1/2, translateX(-50%). NEVER touched by GSAP.
- *   INNER  — buildingWrapRef. GSAP animates SCALE ONLY via transform-origin center
- *            bottom. Never translateY → base always flush to viewport bottom.
- *
- * progressRef: plain useRef<number>, written by ScrollTrigger onUpdate, read by
- * HeroClouds' rAF loop. Zero React re-renders per scroll tick.
+ *   OUTER  — absolute top-0 left-1/2, translateX(-50%). NEVER touched by GSAP.
+ *   INNER  — buildingWrapRef. GSAP animates translateY ONLY.
  *
  * Motion timeline (scrub: true, pin +=230%):
- *   p 0.00       REST: building REST_SCALE, headline/subhead/CTA visible
- *   p 0.00–0.46  building grows REST→GROWN (power2.out)
- *   p 0.00–0.28  headline slot-roll cycles 3 Hebrew sentences (dice-roll modifier);
- *                first sentence stable for ~800ms (settle delay via clamp)
- *   p 0.14–0.28  subhead+CTA fade+lift out (power3.in) — earlier than headline
- *   p 0.18–0.28  headline fade+lift out (power3.in) — fully gone by p~0.28
- *   p 0.28–0.30  SCROLL nudge fades with headline
- *   p 0.40–0.48  outline wordmark strokes in (power1.out)
- *   p ~0.50      HARD CUT: outline→0, fill→1, building→0 (steps(1), dur 0.015)
- *   p 0.50–0.58  brand micro-breath scale 1→1.04→settle (back.out)
- *   p 0.40–0.90  cloud bloom (driven by HeroClouds progressRef) overlaps grow+swap
+ *   p 0.00       REST: building at pan start (top half visible), headline/subhead/CTA visible
+ *   p 0.00–0.46  building pans UP (translateY 0 → -45vh), constant width/scale
+ *   p 0.00–0.28  headline slot-roll cycles 3 Hebrew sentences
+ *   p 0.14–0.22  subhead+CTA fade+lift out
+ *   p 0.18–0.28  headline fade+lift out
+ *   p 0.28–0.30  scroll nudge fades
+ *   p 0.40–0.48  outline wordmark strokes in
+ *   p ~0.50      HARD CUT: outline→0, fill→1
+ *   p 0.50–0.58  brand micro-breath
+ *   p 0.40–0.90  cloud bloom (driven by HeroClouds progressRef)
  *   p 0.55–0.75  nav fades out over cloud veil
- *   p 0.58–0.72  wordmark lifts into cloud bloom + fades (power2.in)
- *   p 0.78–1.00  veil thins to residual ~0.18 — bridge to next section
- *
- * Reduced motion: static composed end-state — sky + static clouds + first headline
- * sentence + image-filled wordmark. No pin, no rAF.
- *
- * RTL: hero is fully centered → reads identically in dir=rtl and dir=ltr.
- * GPU: transform/opacity only; will-change toggled around the pin; clouds untouched.
+ *   p 0.58–0.72  wordmark lifts into cloud bloom + fades
+ *   p 0.72–1.00  veil STAYS at peak (no thin-out) — bridges into next section
  */
 
 import dynamic from 'next/dynamic'
@@ -57,20 +68,16 @@ import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 const HeroClouds = dynamic(() => import('./HeroClouds'), { ssr: false })
 
 // ─── Tuning constants ──────────────────────────────────────────────────────────
-// Square 1024×1024 image rendered at min(78vw, 880px) wide.
-// REST_SCALE desktop 0.57: at 1440px roofline sits ~65% from top, leaving clean sky.
-// REST_SCALE mobile 0.80: mobile was nearly right — preserve that framing.
-// GROWN_SCALE 1.9: building swells to dominate the frame.
-// Desktop rest is smaller so the headline has clear sky above the building.
+// Building is rendered at constant size — no scale animation.
+// Pan range in vh: building translates from 0 → -BUILDING_PAN_VH on scroll.
+// This reveals progressively lower floors as if the camera descends the facade.
+const BUILDING_PAN_VH = 48  // desktop pan range in viewport-height units
+const BUILDING_PAN_VH_MOBILE = 35  // mobile: smaller pan range (building is taller relative to viewport)
 
-// Responsive rest scale: detect desktop (≥1024px) at runtime, set before GSAP init.
-// We store as a getter so the timeline reads correct value after mount.
-function getBuildingRestScale(): number {
-  if (typeof window === 'undefined') return 0.80
-  return window.innerWidth >= 1024 ? 0.57 : 0.80
+function getBuildingPanVH(): number {
+  if (typeof window === 'undefined') return BUILDING_PAN_VH
+  return window.innerWidth >= 1024 ? BUILDING_PAN_VH : BUILDING_PAN_VH_MOBILE
 }
-
-const BUILDING_GROWN_SCALE = 1.9
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
@@ -83,6 +90,7 @@ export default function Hero() {
     c.hero.cycle && c.hero.cycle.length > 0 ? c.hero.cycle : [c.hero.title]
 
   const sectionRef = useRef<HTMLElement>(null)
+  // buildingWrapRef — GSAP animates translateY only (pan motion).
   const buildingWrapRef = useRef<HTMLDivElement>(null)
   const headlineRef = useRef<HTMLDivElement>(null)
   const slotTrackRef = useRef<HTMLDivElement>(null)
@@ -99,25 +107,15 @@ export default function Hero() {
   const progressRef = useRef<number>(0)
 
   // Slot height in pixels — measured by SlotRollHeadline's ResizeObserver.
-  // Stored as state so useGsapContext dependency array triggers a re-run once measured.
   const [slotHeightPx, setSlotHeightPx] = useState<number>(0)
 
-  // Client-side mount gate — set after first hydration
+  // Client-side mount gate
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
   const handleSlotHeight = useCallback((px: number) => {
     setSlotHeightPx(px)
   }, [])
-
-  // Issue B (resolved) — hero-tower-v3.png has transparent top rows cropped and
-  // semi-transparent bottom row removed, so the building base is the last pixel row.
-  // A 1px nudge is kept only to absorb sub-pixel rounding on HiDPI displays.
-  useEffect(() => {
-    const el = buildingOuterRef.current
-    if (!el) return
-    el.style.transform = `translateX(-50%) translateY(1px)`
-  }, [mounted])
 
   // ── Pinned, scrubbed master timeline (motionOk only) ─────────────────────
   useGsapContext(
@@ -140,19 +138,16 @@ export default function Hero() {
         !buildingImg || !wordmark || !outline || !fill
       ) return
 
-      // Wait until the slot height is measured (ResizeObserver fires after mount).
-      // slotHeightPx === 0 means the component hasn't rendered slots yet.
       if (slotHeightPx === 0) return
 
-      // Responsive rest scale: lower at desktop so headline has clean sky above.
-      const restScale = getBuildingRestScale()
-
       // ── REST state (p = 0) ───────────────────────────────────────────────
-      gsap.set(buildingWrap, { scale: restScale })
+      // Building starts at translateY(0) — top of building aligned to top of viewport.
+      // Top half of building visible; lower half extends below fold.
+      gsap.set(buildingWrap, { y: 0 })
       gsap.set(buildingImg, { opacity: 1 })
       gsap.set(wordmark, { opacity: 1, scale: 0.96, y: 20 })
       gsap.set(outline, { opacity: 0 })
-      // P2.2 — fill is an instant hard cut, no CSS transition on it.
+      // Hard cut — no CSS transition on fill.
       gsap.set(fill, { opacity: 0 })
       gsap.set(slotTrack, { yPercent: 0 })
       gsap.set([headline, subCta], { opacity: 1, y: 0 })
@@ -164,9 +159,11 @@ export default function Hero() {
         { willChange: 'transform, opacity' }
       )
 
+      // Responsive pan range
+      const panVH = getBuildingPanVH()
+      const panPx = (window.innerHeight * panVH) / 100
+
       // ── Master scrubbed timeline ─────────────────────────────────────────
-      // scrub: true — Lenis already smooth-scrolls position; stacking scrub:1+
-      // double-smooths and makes the scroll feel laggy on trackpad.
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -181,31 +178,19 @@ export default function Hero() {
         },
       })
 
-      // p 0.00–0.46  BUILDING GROWS restScale → 1.9, origin center-bottom.
-      // Scale-only: base stays flush to viewport bottom. No translateY → no float.
+      // p 0.00–0.46  BUILDING PANS UP — constant size, translateY 0 → -panPx.
+      // Reveals progressively lower floors: penthouse → mid-section → ground/base.
+      // pan2.out easing: faster at start, settles gently at end.
       tl.to(
         buildingWrap,
-        { scale: BUILDING_GROWN_SCALE, duration: 0.46, ease: 'power2.out' },
+        { y: -panPx, duration: 0.46, ease: 'power2.out' },
         0
       )
 
-      // ISSUE A FIX — Clean masked vertical roll.
-      // The track translates by PIXEL MULTIPLES of the measured slotHeightPx.
-      // This guarantees that at every progress position the clip window shows
-      // exactly ONE slot — no partial bleed from an adjacent sentence.
-      //
-      // Each slot transition is a discrete step (GSAP modifiers snaps to the
-      // nearest slot boundary using a sharp cubic ease-in-out that resolves
-      // quickly). Within each step the track moves exactly slotHeightPx up,
-      // so the outgoing sentence exits through the TOP of the clip while the
-      // incoming one enters from BELOW — a clean mechanical roll, not a fade.
-      //
-      // Settle window: slot cycling starts at p=0.04 so sentence 1 is fully
-      // stable from p=0 to p=0.04 (the first thing the user sees at rest).
+      // Slot-roll cycling headline
       const lineCount = cycle.length
       if (lineCount > 1) {
         const totalSlots = lineCount - 1
-        // Total pixel travel: last slot is at -slotHeightPx * totalSlots.
         const endY = -(slotHeightPx * totalSlots)
 
         tl.fromTo(
@@ -217,15 +202,11 @@ export default function Hero() {
             ease: 'none',
             modifiers: {
               y: (raw: string) => {
-                // raw comes in as "Npx" from GSAP's internal representation.
                 const rawPx = parseFloat(raw)
-                // Map raw px → slot index (0..totalSlots) in progress space.
-                const progress = rawPx / endY           // 0..1 across the tween
-                const pos = progress * totalSlots       // 0..totalSlots (float)
+                const progress = rawPx / endY
+                const pos = progress * totalSlots
                 const idx = Math.min(Math.floor(pos), totalSlots - 1)
                 const frac = pos - idx
-                // Sharp cubic ease-in-out within each slot so the roll snaps
-                // cleanly: slow at extremes (slot settled), fast in the middle.
                 const eased =
                   frac < 0.5
                     ? 4 * frac * frac * frac
@@ -235,28 +216,26 @@ export default function Hero() {
               },
             },
           },
-          0.04  // settle window: sentence 1 stable from p=0 to p=0.04
+          0.04
         )
       }
 
-      // P2.4 — subhead+CTA: exits earlier (p 0.14–0.22) — fully gone at 0.22.
+      // p 0.14–0.22  subhead+CTA: exits earlier — fully gone at 0.22.
       tl.to(subCta, { opacity: 0, y: -50, duration: 0.08, ease: 'power3.in' }, 0.14)
 
-      // P2.4 — headline: fade+lift complete by ~p 0.28.
+      // p 0.18–0.28  headline: fade+lift complete by ~p 0.28.
       tl.to(headline, { opacity: 0, y: -60, duration: 0.10, ease: 'power3.in' }, 0.18)
 
-      // P3.1 — SCROLL nudge fades with headline (gone by p~0.30).
+      // p 0.22–0.30  Scroll nudge fades with headline.
       if (scrollNudge) {
         tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.22)
       }
 
-      // p 0.40–0.48  outline wordmark strokes in over grown building
+      // p 0.40–0.48  outline wordmark strokes in over the panned building
       tl.set(wordmark, { scale: 1, y: 0 }, 0.40)
       tl.to(outline, { opacity: 1, duration: 0.08, ease: 'power1.out' }, 0.40)
 
-      // P2.2 — HARD CUT: fill→1 is instant steps(1), no lerp.
-      // outline fades fast (≤0.015 = ~100ms equivalent at scrub rate).
-      // buildingImg hard-cuts simultaneously.
+      // p ~0.50  HARD CUT: fill→1, outline→0, buildingImg→0 (steps(1)).
       tl.to(fill,        { opacity: 1, duration: 0.015, ease: 'steps(1)' }, 0.50)
       tl.to(outline,     { opacity: 0, duration: 0.015, ease: 'steps(1)' }, 0.50)
       tl.to(buildingImg, { opacity: 0, duration: 0.015, ease: 'steps(1)' }, 0.50)
@@ -272,8 +251,7 @@ export default function Hero() {
         0.58
       )
 
-      // P3.3 — Nav fades out over the cloud veil (p 0.55–0.75), restores after pin.
-      // Scoped via CSS class selector; doesn't break shared layout.
+      // p 0.55–0.75  Nav fades out over the cloud veil, restores after pin.
       const nav = document.querySelector<HTMLElement>('nav, header[role="banner"]') ??
                   document.querySelector<HTMLElement>('[data-hero-nav]')
       if (nav) {
@@ -287,16 +265,14 @@ export default function Hero() {
           [buildingWrap, headline, slotTrack, subCta, wordmark, outline, fill],
           { willChange: 'auto' }
         )
-        // Restore nav opacity if component unmounts mid-animation
         if (nav) gsap.set(nav, { opacity: 1 })
       }
     },
-    // Re-run when motionOk or mounted resolves, and when slotHeightPx is measured.
-    // slotHeightPx starts at 0 (guard inside bails), then resolves once ResizeObserver fires.
     [motionOk, mounted, cycle.length, slotHeightPx]
   )
 
   // ── Reduced-motion: static composed end-state ─────────────────────────────
+  // Shows persistent veil look: sky + static clouds at peak + first headline + wordmark.
   if (!motionOk) {
     return (
       <section
@@ -305,14 +281,35 @@ export default function Hero() {
         className="relative flex min-h-screen w-full items-center justify-center overflow-hidden"
       >
         <SkyGradient />
+        {/* Building — wide, showing top half */}
+        <div
+          className="absolute top-0 left-1/2 z-[2]"
+          style={{
+            width: 'min(125vw, 1800px)',
+            transform: 'translateX(-50%)',
+          }}
+          aria-hidden="true"
+        >
+          <Image
+            src={images.heroBuildingCutout}
+            alt="Modern glass residential tower with green terraces"
+            width={1024}
+            height={946}
+            priority
+            quality={90}
+            className="block h-auto w-full select-none"
+            style={{ verticalAlign: 'top', display: 'block' }}
+            sizes="(max-width: 768px) 125vw, 1800px"
+          />
+        </div>
         {mounted && (
           <div className="absolute inset-0 z-[1]" aria-hidden="true">
             <HeroClouds progressRef={progressRef} active={false} />
           </div>
         )}
-        <div className="relative z-10 flex w-full flex-col items-center px-4">
+        <div className="relative z-10 flex w-full flex-col items-center px-6 text-center gap-8">
           <h1
-            className="mb-8 text-center font-bold text-[var(--color-ink)] leading-[0.95]"
+            className="font-bold text-[var(--color-ink)] leading-[0.95]"
             style={{
               fontFamily: 'var(--font-hebrew-display)',
               fontSize: 'clamp(2.25rem, 7vw, 6rem)',
@@ -349,41 +346,29 @@ export default function Hero() {
         </div>
       )}
 
-      {/* 3. Building CUTOUT — BOTTOM-ANCHORED, SCALE-only animation.
-          TWO-LAYER wrapper: OUTER centres (GSAP never touches it);
-          INNER (buildingWrapRef) is the GSAP scale target, transform-origin center bottom.
-          Desktop REST_SCALE 0.57: roofline ~65% from top, headline has clean sky.
-          Mobile REST_SCALE 0.80: mobile framing preserved.
-          GROWING to 1.9 pulls the lower floors up into view.
-          No translateY → zero floating gap at all times.
-          P2.5: bottom-0, no padding/margin on outer. object-bottom on img. */}
-      {/* OUTER: centering only. bottom-0 + no bottom spacing = flush base.
-          Issue B (resolved): hero-tower-v3.png has the 77 transparent top rows and
-          semi-transparent bottom row removed, so the building base is the last pixel row.
-          A 1px translateY absorbs sub-pixel rounding on HiDPI displays. */}
+      {/* 3. Building — WIDER/PAN VERSION.
+          OUTER: centering only (translateX(-50%)). top-0 positions building so top
+          edge aligns to viewport top, lower half extends below fold.
+          INNER (buildingWrapRef): GSAP translateY target for the pan motion.
+          Width: min(125vw, 1800px) — bleeds off both side edges at all viewport sizes.
+          Aspect ratio 1024:946 ≈ 1.08:1 means rendered height ≈ 0.924 × width.
+          At 1800px wide: height ≈ 1662px ≈ 1.85× viewport → top half visible at rest. */}
       <div
         ref={buildingOuterRef}
-        className="absolute bottom-0 left-1/2 z-[2]"
+        className="absolute top-0 left-1/2 z-[2]"
         style={{
-          width: 'min(78vw, 880px)',
-          // 1px nudge to absorb sub-pixel rounding on HiDPI; overwritten by useEffect.
-          // Section overflow-hidden clips any overflow below viewport.
-          transform: 'translateX(-50%) translateY(1px)',
+          width: 'min(125vw, 1800px)',
+          transform: 'translateX(-50%)',
           margin: 0,
           padding: 0,
         }}
         aria-hidden="true"
       >
-        {/* INNER: GSAP scale target. transform-origin center bottom keeps base flush.
-            Initial scale set here as fallback; GSAP overwrites on mount. */}
+        {/* INNER: GSAP pan target — translateY only, no scale. */}
         <div
           ref={buildingWrapRef}
-          style={{
-            transformOrigin: 'center bottom',
-          }}
+          style={{ transformOrigin: 'center top' }}
         >
-          {/* Opacity wrapper for the hard-cut cross-dissolve.
-              display:block on inner removes inline baseline gap (P2.5). */}
           <div ref={buildingImgRef} style={{ display: 'block', lineHeight: 0, fontSize: 0 }}>
             <Image
               src={images.heroBuildingCutout}
@@ -393,25 +378,20 @@ export default function Hero() {
               priority
               quality={90}
               className="block h-auto w-full select-none"
-              style={{ verticalAlign: 'bottom', display: 'block' }}
-              sizes="(max-width: 768px) 78vw, 880px"
+              style={{ verticalAlign: 'top', display: 'block' }}
+              sizes="(max-width: 768px) 125vw, 1800px"
             />
           </div>
         </div>
       </div>
 
-      {/* 4 + 5. Wordmark group — OUTLINE (p 0.40–0.50) then FILL (p 0.50+).
-          P1.3: wrapper is full-width text-align center so wordmark never clips.
-          overflow-hidden on the pinned section (below) kills edge bleed.
-          Both share one transform container so they co-locate through the
-          cross-dissolve, micro-breath, and lift-into-clouds beats. */}
+      {/* 4 + 5. Wordmark group — OUTLINE (p 0.40–0.50) then FILL (p 0.50+). */}
       <div
         ref={wordmarkRef}
         className="absolute inset-0 z-[3] flex items-center justify-center"
         style={{ transformOrigin: 'center center', textAlign: 'center' }}
         aria-hidden="true"
       >
-        {/* P1.3: width 100%, margin auto, generous px so letterforms never hit edge. */}
         <div
           className="relative mx-auto w-full"
           style={{
@@ -420,12 +400,12 @@ export default function Hero() {
             paddingRight: 'clamp(16px, 4vw, 64px)',
           }}
         >
-          {/* Outline — thin white stroke over the grown building */}
+          {/* Outline — thin white stroke over the panned building */}
           <div ref={outlineRef} className="absolute inset-0">
             <BrandWordmarkOutline />
           </div>
           {/* Fill — building image clipped to Hebrew letters.
-              P2.2: no CSS transition on this element — hard cut via GSAP steps(1). */}
+              No CSS transition — hard cut via GSAP steps(1). */}
           <div ref={fillRef} style={{ transition: 'none' }}>
             <BrandWordmarkMask
               fillSrc={images.heroBuildingFill}
@@ -436,17 +416,23 @@ export default function Hero() {
       </div>
 
       {/* 6. HeroClouds FRONT — blooms in over building + wordmark (p 0.45+).
-          z-[3] overlaps wordmark group; stays under headline z-[4].
-          Near-invisible at rest — headline fully legible. */}
+          z-[3] overlaps wordmark group; under headline z-[4].
+          Near-invisible at rest — headline fully legible. Stays at peak — no fade-out. */}
       {mounted && (
         <div className="absolute inset-0 z-[3]" aria-hidden="true">
           <HeroClouds progressRef={progressRef} active={motionOk} variant="front" />
         </div>
       )}
 
-      {/* 7. Text stack — vertically + horizontally centred. Direction-agnostic RTL. */}
-      <div className="absolute inset-0 z-[4] flex flex-col items-center justify-center px-6 text-center">
-        {/* Cycling headline — onSlotHeight wires measured px to GSAP context. */}
+      {/* 7. Text stack — vertically + horizontally centred.
+          v2: generous breathing room between headline → subhead → CTA.
+          Positioned at ~38% from top so copy sits cleanly over sky at rest
+          (above where the building's upper mass starts). */}
+      <div
+        className="absolute inset-0 z-[4] flex flex-col items-center justify-start px-6 text-center"
+        style={{ paddingTop: 'clamp(15vh, 20vh, 26vh)' }}
+      >
+        {/* Cycling headline */}
         <div ref={headlineRef} className="flex w-full flex-col items-center">
           <SlotRollHeadline
             ref={slotTrackRef}
@@ -455,8 +441,12 @@ export default function Hero() {
           />
         </div>
 
-        {/* Subhead + CTA — fades slightly earlier than headline */}
-        <div ref={subCtaRef} className="mt-5 flex w-full flex-col items-center sm:mt-7">
+        {/* Subhead + CTA — generous gap below headline */}
+        <div
+          ref={subCtaRef}
+          className="flex w-full flex-col items-center"
+          style={{ marginTop: 'clamp(1.75rem, 4vh, 3rem)' }}
+        >
           <p
             className="max-w-xl font-light text-[var(--color-ink)]"
             style={{
@@ -468,7 +458,8 @@ export default function Hero() {
           >
             {c.hero.subhead}
           </p>
-          <div className="mt-7 sm:mt-8">
+          {/* CTA — comfortable gap below subhead */}
+          <div style={{ marginTop: 'clamp(1.5rem, 3.5vh, 2.5rem)' }}>
             <Pill variant="dark" href="#register" withArrow>
               {c.hero.cta}
             </Pill>
@@ -476,7 +467,7 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* P3.1 — Scroll nudge fades out with headline (gone by p~0.30). */}
+      {/* Scroll nudge — fades out with headline (gone by p~0.30). */}
       <div
         ref={scrollNudgeRef}
         className="pointer-events-none absolute bottom-8 left-1/2 z-[4] -translate-x-1/2 flex flex-col items-center gap-2"
@@ -493,17 +484,7 @@ export default function Hero() {
 }
 
 // ─── Slot-roll headline ──────────────────────────────────────────────────────
-// Clean masked vertical roll: overflow-hidden clip window sized to the TALLEST
-// rendered slot (measured in pixels, accounts for wrapping on narrow viewports).
-// GSAP moves the track by px (not yPercent) so exactly ONE sentence occupies the
-// clip at every scroll position — zero bleed from adjacent slots.
-//
-// slotHeightPx: measured once on mount + on resize. Written to a CSS custom prop
-// on the clip container; the clip container's height tracks it. GSAP receives the
-// pixel value through a ref so the GSAP timeline can use it (not yPercent).
-//
-// onSlotHeight callback: Hero's GSAP context reads the resolved px height before
-// building its translate animation, so both are in sync.
+// Clean masked vertical roll. See full comment in v1.
 
 interface SlotRollHeadlineProps {
   lines: readonly string[]
@@ -514,17 +495,12 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
   function SlotRollHeadline({ lines, onSlotHeight }, trackRef) {
     const clipRef = useRef<HTMLDivElement>(null)
     const itemRefs = useRef<Array<HTMLSpanElement | null>>([])
-    // null = unmeasured; number = measured slot height in px
     const [clipPx, setClipPx] = useState<number | null>(null)
 
     const measureSlots = useCallback(() => {
-      // Measure BEFORE setting height on items — items must be height:auto so their
-      // content wraps naturally and the scroll height reflects the true wrapped height.
       let max = 0
       for (const el of itemRefs.current) {
         if (!el) continue
-        // scrollHeight gives the full content height (incl. wrapped lines) regardless
-        // of the element's own height, so it works even if height is already constrained.
         const h = el.scrollHeight
         if (h > max) max = h
       }
@@ -535,9 +511,7 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
     }, [onSlotHeight])
 
     useEffect(() => {
-      // Initial measure after mount.
       measureSlots()
-      // Re-measure when the component width changes (viewport resize).
       const ro = new ResizeObserver(measureSlots)
       if (clipRef.current) ro.observe(clipRef.current)
       return () => ro.disconnect()
@@ -547,8 +521,6 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
       <div
         ref={clipRef}
         className="w-full overflow-hidden"
-        // Clip height = one slot height (measured). Before measurement: auto
-        // (allows natural wrapping so measureSlots() reads correct scrollHeight).
         style={clipPx != null ? { height: clipPx } : undefined}
         aria-label={lines[0]}
       >
@@ -560,21 +532,14 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
               aria-hidden={i === 0 ? undefined : 'true'}
               className="flex shrink-0 items-center justify-center font-bold text-[var(--color-ink)] w-full text-center"
               style={{
-                // BEFORE measurement: height auto so content wraps naturally and
-                // scrollHeight gives the true wrapped height for measurement.
-                // AFTER measurement: height = clipPx so each slot takes exactly
-                // the same space and GSAP's pixel translate cleanly moves between them.
                 height: clipPx != null ? clipPx : 'auto',
-                // Minimum height keeps the slot from collapsing to 0 before measurement.
                 minHeight: 'clamp(2.5rem, 8vw, 7.5rem)',
                 fontFamily: 'var(--font-hebrew-display)',
                 fontSize: 'clamp(2.5rem, 8vw, 7.5rem)',
                 lineHeight: 1.1,
                 letterSpacing: '-0.02em',
-                // Allow wrapping on narrow viewports.
                 whiteSpace: 'normal',
                 wordBreak: 'break-word',
-                // Vertical breathing room inside each slot.
                 paddingTop: '0.15em',
                 paddingBottom: '0.15em',
                 boxSizing: 'border-box',
@@ -590,9 +555,7 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
 )
 
 // ─── Sky gradient ─────────────────────────────────────────────────────────────
-// P2.3 — Warmed bottom half toward peach so clouds read backlit.
-// Top: cool blue (#B8CEDF) → mid neutral (#D4C4B0) → bottom warm peach (#E8C49A).
-// Tasteful pastel — not garish. The lower warm band pairs with the building base.
+// Warm pastel sunset sky. Top: cool blue → mid neutral → bottom warm peach.
 function SkyGradient() {
   return (
     <div
@@ -607,9 +570,6 @@ function SkyGradient() {
 }
 
 // ─── "בונים עתיד" outline wordmark ──────────────────────────────────────────
-// P3.2 — stroke-width increased to 2.5 + faint legible halo drop-shadow.
-// Shares the same viewBox + metrics as BrandWordmarkMask so both letterforms
-// register exactly during the cross-dissolve.
 function BrandWordmarkOutline() {
   return (
     <svg
