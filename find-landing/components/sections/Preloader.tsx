@@ -59,11 +59,33 @@ export default function Preloader() {
 
     mountTimeRef.current = performance.now()
 
-    // ── Pre-warm image cache (fire-and-forget) ──────────────────────────────
-    const srcs = collectPreloadSrcs()
-    for (const src of srcs) {
-      const im = new window.Image()
-      im.src = src
+    // ── Deferred, throttled below-fold cache warm ───────────────────────────
+    // The OLD behavior warmed the entire manifest on mount, which on mobile/4G
+    // saturated the connection and pushed the load event to ~8s. Instead we warm
+    // only the NEAREST below-fold images, AFTER the hero is shown, and only while
+    // the browser is idle, in small batches — so it never competes with the
+    // critical hero load. Everything else relies on native loading="lazy".
+    const ric: (cb: () => void) => void =
+      typeof window.requestIdleCallback === 'function'
+        ? (cb) => window.requestIdleCallback(() => cb(), { timeout: 1500 })
+        : (cb) => window.setTimeout(cb, 300)
+
+    let warmed = false
+    function warmBelowFold() {
+      if (warmed) return
+      warmed = true
+      const srcs = collectPreloadSrcs().slice(0, 8) // nearest sections only
+      let i = 0
+      function next() {
+        if (i >= srcs.length) return
+        for (const src of srcs.slice(i, i + 2)) {
+          const im = new window.Image()
+          im.src = src
+        }
+        i += 2
+        ric(next)
+      }
+      ric(next)
     }
 
     // ── Determine when to start the fade ────────────────────────────────────
@@ -72,6 +94,7 @@ export default function Preloader() {
     function startFade() {
       if (dismissed) return
       dismissed = true
+      warmBelowFold() // hero is ready → now warm a few below-fold images on idle
 
       const elapsed = performance.now() - mountTimeRef.current
       const delay = Math.max(0, MIN_VISIBLE_MS - elapsed)
