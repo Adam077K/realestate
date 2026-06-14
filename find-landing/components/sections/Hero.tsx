@@ -371,19 +371,6 @@ export default function Hero() {
             />
           </div>
 
-          {/* P3: Warm rim light — golden crown glow, GPU-cheap version.
-              Original used WebkitMaskImage + soft-light blend inside the GSAP-
-              translated buildingWrapRef, causing a full re-stencil every scroll tick.
-              Replaced with a plain linear-gradient + no mask + no blend mode.
-              Only opacity/transform composited — no filter, no mask, no blend. */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute', inset: 0, zIndex: 2,
-              background: 'linear-gradient(to bottom, rgba(255,180,120,0.22) 0%, rgba(255,200,140,0.12) 28%, transparent 45%)',
-              pointerEvents: 'none',
-            }}
-          />
         </div>
       </div>
 
@@ -445,7 +432,7 @@ export default function Hero() {
             className="font-bold"
             style={{
               fontFamily: 'var(--font-hebrew-display)',
-              fontSize: 'clamp(2.1rem, 7vw, 7rem)',
+              fontSize: 'clamp(1.8rem, 5.6vw, 5.6rem)',
               lineHeight: 0.95,
               letterSpacing: '-0.03em',
               color: '#000000',
@@ -509,9 +496,9 @@ export default function Hero() {
             width: 'clamp(480px, 70vw, 1100px)',
             height: 'auto',
             opacity: 0.28,
-            // P2: changed screen→normal; at 22-28% opacity over light sky the
-            // blend is imperceptible, but screen forces a GPU compositing layer
-            mixBlendMode: 'normal',
+            // Reverted: screen blend mode required — grayscale wisps over a light
+            // sky with 'normal' blend cast a grey wash over the building below.
+            mixBlendMode: 'screen',
             filter: 'saturate(0) brightness(1.6)',
             animation: 'hc-drift-a 137s ease-in-out -22s infinite',
             willChange: 'transform',
@@ -534,8 +521,9 @@ export default function Hero() {
             width: 'clamp(400px, 58vw, 900px)',
             height: 'auto',
             opacity: 0.22,
-            // P2: changed screen→normal (wisp B); same rationale as wisp A
-            mixBlendMode: 'normal',
+            // Reverted: screen blend mode required for wisp B — same grey-wash
+            // issue as wisp A; grayscale images must use screen over the building.
+            mixBlendMode: 'screen',
             filter: 'saturate(0) brightness(1.7) scaleX(-1)',
             transform: 'scaleX(-1)',
             animation: 'hc-drift-b 151s ease-in-out -68s infinite',
@@ -677,7 +665,7 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
           className="font-bold leading-[0.95]"
           style={{
             fontFamily: 'var(--font-hebrew-display)',
-            fontSize: 'clamp(2.1rem, 7vw, 7rem)',
+            fontSize: 'clamp(1.8rem, 5.6vw, 5.6rem)',
             letterSpacing: '-0.03em',
             color: '#000000',
             whiteSpace: 'pre-line',
