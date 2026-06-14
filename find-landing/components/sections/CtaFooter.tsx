@@ -6,8 +6,59 @@ import { gsap } from '@/lib/gsap'
 import { useGsapContext } from '@/hooks/useGsapContext'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useContent, useLang } from '@/components/providers/LanguageProvider'
-import { BrandWordmarkMask } from '@/components/layout/Logo'
 import { images } from '@/data/content'
+
+// ── Social icon SVGs (inline, no extra deps) ─────────────────────────────────
+function WhatsAppIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M20.52 3.48A11.9 11.9 0 0 0 12 0C5.373 0 0 5.373 0 12c0 2.115.553 4.178 1.605 5.99L0 24l6.187-1.622A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12a11.9 11.9 0 0 0-3.48-8.52ZM12 21.9a9.84 9.84 0 0 1-5.02-1.375l-.36-.214-3.672.963.981-3.581-.235-.37A9.849 9.849 0 0 1 2.1 12c0-5.46 4.44-9.9 9.9-9.9 2.645 0 5.13 1.03 6.998 2.902A9.855 9.855 0 0 1 21.9 12c0 5.46-4.44 9.9-9.9 9.9Zm5.431-7.418c-.298-.149-1.763-.87-2.036-.969-.273-.099-.472-.149-.67.149-.2.297-.77.969-.944 1.168-.174.2-.347.224-.645.075-.298-.15-1.258-.464-2.397-1.48-.886-.79-1.484-1.766-1.658-2.064-.174-.298-.018-.459.13-.608.134-.133.298-.347.447-.52.15-.174.199-.298.299-.497.099-.2.05-.374-.025-.523-.075-.15-.67-1.616-.918-2.213-.242-.58-.488-.501-.67-.51-.174-.008-.373-.01-.572-.01-.2 0-.522.075-.795.373-.273.298-1.04 1.017-1.04 2.48 0 1.466 1.065 2.882 1.214 3.082.149.2 2.096 3.2 5.077 4.487.71.307 1.264.49 1.696.627.712.227 1.36.195 1.873.118.571-.085 1.763-.72 2.012-1.416.248-.695.248-1.29.174-1.416-.075-.124-.273-.199-.572-.347Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+function YouTubeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814ZM9.545 15.568V8.432L15.818 12l-6.273 3.568Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+function InstagramIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069ZM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0Zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324ZM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+function FacebookIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.532-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.883v2.27h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+const SOCIAL_ICONS: Record<string, React.FC> = {
+  WhatsApp: WhatsAppIcon,
+  YouTube: YouTubeIcon,
+  Instagram: InstagramIcon,
+  Facebook: FacebookIcon,
+}
 
 /**
  * Registration band + Footer.
@@ -30,8 +81,6 @@ export default function CtaFooter() {
   // Registration form — controlled, no backend; shows a success state on submit.
   const [form, setForm] = useState({ name: '', phone: '', email: '' })
   const [submitted, setSubmitted] = useState(false)
-  // Newsletter — separate controlled field.
-  const [newsletterEmail, setNewsletterEmail] = useState('')
 
   useGsapContext(
     footerRef,
@@ -58,25 +107,6 @@ export default function CtaFooter() {
         scrollTrigger: { trigger: '.reg-card', start: 'top 85%' },
       })
 
-      gsap.fromTo(
-        '.footer-wordmark',
-        { clipPath: 'inset(0 100% 0 0)' },
-        {
-          clipPath: 'inset(0 0% 0 0)',
-          duration: 1.4,
-          ease: 'power3.inOut',
-          scrollTrigger: { trigger: '.footer-wordmark', start: 'top 90%' },
-        }
-      )
-
-      gsap.from('.footer-col', {
-        y: 18,
-        opacity: 0,
-        stagger: 0.1,
-        duration: 0.6,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: '.footer-grid', start: 'top 88%' },
-      })
     },
     [motionOk]
   )
@@ -86,16 +116,10 @@ export default function CtaFooter() {
     setSubmitted(true)
   }
 
-  const handleNewsletter = (e: React.FormEvent) => {
-    e.preventDefault()
-    setNewsletterEmail('')
-  }
-
   const thanksTitle = isHebrew ? 'המקום שלכם שמור.' : "You're in."
   const thanksMsg = isHebrew
     ? 'שלחנו את לינק הוובינר לאימייל שלכם — נתראה בשידור.'
     : "We've emailed your webinar link — see you on the broadcast."
-  const headOfficeCaption = isHebrew ? 'המנחים' : 'Hosts'
 
   // Trust / urgency cues — derived from the single source of truth (webinar facts).
   const seatsLabel = isHebrew ? 'מקומות מוגבלים' : 'Limited seats'
@@ -300,69 +324,176 @@ export default function CtaFooter() {
         </div>
       </section>
 
-      {/* ── Footer body — dark ── */}
-      <div className="bg-[var(--color-dark)] text-[var(--color-paper)]">
-        <div className="footer-grid w-full px-6 md:px-12 lg:px-20 pt-14 md:pt-20 pb-12 md:pb-16 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-10 md:gap-16">
-          {/* Newsletter column */}
-          <div className="footer-col flex flex-col gap-5 max-w-sm">
-            <p className="text-sm font-medium text-white">{c.footer.newsletter}</p>
-            <form onSubmit={handleNewsletter}>
-              <label htmlFor="footer-email" className="sr-only">
-                {c.footer.emailPlaceholder}
-              </label>
-              <div className="relative flex items-center">
-                <input
-                  id="footer-email"
-                  type="email"
-                  autoComplete="email"
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                  placeholder={c.footer.emailPlaceholder}
-                  className="w-full bg-transparent border-b border-[rgba(255,255,255,0.3)] pb-2 pe-10 text-sm text-white placeholder:text-[rgba(255,255,255,0.4)] outline-none transition-[border-color] duration-200 focus:border-white"
-                />
-                <button
-                  type="submit"
-                  aria-label={c.footer.newsletter}
-                  className="absolute end-0 bottom-2 text-[rgba(255,255,255,0.5)] hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
-                >
-                  {isHebrew ? '←' : '→'}
-                </button>
-              </div>
-            </form>
-          </div>
+      {/* ── Footer body — teal/sage gradient, 4-column RTL ── */}
+      <div
+        style={{
+          background: 'linear-gradient(to left, #5f9d91 0%, #a9cabf 100%)',
+        }}
+        className="text-white"
+        role="contentinfo"
+        aria-label={c.newFooter.columns.contact}
+      >
+        <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 lg:px-20 py-16 md:py-20">
+          {/* 4-column grid — RTL: cols flow right→left in the page */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
 
-          {/* Nav column */}
-          <nav className="footer-col" aria-label={headOfficeCaption}>
-            <ul className="flex flex-col gap-3 md:items-end">
-              {c.footer.navCols.map((item) => (
-                <li key={item}>
+            {/* ── Col 1 (RTL reading-start — rightmost on desktop): Logo + tagline + CTA ── */}
+            <div className="flex flex-col items-start gap-6">
+              {/* Building-icon: render full logo, filter white, crop to icon portion */}
+              <a href="#" aria-label="בונים עתיד – דף הבית" className="flex-shrink-0">
+                <div
+                  className="relative overflow-hidden"
+                  style={{ width: '64px', height: '64px' }}
+                >
+                  <Image
+                    src="/images/bonim-logo.png"
+                    alt="בונים עתיד"
+                    fill
+                    sizes="64px"
+                    style={{
+                      objectFit: 'contain',
+                      objectPosition: 'right center',
+                      filter: 'brightness(0) invert(1)',
+                      transform: 'scale(2.4) translateX(25%)',
+                      transformOrigin: 'right center',
+                    }}
+                  />
+                </div>
+              </a>
+
+              {/* Tagline */}
+              <p
+                className="text-[15px] leading-relaxed font-light text-white/90"
+                style={{ maxWidth: '28ch' }}
+              >
+                {c.newFooter.tagline}
+              </p>
+
+              {/* Outline CTA button */}
+              <a
+                href="#register"
+                className="mt-auto inline-flex items-center justify-center rounded-lg px-6 py-2.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                style={{ border: '1px solid rgba(255,255,255,0.7)', minHeight: '44px' }}
+              >
+                {c.newFooter.contactCta}
+              </a>
+            </div>
+
+            {/* ── Col 2: מפת אתר (Sitemap) ── */}
+            <nav aria-label={c.newFooter.columns.sitemap}>
+              <h3 className="mb-5 text-base font-semibold text-white">
+                {c.newFooter.columns.sitemap}
+              </h3>
+              <ul className="flex flex-col gap-3">
+                {c.newFooter.sitemap.map((item) => (
+                  <li key={item.label}>
+                    <a
+                      href={item.href}
+                      className="text-[14px] font-light text-white/85 leading-snug transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            {/* ── Col 3: השירותים שלנו (Services) ── */}
+            <nav aria-label={c.newFooter.columns.services}>
+              <h3 className="mb-5 text-base font-semibold text-white">
+                {c.newFooter.columns.services}
+              </h3>
+              <ul className="flex flex-col gap-3">
+                {c.newFooter.services.map((item) => (
+                  <li key={item.label}>
+                    <a
+                      href={item.href}
+                      className="text-[14px] font-light text-white/85 leading-snug transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              {/* Separated deals link */}
+              <div className="mt-6 pt-4 border-t border-white/20">
+                <a
+                  href={c.newFooter.dealsLink.href}
+                  className="text-[14px] font-medium text-white/90 transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+                >
+                  {c.newFooter.dealsLink.label}
+                </a>
+              </div>
+            </nav>
+
+            {/* ── Col 4 (leftmost on desktop): דברו איתנו (Contact) ── */}
+            <div>
+              <h3 className="mb-5 text-base font-semibold text-white">
+                {c.newFooter.columns.contact}
+              </h3>
+              <ul className="flex flex-col gap-3">
+                <li>
                   <a
-                    href={`#${item}`}
-                    className="text-lg md:text-xl font-[var(--font-display)] font-light text-white hover:text-[rgba(255,255,255,0.55)] transition-colors duration-150"
+                    href={`tel:${c.newFooter.contact.phone.replace(/-/g, '')}`}
+                    className="text-[14px] font-light text-white/85 leading-snug transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+                    dir="ltr"
                   >
-                    {item}
+                    {c.newFooter.contact.phoneLabel}: {c.newFooter.contact.phone}
                   </a>
                 </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
+                <li>
+                  <a
+                    href={`mailto:${c.newFooter.contact.email}`}
+                    className="text-[14px] font-light text-white/85 leading-snug transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+                    dir="ltr"
+                  >
+                    {c.newFooter.contact.emailLabel}: {c.newFooter.contact.email}
+                  </a>
+                </li>
+              </ul>
 
-        {/* ── Giant "בונים עתיד" wordmark — building-filled, wipes in ── */}
-        <div
-          className="footer-wordmark w-full overflow-hidden px-4 md:px-8"
-          style={{ willChange: 'clip-path' }}
-        >
-          <BrandWordmarkMask
-            fillSrc={images.heroBuildingFill}
-            className="w-full h-auto block"
-          />
+              {/* Social follow row */}
+              <div className="mt-6">
+                <a
+                  href="#"
+                  className="text-[14px] font-medium text-white/90 transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+                >
+                  {c.newFooter.followLabel}
+                </a>
+                <div className="mt-4 flex items-center gap-3 flex-wrap">
+                  {c.newFooter.social.map((s) => {
+                    const Icon = SOCIAL_ICONS[s.name]
+                    return (
+                      <a
+                        key={s.name}
+                        href={s.href}
+                        aria-label={s.name}
+                        className="flex items-center justify-center rounded-full text-white transition-colors duration-150 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        style={{
+                          width: '44px',
+                          height: '44px',
+                          border: '1px solid rgba(255,255,255,0.5)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {Icon && <Icon />}
+                      </a>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
 
         {/* Legal bar */}
-        <div className="px-6 md:px-12 lg:px-20 py-5 border-t border-[rgba(255,255,255,0.06)]">
-          <p className="text-xs text-[rgba(255,255,255,0.32)]">
-            &copy; {new Date().getFullYear()} · {c.footer.rights}
+        <div
+          className="border-t px-6 md:px-12 lg:px-20 py-4"
+          style={{ borderColor: 'rgba(255,255,255,0.2)' }}
+        >
+          <p className="text-xs text-white/60 text-center">
+            {c.newFooter.rights}
           </p>
         </div>
       </div>

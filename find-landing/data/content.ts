@@ -214,6 +214,44 @@ export const content = {
       rights: 'כל הזכויות שמורות · בונים עתיד',
       wordmark: 'בונים עתיד',
     },
+    newFooter: {
+      tagline: 'חברת בונים עתיד מובילה אתכם להזדמנויות הרווחיות ביותר בשוק ומלווה כל לקוח באופן חכם ואחראי.',
+      contactCta: 'דברו איתנו',
+      columns: {
+        sitemap: 'מפת אתר',
+        services: 'השירותים שלנו',
+        contact: 'דברו איתנו',
+      },
+      sitemap: [
+        { label: 'בית', href: '#' },
+        { label: 'הסיפור שלנו', href: '#' },
+        { label: 'תוכן מקצועי', href: '#' },
+        { label: 'ממליצים עלינו', href: '#' },
+        { label: 'שאלות ותשובות', href: '#' },
+        { label: 'הצהרת נגישות', href: '#' },
+        { label: 'מדיניות פרטיות', href: '#' },
+      ],
+      services: [
+        { label: 'קבוצות קונים לדירות מקבלן', href: '#' },
+        { label: 'השקעה במתחמי פינוי בינוי', href: '#' },
+        { label: 'ייעוץ אסטרטגי אישי לרכישת דירה', href: '#' },
+      ],
+      dealsLink: { label: 'העסקאות שלנו »', href: '#' },
+      contact: {
+        phoneLabel: 'טלפון',
+        phone: '050-658-9842',
+        emailLabel: 'אימייל',
+        email: 'info@bonimatid-re.com',
+      },
+      followLabel: 'עקבו אחרינו »',
+      social: [
+        { name: 'WhatsApp', href: '#' },
+        { name: 'YouTube', href: '#' },
+        { name: 'Instagram', href: '#' },
+        { name: 'Facebook', href: '#' },
+      ],
+      rights: 'כל הזכויות שמורות © בונים עתיד',
+    },
 
     // ── New site sections (real Bonim Atid content) ──────────────────────────
     stats: [
@@ -462,6 +500,44 @@ export const content = {
       navCols: ['The Webinar', 'The Hosts', 'Details', 'Register'],
       rights: 'All rights reserved · Bonim Atid',
       wordmark: 'בונים עתיד',
+    },
+    newFooter: {
+      tagline: 'Bonim Atid leads you to the most profitable opportunities in the market, guiding every client with intelligence and responsibility.',
+      contactCta: 'Talk to us',
+      columns: {
+        sitemap: 'Sitemap',
+        services: 'Our services',
+        contact: 'Talk to us',
+      },
+      sitemap: [
+        { label: 'Home', href: '#' },
+        { label: 'Our story', href: '#' },
+        { label: 'Professional content', href: '#' },
+        { label: 'Testimonials', href: '#' },
+        { label: 'FAQ', href: '#' },
+        { label: 'Accessibility statement', href: '#' },
+        { label: 'Privacy policy', href: '#' },
+      ],
+      services: [
+        { label: 'Buyer groups for new-build apartments', href: '#' },
+        { label: 'Urban renewal (pinuy-binuy) investments', href: '#' },
+        { label: 'Personal strategic advisory for apartment purchase', href: '#' },
+      ],
+      dealsLink: { label: 'Our deals »', href: '#' },
+      contact: {
+        phoneLabel: 'Phone',
+        phone: '050-658-9842',
+        emailLabel: 'Email',
+        email: 'info@bonimatid-re.com',
+      },
+      followLabel: 'Follow us »',
+      social: [
+        { name: 'WhatsApp', href: '#' },
+        { name: 'YouTube', href: '#' },
+        { name: 'Instagram', href: '#' },
+        { name: 'Facebook', href: '#' },
+      ],
+      rights: '© All rights reserved · Bonim Atid',
     },
 
     // ── New site sections (real Bonim Atid content) ──────────────────────────
