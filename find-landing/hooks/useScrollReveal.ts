@@ -33,9 +33,12 @@ export function useScrollReveal(
 
     const ctx = gsap.context(() => {
       for (const spec of specs) {
-        const el =
+        const resolved =
           typeof spec.trigger === 'string' ? scope.querySelector(spec.trigger) : spec.trigger
-        if (!el) continue
+        // `trigger: ref.current` is captured at render time when the ref may still be
+        // null; fall back to the observed scope element so the spec still arms + reveals
+        // (the section IS the intended trigger in that case).
+        const el = resolved ?? scope
 
         const tween = spec.build()
         tween.pause()
