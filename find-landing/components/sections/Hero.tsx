@@ -179,8 +179,9 @@ export default function Hero() {
       gsap.set(buildingImg,  { opacity: 1 })
       // fillGroup starts transparent — outline shows through transparent interiors.
       if (fillGroup) gsap.set(fillGroup, { opacity: 0 })
-      // outlineGroup starts with clip-path fully concealing it (draw-in starts at p0.42)
-      if (outline) gsap.set(outline, { clipPath: 'inset(0 100% 0 0)', opacity: 1 })
+      // outlineGroup starts with clip-path fully concealing it (draw-in starts at p0.42).
+      // inset(0 0 0 100%) = fully clipped from left side → reveal right-to-left (RTL reading start).
+      if (outline) gsap.set(outline, { clipPath: 'inset(0 0 0 100%)', opacity: 1 })
       gsap.set(copyGroup,    { opacity: 1, y: 0 })
       // Wordmark (entire SVG container) starts hidden at rest; appears at p0.42
       gsap.set(wordmark,     { opacity: 0, scale: 0.96, y: 20 })
@@ -257,7 +258,9 @@ export default function Hero() {
       //   fillGroup stays at opacity:0 → letter interiors are transparent, building shows through.
       //   This is the "pen drawing" effect: a clean premium line-draw reveal.
       if (outline) {
-        tl.to(outline, { clipPath: 'inset(0 0% 0 0)', duration: 0.14, ease: 'none' }, 0.42)
+        // Animate from inset(0 0 0 100%) → inset(0 0 0 0%): sweeps open left→right revealing RTL text
+        // from the right side (Hebrew reading start) first.
+        tl.to(outline, { clipPath: 'inset(0 0 0 0%)', duration: 0.14, ease: 'none' }, 0.42)
       }
 
       // p 0.56–0.70  IMAGE FILLS + BUILDING FADES:

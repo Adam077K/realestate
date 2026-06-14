@@ -186,8 +186,10 @@ export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacit
         aria-hidden="true"
         className="wm-outline-group"
         style={{
-          clipPath: 'inset(0 100% 0 0)',
-          // Start hidden via clip-path wipe (GSAP will animate this to inset(0 0% 0 0))
+          // inset(top right bottom left):
+          // inset(0 0 0 100%) clips entire left side → reveals right-to-left (RTL reading start).
+          // GSAP animates to inset(0 0 0 0%) to sweep fully open.
+          clipPath: 'inset(0 0 0 100%)',
         }}
       >
         {/* Main word — thin white hollow stroke */}
