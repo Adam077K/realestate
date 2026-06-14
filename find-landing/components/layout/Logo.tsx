@@ -52,6 +52,13 @@ export interface BrandWordmarkMaskProps {
   /** Image used to FILL the letters (e.g. images.heroBuildingFill). */
   fillSrc: string
   className?: string
+  /**
+   * Optional sub-word rendered below the main wordmark at 50% scale.
+   * When provided, the viewBox expands to 720×285 to accommodate both words.
+   * Main word is positioned at ~38% height, sub-word at ~80%.
+   * Hero uses subWord="וובינר"; CtaFooter omits it (single-word unchanged).
+   */
+  subWord?: string
 }
 
 /**
@@ -62,17 +69,24 @@ export interface BrandWordmarkMaskProps {
  * Implementation: an <image> is clipped by a <clipPath> whose shape is a bold
  * Hebrew <text> node. `useId()` keeps the clip-path id unique per instance so
  * multiple masks can coexist on the page.
+ *
+ * When subWord is provided, a second <text> at fontSize 69 (50% of 138) is added
+ * below the main word. The viewBox height expands from 175 → 285 to fit both.
  */
-export function BrandWordmarkMask({ fillSrc, className }: BrandWordmarkMaskProps) {
+export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmarkMaskProps) {
   const rawId = useId()
   const clipId = `brand-wordmark-clip-${rawId.replace(/[:]/g, '')}`
+  const clipIdSub = `brand-wordmark-sub-clip-${rawId.replace(/[:]/g, '')}`
+
+  const viewBoxH = subWord ? 285 : 175
+  const mainY = subWord ? '38%' : '50%'
 
   return (
     <svg
-      viewBox="0 0 720 175"
+      viewBox={`0 0 720 ${viewBoxH}`}
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="בונים עתיד"
+      aria-label={subWord ? `בונים עתיד — ${subWord}` : 'בונים עתיד'}
       className={className}
       overflow="visible"
       preserveAspectRatio="xMidYMid meet"
@@ -81,7 +95,7 @@ export function BrandWordmarkMask({ fillSrc, className }: BrandWordmarkMaskProps
         <clipPath id={clipId}>
           <text
             x="50%"
-            y="50%"
+            y={mainY}
             dominantBaseline="central"
             textAnchor="middle"
             direction="rtl"
@@ -93,16 +107,46 @@ export function BrandWordmarkMask({ fillSrc, className }: BrandWordmarkMaskProps
             בונים עתיד
           </text>
         </clipPath>
+        {subWord && (
+          <clipPath id={clipIdSub}>
+            <text
+              x="50%"
+              y="80%"
+              dominantBaseline="central"
+              textAnchor="middle"
+              direction="rtl"
+              fontFamily="var(--font-hebrew), system-ui, sans-serif"
+              fontWeight="800"
+              fontSize="69"
+              letterSpacing="-1"
+            >
+              {subWord}
+            </text>
+          </clipPath>
+        )}
       </defs>
+      {/* Main word — image fills the full viewBox height so both words get building texture */}
       <image
         href={fillSrc}
         x="0"
         y="0"
         width="720"
-        height="175"
+        height={viewBoxH}
         preserveAspectRatio="xMidYMid slice"
         clipPath={`url(#${clipId})`}
       />
+      {/* Sub-word — same image, same clip technique */}
+      {subWord && (
+        <image
+          href={fillSrc}
+          x="0"
+          y="0"
+          width="720"
+          height={viewBoxH}
+          preserveAspectRatio="xMidYMid slice"
+          clipPath={`url(#${clipIdSub})`}
+        />
+      )}
     </svg>
   )
 }

@@ -36,20 +36,22 @@
  *   OUTER  — absolute top-0 left-1/2, translateX(-50%). NEVER touched by GSAP.
  *   INNER  — buildingWrapRef. GSAP animates translateY ONLY.
  *
- * Motion timeline (scrub: true, pin +=230%):
- *   p 0.00       REST: building at pan start (top half visible), headline/subhead/CTA visible
- *   p 0.00–0.46  building pans UP (translateY 0 → -45vh), constant width/scale
- *   p 0.00–0.28  headline slot-roll cycles 3 Hebrew sentences
- *   p 0.14–0.22  subhead+CTA fade+lift out
- *   p 0.18–0.28  headline fade+lift out
- *   p 0.28–0.30  scroll nudge fades
- *   p 0.36–0.44  outline wordmark strokes in (gap 0.28–0.36: pure building, no text)
- *   p ~0.50      HARD CUT: outline→0, fill→1
- *   p 0.50–0.58  brand micro-breath
+ * Motion timeline (scrub: true, pin +=290%):
+ *   p 0.00       REST: building at pan start (centered, sky visible both sides), headline/subhead/CTA visible
+ *   p 0.00–0.55  building pans UP (translateY 0 → -panPx), constant width/scale
+ *   p 0.06–0.42  headline slot-roll cycles 3 sentences with plateau holds per sentence
+ *   p 0.38–0.46  subhead+CTA fade+lift out
+ *   p 0.43–0.52  headline fade+lift out
+ *   p 0.44–0.52  scroll nudge fades
+ *   p 0.52–0.55  dead zone: pure building pan, no text
+ *   p 0.55–0.63  CROSS-DISSOLVE begins: outline draws in (building still visible)
+ *   p 0.57–0.67  building IMAGE fades out
+ *   p 0.62–0.72  fill fades in; outline fades as fill lands (p 0.67–0.72)
+ *   p 0.72–0.78  brand micro-breath
  *   p 0.40–0.90  cloud bloom (driven by HeroClouds progressRef)
- *   p 0.55–0.75  nav fades out over cloud veil
- *   p 0.58–0.72  wordmark lifts into cloud bloom + fades
- *   p 0.72–1.00  veil STAYS at peak (no thin-out) — bridges into next section
+ *   p 0.40–0.85  nav fades out, restores after
+ *   p 0.78–0.88  wordmark lifts into cloud bloom + fades
+ *   p 0.88–1.00  veil STAYS at peak (no thin-out) — bridges into next section
  */
 
 import dynamic from 'next/dynamic'
@@ -168,7 +170,7 @@ export default function Hero() {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: '+=230%',
+          end: '+=290%',
           pin: true,
           scrub: true,
           anticipatePin: 1,
@@ -178,15 +180,17 @@ export default function Hero() {
         },
       })
 
-      // p 0.00–0.50  BUILDING PANS UP — constant size, translateY 0 → -panPx.
-      // Extended to 0.50 (was 0.46) so wordmark emerges mid-pan — fills narrative void.
+      // p 0.00–0.55  BUILDING PANS UP — constant size, translateY 0 → -panPx.
+      // Extended to 0.55 (pin is now longer) so the pan is unhurried.
       tl.to(
         buildingWrap,
-        { y: -panPx, duration: 0.50, ease: 'power2.out' },
+        { y: -panPx, duration: 0.55, ease: 'power2.out' },
         0
       )
 
-      // Slot-roll cycling headline
+      // Slot-roll cycling headline — comfortable readable cycle p 0.06–0.42.
+      // Each of the 3 sentences holds for a "breath" before transitioning to the next.
+      // The modifier maps raw GSAP progress → slot position with per-sentence plateaus.
       const lineCount = cycle.length
       if (lineCount > 1) {
         const totalSlots = lineCount - 1
@@ -197,68 +201,108 @@ export default function Hero() {
           { y: 0 },
           {
             y: endY,
-            duration: 0.24,  // spans p 0.04–0.28
+            duration: 0.36,  // spans p 0.06–0.42 — long, readable, with plateau holds
             ease: 'none',
             modifiers: {
               y: (raw: string) => {
+                // Map raw linear progress (0→1) to slot position with plateau holds.
+                // For 3 sentences (2 transitions): each sentence holds for ~1/3 of the
+                // cycle, with a brief cross-fade window between them.
+                // Plateau scheme (totalSlots=2):
+                //   0.00–0.18  sentence 0 (hold)
+                //   0.18–0.32  transition 0→1
+                //   0.32–0.68  sentence 1 (hold)
+                //   0.68–0.82  transition 1→2
+                //   0.82–1.00  sentence 2 (hold)
                 const rawPx = parseFloat(raw)
-                const progress = rawPx / endY
-                const pos = progress * totalSlots
-                const idx = Math.min(Math.floor(pos), totalSlots - 1)
-                const frac = pos - idx
-                const eased =
-                  frac < 0.5
-                    ? 4 * frac * frac * frac
-                    : 1 - Math.pow(-2 * frac + 2, 3) / 2
-                const resultPx = -((idx + eased) * slotHeightPx)
+                const rawProgress = rawPx / endY   // 0→1 over the tween
+                let slotPos: number
+
+                if (totalSlots === 1) {
+                  // 2 sentences: 0→hold→1
+                  if (rawProgress < 0.25) {
+                    slotPos = 0
+                  } else if (rawProgress < 0.75) {
+                    const t = (rawProgress - 0.25) / 0.50
+                    const eased = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2
+                    slotPos = eased
+                  } else {
+                    slotPos = 1
+                  }
+                } else {
+                  // 3 sentences (totalSlots=2): hold → transition → hold → transition → hold
+                  const holds = [0.18, 0.50]   // progress thresholds where holds end
+                  const transitions = [[0.18, 0.32], [0.68, 0.82]]
+                  const holdEnds = [0.32, 1.00]
+
+                  if (rawProgress < holds[0]) {
+                    slotPos = 0
+                  } else if (rawProgress < transitions[0][1]) {
+                    const t = (rawProgress - transitions[0][0]) / (transitions[0][1] - transitions[0][0])
+                    const eased = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2
+                    slotPos = eased
+                  } else if (rawProgress < transitions[1][0]) {
+                    slotPos = 1
+                  } else if (rawProgress < transitions[1][1]) {
+                    const t = (rawProgress - transitions[1][0]) / (transitions[1][1] - transitions[1][0])
+                    const eased = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2
+                    slotPos = 1 + eased
+                  } else {
+                    slotPos = 2
+                  }
+
+                  // Suppress unused variable warning for holdEnds
+                  void holdEnds
+                }
+
+                const resultPx = -(slotPos * slotHeightPx)
                 return `${resultPx}px`
               },
             },
           },
-          0.04
+          0.06
         )
       }
 
-      // p 0.14–0.22  subhead+CTA: exits earlier — fully gone at 0.22.
-      tl.to(subCta, { opacity: 0, y: -50, duration: 0.08, ease: 'power3.in' }, 0.14)
+      // p 0.38–0.46  subhead+CTA: exits — fully gone at 0.46.
+      tl.to(subCta, { opacity: 0, y: -50, duration: 0.08, ease: 'power3.in' }, 0.38)
 
-      // p 0.18–0.28  headline: fade+lift complete by ~p 0.28.
-      tl.to(headline, { opacity: 0, y: -60, duration: 0.10, ease: 'power3.in' }, 0.18)
+      // p 0.43–0.52  headline: fade+lift complete by 0.52.
+      tl.to(headline, { opacity: 0, y: -60, duration: 0.09, ease: 'power3.in' }, 0.43)
 
-      // p 0.22–0.30  Scroll nudge fades with headline.
+      // p 0.44–0.52  Scroll nudge fades.
       if (scrollNudge) {
-        tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.22)
+        tl.to(scrollNudge, { opacity: 0, duration: 0.08, ease: 'power2.in' }, 0.44)
       }
 
-      // p 0.36–0.44  outline wordmark strokes in.
-      // Headline is fully gone by 0.28 → clean 8-progress-point dead zone (0.28–0.36)
-      // where only the building pan is visible — no headline/wordmark collision.
-      tl.set(wordmark, { scale: 1, y: 0 }, 0.36)
-      tl.to(outline, { opacity: 1, duration: 0.08, ease: 'power1.out' }, 0.36)
+      // p 0.55–0.68  CINEMATIC CROSS-DISSOLVE: outline draws in, building fades, fill lands.
+      // (a) Wordmark position: reset to centered, starting invisible at p 0.55
+      tl.set(wordmark, { scale: 1, y: 0 }, 0.55)
+      // (b) Outline DRAWS IN over p 0.55–0.63 (while building still partly visible)
+      tl.to(outline, { opacity: 1, duration: 0.08, ease: 'power2.inOut' }, 0.55)
+      // (c) Building IMAGE cross-FADES OUT over p 0.57–0.67
+      tl.to(buildingImg, { opacity: 0, duration: 0.10, ease: 'sine.inOut' }, 0.57)
+      // (d) Fill FADES IN over p 0.62–0.72, outline fades as fill lands p 0.67–0.72
+      tl.to(fill,    { opacity: 1, duration: 0.10, ease: 'power2.inOut' }, 0.62)
+      tl.to(outline, { opacity: 0, duration: 0.05, ease: 'power2.in' },   0.67)
 
-      // p ~0.50  HARD CUT: fill→1, outline→0, buildingImg→0 (steps(1)).
-      tl.to(fill,        { opacity: 1, duration: 0.015, ease: 'steps(1)' }, 0.50)
-      tl.to(outline,     { opacity: 0, duration: 0.015, ease: 'steps(1)' }, 0.50)
-      tl.to(buildingImg, { opacity: 0, duration: 0.015, ease: 'steps(1)' }, 0.50)
+      // p 0.72–0.78  brand micro-breath: settle with spring feel
+      tl.to(wordmark, { scale: 1.04, duration: 0.03, ease: 'power2.out' }, 0.72)
+      tl.to(wordmark, { scale: 1.02, duration: 0.03, ease: 'back.out(1.2)' }, 0.75)
 
-      // p 0.50–0.58  brand micro-breath: 1 → 1.04 → settle with spring feel
-      tl.to(wordmark, { scale: 1.04, duration: 0.04, ease: 'power2.out' }, 0.50)
-      tl.to(wordmark, { scale: 1.02, duration: 0.04, ease: 'back.out(1.2)' }, 0.54)
-
-      // p 0.58–0.72  wordmark lifts into the cloud bloom + fades
+      // p 0.78–0.88  wordmark lifts into the cloud bloom + fades
       tl.to(
         wordmark,
-        { y: '-20%', scale: 1.08, opacity: 0, duration: 0.14, ease: 'power2.in' },
-        0.58
+        { y: '-20%', scale: 1.08, opacity: 0, duration: 0.10, ease: 'power2.in' },
+        0.78
       )
 
-      // p 0.30–0.75  Nav fades out early — before building dominates the frame (moved from 0.55→0.30).
-      // Also restore after pin. Contrast issue solved by fading nav away sooner.
+      // p 0.40–0.85  Nav fades out before wordmark era, restores after.
       const nav = document.querySelector<HTMLElement>('nav, header[role="banner"]') ??
                   document.querySelector<HTMLElement>('[data-hero-nav]')
       if (nav) {
-        tl.to(nav, { opacity: 0, duration: 0.20, ease: 'power2.in' }, 0.30)
-        tl.to(nav, { opacity: 1, duration: 0.10, ease: 'power2.out' }, 0.75)
+        tl.to(nav, { opacity: 0, duration: 0.14, ease: 'power2.in' }, 0.40)
+        tl.to(nav, { opacity: 1, duration: 0.08, ease: 'power2.out' }, 0.85)
       }
 
       // Clean up will-change after the pin completes
@@ -289,8 +333,8 @@ export default function Hero() {
         <div
           className="absolute left-1/2 z-[2]"
           style={{
-            top: 'clamp(46vh, 52vh, 58vh)',
-            width: 'min(125vw, 1800px)',
+            top: 'clamp(44vh, 50vh, 56vh)',
+            width: 'min(87.5vw, 1260px)',
             transform: 'translateX(-50%)',
             position: 'absolute',
             // No background-color — sky gradient is continuous behind building (no seam)
@@ -312,7 +356,7 @@ export default function Hero() {
                 display: 'block',
                 filter: 'saturate(0.96) brightness(0.97) hue-rotate(6deg) contrast(1.03)',
               }}
-              sizes="(max-width: 768px) 125vw, 1800px"
+              sizes="(max-width: 768px) 88vw, 1260px"
             />
           </div>
           {/* Cool rim light on glass faces */}
@@ -438,14 +482,13 @@ export default function Hero() {
         ref={buildingOuterRef}
         className="absolute left-1/2 z-[2]"
         style={{
-          top: 'clamp(46vh, 52vh, 58vh)',
-          width: 'min(125vw, 1800px)',
+          top: 'clamp(44vh, 50vh, 56vh)',
+          width: 'min(87.5vw, 1260px)',
           transform: 'translateX(-50%)',
           margin: 0,
           padding: 0,
-          // No background-color — sky gradient spans full hero height behind everything.
-          // A solid fill here creates a hard-edged rectangle seam visible at mid-scroll.
-          // Gap prevention handled by sky gradient continuity + building image extending below fold.
+          // 30% smaller than before (was min(125vw,1800px)) — building is now centered
+          // with visible sky on both sides. No background-color — sky gradient continuous.
         }}
         aria-hidden="true"
       >
@@ -478,7 +521,7 @@ export default function Hero() {
                 display: 'block',
                 filter: 'saturate(0.96) brightness(0.97) hue-rotate(6deg) contrast(1.03)',
               }}
-              sizes="(max-width: 768px) 125vw, 1800px"
+              sizes="(max-width: 768px) 88vw, 1260px"
             />
           </div>
 
@@ -553,7 +596,7 @@ export default function Hero() {
         }}
       />
 
-      {/* 4 + 5. Wordmark group — OUTLINE (p 0.40–0.50) then FILL (p 0.50+). */}
+      {/* 4 + 5. Wordmark group — OUTLINE draws in, then CROSS-DISSOLVE to FILL. */}
       <div
         ref={wordmarkRef}
         className="absolute inset-0 z-[3] flex items-center justify-center"
@@ -563,22 +606,23 @@ export default function Hero() {
         <div
           className="relative mx-auto w-full"
           style={{
-            maxWidth: 'clamp(520px, 94vw, 1380px)',
+            maxWidth: 'clamp(420px, 78vw, 1100px)',
             paddingLeft: 'clamp(8px, 1.5vw, 24px)',
             paddingRight: 'clamp(8px, 1.5vw, 24px)',
-            // P2-G: nudge wordmark up slightly so it reads mid-sky, not low-building
-            marginTop: '-5vh',
+            // Taller viewBox (720×285 with subWord) so the container proportions match.
+            // No marginTop nudge — vertically centered in the section.
           }}
         >
-          {/* Outline — thin white stroke over the panned building */}
+          {/* Outline — white stroke, draws in while building is still visible */}
           <div ref={outlineRef} className="absolute inset-0">
-            <BrandWordmarkOutline />
+            <BrandWordmarkOutline subWord="וובינר" />
           </div>
           {/* Fill — building image clipped to Hebrew letters.
-              No CSS transition — hard cut via GSAP steps(1). */}
+              Fades in during cross-dissolve; outline fades as fill lands. */}
           <div ref={fillRef} style={{ transition: 'none' }}>
             <BrandWordmarkMask
               fillSrc={images.heroBuildingFill}
+              subWord="וובינר"
               className="block h-auto w-full"
             />
           </div>
@@ -603,7 +647,7 @@ export default function Hero() {
           Roofline clamp min = 34vh → 7vh breathing room on mobile. Both clear. */}
       <div
         className="absolute inset-0 z-[4] flex flex-col items-center justify-start px-6 text-center"
-        style={{ paddingTop: 'clamp(10vh, 14vh, 18vh)' }}
+        style={{ paddingTop: 'clamp(18vh, 21vh, 24vh)' }}
       >
         {/* Cycling headline */}
         <div ref={headlineRef} className="flex w-full flex-col items-center">
@@ -614,11 +658,11 @@ export default function Hero() {
           />
         </div>
 
-        {/* Subhead + CTA — generous breathing room below headline */}
+        {/* Subhead + CTA — tighter gaps (FIND-style compact upper-middle block) */}
         <div
           ref={subCtaRef}
           className="flex w-full flex-col items-center"
-          style={{ marginTop: 'clamp(2rem, 4.5vh, 3.5rem)' }}
+          style={{ marginTop: 'clamp(0.75rem, 2vh, 1.5rem)' }}
         >
           <p
             className="font-light"
@@ -626,15 +670,14 @@ export default function Hero() {
               fontFamily: 'var(--font-body)',
               fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
               lineHeight: 1.6,
-              opacity: 0.88,
               maxWidth: '640px',
-              color: 'rgba(225,235,248,0.92)',
+              color: 'rgba(225,235,248,0.90)',
             }}
           >
             {c.hero.subhead}
           </p>
-          {/* CTA — comfortable gap below subhead */}
-          <div style={{ marginTop: 'clamp(1.75rem, 4vh, 3rem)' }}>
+          {/* CTA — tighter gap below subhead */}
+          <div style={{ marginTop: 'clamp(1rem, 2.5vh, 1.75rem)' }}>
             <Pill variant="dark" href="#register" withArrow>
               {c.hero.cta}
             </Pill>
@@ -717,9 +760,16 @@ const SlotRollHeadline = forwardRef<HTMLDivElement, SlotRollHeadlineProps>(
                 paddingTop: '0.15em',
                 paddingBottom: '0.15em',
                 boxSizing: 'border-box',
-                color: '#ffffff',
-                // Soft cool shadow — depth without warm glow
-                textShadow: '0 2px 18px rgba(20,40,80,0.35)',
+                // Black→gray gradient text — premium editorial feel.
+                // background-clip:text clips the gradient to the glyph shapes.
+                // drop-shadow (not textShadow — that paints the bounding box, not glyphs)
+                // adds a faint white halo that lifts the dark text off bright cloud mass.
+                background: 'linear-gradient(180deg, #111111 0%, #6b6b6b 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                color: 'transparent',
+                filter: 'drop-shadow(0 1px 8px rgba(255,255,255,0.60))',
               }}
             >
               {line}
@@ -751,20 +801,30 @@ function SkyGradient() {
 }
 
 // ─── "בונים עתיד" outline wordmark ──────────────────────────────────────────
-function BrandWordmarkOutline() {
+// Mirrors the BrandWordmarkMask viewBox exactly (720×285 when subWord present).
+// Sub-word "וובינר" strokes in at 50% font size alongside the main word.
+interface BrandWordmarkOutlineProps {
+  subWord?: string
+}
+
+function BrandWordmarkOutline({ subWord }: BrandWordmarkOutlineProps) {
+  const viewBoxH = subWord ? 285 : 175
+  const mainY = subWord ? '38%' : '50%'
+
   return (
     <svg
-      viewBox="0 0 720 175"
+      viewBox={`0 0 720 ${viewBoxH}`}
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="בונים עתיד"
+      aria-label={subWord ? `בונים עתיד — ${subWord}` : 'בונים עתיד'}
       className="block h-auto w-full"
       overflow="visible"
       preserveAspectRatio="xMidYMid meet"
     >
+      {/* Main word — white stroke outline */}
       <text
         x="50%"
-        y="50%"
+        y={mainY}
         dominantBaseline="central"
         textAnchor="middle"
         direction="rtl"
@@ -780,6 +840,27 @@ function BrandWordmarkOutline() {
       >
         בונים עתיד
       </text>
+      {/* Sub-word at 50% scale — matches BrandWordmarkMask sub-word position */}
+      {subWord && (
+        <text
+          x="50%"
+          y="80%"
+          dominantBaseline="central"
+          textAnchor="middle"
+          direction="rtl"
+          fontFamily="var(--font-hebrew), system-ui, sans-serif"
+          fontWeight="800"
+          fontSize="69"
+          letterSpacing="-1"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+          style={{ filter: 'drop-shadow(0 0 3px rgba(255,255,255,0.35))' }}
+        >
+          {subWord}
+        </text>
+      )}
     </svg>
   )
 }

@@ -48,36 +48,18 @@ export default function Stats() {
       id="stats"
       className="relative w-full"
       style={{
-        // Cloud-white / soft-sky background — same coloring as the hero's persistent
-        // veil. The section reads as a continuation of the hero cloud atmosphere.
-        // Slight warm-cool sky tint: #eef2f7 (soft blue-white, matching the cloud veil).
-        background: '#eef2f7',
+        // Full-section vertical gradient: TOP = cool dusk cloud matching the hero veil
+        // end color (rgba(228,235,246) — same as the hero's reduced-motion veil and the
+        // sky gradient's lower stops). BOTTOM = pure white (#ffffff) matching RewiredSteps
+        // var(--color-paper). The gradient IS the bridge — no separate overlay needed.
+        // The top value is identical to the hero's persistent cloud veil so the seam
+        // between hero and stats is invisible; the section melts into white below.
+        background: 'linear-gradient(to bottom, rgba(228,235,246,1) 0%, rgba(238,243,250,1) 30%, #ffffff 100%)',
       }}
       aria-label={c.stats.map((s) => `${s.value} ${s.label}`).join(', ')}
     >
-      {/*
-        Cloud-bridge reinforcement: the top of this section already matches the
-        hero veil coloring, so the seam is invisible. This subtle gradient just
-        softens the very top edge further — a gentle atmospheric continuation.
-        Starts cloud-white (matching the veil) → fades to transparent.
-        Much lighter than v1 (was dark bg → gradient was covering a big jump).
-      */}
-      {/* P3-D: taller + softer bridge gradient to fully dissolve seam */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '220px',
-          background:
-            'linear-gradient(to bottom, rgba(240,247,255,0.60) 0%, rgba(238,242,247,0) 100%)',
-          pointerEvents: 'none',
-          zIndex: 1,
-        }}
-      />
-      <div className="relative z-[2] w-full px-6 md:px-12 lg:px-20 py-16 md:py-24">
+      {/* No separate bridge overlay needed — the section bg gradient handles the blend. */}
+      <div className="relative w-full px-6 md:px-12 lg:px-20 py-16 md:py-24">
         <ul className="stats-grid grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[rgba(17,17,17,0.10)]">
           {c.stats.map((stat) => (
             <li
