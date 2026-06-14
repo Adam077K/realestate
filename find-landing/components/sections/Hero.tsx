@@ -292,19 +292,64 @@ export default function Hero() {
             width: 'min(125vw, 1800px)',
             transform: 'translateX(-50%)',
             backgroundColor: '#e8c49a',
+            position: 'absolute',
           }}
           aria-hidden="true"
         >
-          <Image
-            src={images.heroBuildingCutout}
-            alt="Modern glass residential tower with green terraces"
-            width={1024}
-            height={946}
-            priority
-            quality={90}
-            className="block h-auto w-full select-none"
-            style={{ verticalAlign: 'top', display: 'block' }}
-            sizes="(max-width: 768px) 125vw, 1800px"
+          {/* Same warm-filter treatment as animated path for visual consistency */}
+          <div style={{ display: 'block', lineHeight: 0, fontSize: 0, position: 'relative', zIndex: 1 }}>
+            <Image
+              src={images.heroBuildingCutout}
+              alt="Modern glass residential tower with green terraces"
+              width={1024}
+              height={946}
+              priority
+              quality={90}
+              className="block h-auto w-full select-none"
+              style={{
+                verticalAlign: 'top',
+                display: 'block',
+                filter: 'saturate(1.08) brightness(1.03) sepia(0.16) hue-rotate(-8deg) contrast(1.02)',
+              }}
+              sizes="(max-width: 768px) 125vw, 1800px"
+            />
+          </div>
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 2,
+              background: 'linear-gradient(to top, rgba(255,165,80,0.42) 0%, rgba(255,190,110,0.28) 28%, rgba(255,210,140,0.10) 55%, transparent 78%)',
+              WebkitMaskImage: `url(${images.heroBuildingCutout})`,
+              WebkitMaskSize: '100% auto',
+              WebkitMaskPosition: 'top center',
+              WebkitMaskRepeat: 'no-repeat',
+              maskImage: `url(${images.heroBuildingCutout})`,
+              maskSize: '100% auto',
+              maskPosition: 'top center',
+              maskRepeat: 'no-repeat',
+              mixBlendMode: 'soft-light' as const,
+              pointerEvents: 'none',
+            }}
+          />
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 3,
+              background: 'linear-gradient(to top, rgba(248,220,175,0.55) 0%, rgba(252,230,190,0.28) 12%, rgba(255,240,210,0.08) 28%, transparent 42%)',
+              WebkitMaskImage: `url(${images.heroBuildingCutout})`,
+              WebkitMaskSize: '100% auto',
+              WebkitMaskPosition: 'top center',
+              WebkitMaskRepeat: 'no-repeat',
+              maskImage: `url(${images.heroBuildingCutout})`,
+              maskSize: '100% auto',
+              maskPosition: 'top center',
+              maskRepeat: 'no-repeat',
+              pointerEvents: 'none',
+            }}
           />
         </div>
         {/* Cloud layer behind the veil */}
@@ -398,12 +443,22 @@ export default function Hero() {
         }}
         aria-hidden="true"
       >
-        {/* INNER: GSAP pan target — translateY only, no scale. */}
+        {/* INNER: GSAP pan target — translateY only, no scale.
+            ALL tint/glow/haze layers live INSIDE this div so they pan and are clipped
+            with the building — they NEVER reach the sky above the outer wrapper. */}
         <div
           ref={buildingWrapRef}
-          style={{ transformOrigin: 'center top' }}
+          style={{ transformOrigin: 'center top', position: 'relative' }}
         >
-          <div ref={buildingImgRef} style={{ display: 'block', lineHeight: 0, fontSize: 0 }}>
+          {/* Building image — warm filter tints only the opaque pixel of the PNG.
+              CSS filter on <img> touches rendered pixels, NOT the transparent alpha channel,
+              so the sky gradient behind is completely unaffected.
+              saturate(1.08)  — lift colour vividness slightly
+              brightness(1.03) — slight lift so warm cast reads bright, not muddy
+              sepia(0.16)     — push grey concrete toward warm beige/amber
+              hue-rotate(-8deg) — rotate remaining hues toward orange-peach
+              contrast(1.02)  — micro-boost to keep shadow depth */}
+          <div ref={buildingImgRef} style={{ display: 'block', lineHeight: 0, fontSize: 0, position: 'relative', zIndex: 1 }}>
             <Image
               src={images.heroBuildingCutout}
               alt="Modern glass residential tower with green terraces"
@@ -412,10 +467,65 @@ export default function Hero() {
               priority
               quality={90}
               className="block h-auto w-full select-none"
-              style={{ verticalAlign: 'top', display: 'block' }}
+              style={{
+                verticalAlign: 'top',
+                display: 'block',
+                filter: 'saturate(1.08) brightness(1.03) sepia(0.16) hue-rotate(-8deg) contrast(1.02)',
+              }}
               sizes="(max-width: 768px) 125vw, 1800px"
             />
           </div>
+
+          {/* Directional warm glow — soft-light amber gradient masked to the building silhouette.
+              mask-image alpha-clips the gradient so it ONLY paints onto opaque building pixels.
+              Gradient runs from warm amber at bottom (where sun rakes the facade) to transparent
+              ~60% up, giving a natural low-angle golden-hour light direction.
+              mix-blend-mode: soft-light warms the underlying facade without over-saturating.
+              Lives inside buildingWrapRef → pans with building, clipped by outer wrapper → sky safe. */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 2,
+              background:
+                'linear-gradient(to top, rgba(255,165,80,0.42) 0%, rgba(255,190,110,0.28) 28%, rgba(255,210,140,0.10) 55%, transparent 78%)',
+              WebkitMaskImage: `url(${images.heroBuildingCutout})`,
+              WebkitMaskSize: '100% auto',
+              WebkitMaskPosition: 'top center',
+              WebkitMaskRepeat: 'no-repeat',
+              maskImage: `url(${images.heroBuildingCutout})`,
+              maskSize: '100% auto',
+              maskPosition: 'top center',
+              maskRepeat: 'no-repeat',
+              mixBlendMode: 'soft-light' as const,
+              pointerEvents: 'none',
+            }}
+          />
+
+          {/* Base haze — warm atmospheric mist where building meets the bottom of frame.
+              Reads as ground-level ambient glow / soft mist dissolving the base.
+              Same mask as above → only touches building pixels, never the sky.
+              No mix-blend-mode here — straight warm white dissolve for mist effect. */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 3,
+              background:
+                'linear-gradient(to top, rgba(248,220,175,0.55) 0%, rgba(252,230,190,0.28) 12%, rgba(255,240,210,0.08) 28%, transparent 42%)',
+              WebkitMaskImage: `url(${images.heroBuildingCutout})`,
+              WebkitMaskSize: '100% auto',
+              WebkitMaskPosition: 'top center',
+              WebkitMaskRepeat: 'no-repeat',
+              maskImage: `url(${images.heroBuildingCutout})`,
+              maskSize: '100% auto',
+              maskPosition: 'top center',
+              maskRepeat: 'no-repeat',
+              pointerEvents: 'none',
+            }}
+          />
         </div>
       </div>
 
