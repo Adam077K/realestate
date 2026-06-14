@@ -369,17 +369,17 @@ export default function Hero() {
             />
           </div>
 
-          {/* Warm rim light - golden glow on the tower crown */}
+          {/* P3: Warm rim light — golden crown glow, GPU-cheap version.
+              Original used WebkitMaskImage + soft-light blend inside the GSAP-
+              translated buildingWrapRef, causing a full re-stencil every scroll tick.
+              Replaced with a plain linear-gradient + no mask + no blend mode.
+              Only opacity/transform composited — no filter, no mask, no blend. */}
           <div
             aria-hidden="true"
             style={{
               position: 'absolute', inset: 0, zIndex: 2,
-              background: 'linear-gradient(to bottom, rgba(255,220,180,0.18) 0%, rgba(255,230,190,0.10) 30%, transparent 60%)',
-              WebkitMaskImage: `url(${images.heroBuildingCutout})`,
-              WebkitMaskSize: '100% auto', WebkitMaskPosition: 'top center', WebkitMaskRepeat: 'no-repeat',
-              maskImage: `url(${images.heroBuildingCutout})`,
-              maskSize: '100% auto', maskPosition: 'top center', maskRepeat: 'no-repeat',
-              mixBlendMode: 'soft-light' as const, pointerEvents: 'none',
+              background: 'linear-gradient(to bottom, rgba(255,180,120,0.22) 0%, rgba(255,200,140,0.12) 28%, transparent 45%)',
+              pointerEvents: 'none',
             }}
           />
         </div>
