@@ -211,17 +211,14 @@ const expo = (n: number) => {
 /**
  * Full-screen soft veil intensity for the FRONT field, 0..1.
  *
- * v2 — PERSIST: veil blooms in and STAYS at peak. No thin-out at end.
- * The next section (Stats) has a matching cloud-white gradient top so the
- * seam is invisible — same cloud coloring carries across the boundary.
- *
- * Bloom: starts at p≈0.40, peaks at p≈0.90.
- * Peak ≤~0.90 (soft, textured — not a flat opaque scrim; cloud PNGs still read through).
- * No lift term — veil stays at peak from p=0.90 → p=1.0.
+ * v3 — DELAYED BLOOM: bloom starts at p≈0.50 (was 0.40), peaks at p≈0.95 (was 0.90).
+ * Delay ensures the veil doesn't wash out the wordmark cross-dissolve (p0.55–0.88)
+ * prematurely. The wordmark lingers clearly readable before the veil crests.
+ * Stays at peak from p=0.95 → p=1.0. Next section (Stats) matches color.
  */
 function frontVeilIntensity(p: number): number {
-  // Blooms from 0 at p=0.40 to 1 by p=0.90. Stays at 1 through p=1.0.
-  return expo(clamp01((p - 0.40) / 0.50))
+  // Blooms from 0 at p=0.50 to 1 by p=0.95. Stays at 1 through p=1.0.
+  return expo(clamp01((p - 0.50) / 0.45))
 }
 
 /**
@@ -263,7 +260,7 @@ export default function HeroClouds({
   const [reducedMotion, setReducedMotion] = useState(false)
 
   const layers      = variant === 'front' ? FRONT_LAYERS : BACK_LAYERS
-  const staticRestP = variant === 'front' ? 0.52 : 0.45
+  const staticRestP = variant === 'front' ? 0.60 : 0.45
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return

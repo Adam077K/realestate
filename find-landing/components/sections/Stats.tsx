@@ -56,7 +56,7 @@ export default function Stats() {
         //   This IS the same as rgba(228,235,246,1) — single source of truth.
         //   If a seam is visible it's from the cloud bloom layer; the gradient color is correct.
         // BOTTOM (#ffffff): matches RewiredSteps var(--color-paper) — no jarring jump.
-        background: 'linear-gradient(to bottom, #e4ebf6 0%, #edf3fa 30%, #ffffff 100%)',
+        background: 'linear-gradient(to bottom, #f7fafd 0%, #f9fbfe 40%, #ffffff 100%)',
       }}
       aria-label={c.stats.map((s) => `${s.value} ${s.label}`).join(', ')}
     >

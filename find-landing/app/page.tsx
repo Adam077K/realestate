@@ -1,4 +1,4 @@
-import Nav from '@/components/layout/Nav'
+import BonimNavbar from '@/components/layout/BonimNavbar'
 import Hero from '@/components/sections/Hero'
 import Stats from '@/components/sections/Stats'
 import ChevronStrip from '@/components/sections/ChevronStrip'
@@ -15,7 +15,24 @@ import CtaFooter from '@/components/sections/CtaFooter'
 export default function Home() {
   return (
     <>
-      <Nav />
+      <BonimNavbar />
+      {/* Dark scrim — sits behind BonimNavbar (z-[49]), above hero sky (z-0).
+          Gives the transparent white navbar legibility at scroll-0 over the bright
+          sky gradient. Gradient from rgba(15,22,40,0.38) → transparent over 120px.
+          pointer-events-none so it doesn't block clicks. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '120px',
+          zIndex: 49,
+          background: 'linear-gradient(to bottom, rgba(15,22,40,0.38) 0%, transparent 100%)',
+          pointerEvents: 'none',
+        }}
+      />
       <main>
         <Hero />
         <Stats />
