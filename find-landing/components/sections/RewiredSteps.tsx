@@ -38,7 +38,7 @@ export default function RewiredSteps() {
         y: 44,
         duration: 0.9,
         ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 78%' },
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 92%' },
         onComplete() {
           gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
         },

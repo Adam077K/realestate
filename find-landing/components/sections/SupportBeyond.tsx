@@ -54,7 +54,7 @@ export default function SupportBeyond() {
         y: 36,
         duration: 0.85,
         ease: 'power3.out',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
+        scrollTrigger: { trigger: sectionRef.current, start: 'top 92%' },
         onComplete() {
           gsap.set(sectionRef.current, { clearProps: 'opacity,transform' })
         },
