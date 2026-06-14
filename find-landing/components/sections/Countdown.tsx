@@ -204,6 +204,7 @@ export default function Countdown() {
 
         {/* Digit blocks row */}
         <div
+          dir="ltr"
           className="flex flex-row items-start justify-center gap-3 sm:gap-5 md:gap-8"
           role="timer"
           aria-live="off"

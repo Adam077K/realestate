@@ -298,10 +298,10 @@ export default function Hero() {
             className="font-light"
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(0.92rem, 1.6vw, 1.28rem)',
+              fontSize: 'clamp(0.55rem, 2.35vw, 1.2rem)',
               lineHeight: 1.65,
               color: '#000000',
-              maxWidth: '560px',
+              whiteSpace: 'nowrap',
               textShadow: '0 1px 8px rgba(255,255,255,0.55)',
             }}
           >
@@ -463,11 +463,11 @@ export default function Hero() {
           <p
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(0.92rem, 1.6vw, 1.28rem)',
+              fontSize: 'clamp(0.55rem, 2.35vw, 1.2rem)',
               fontWeight: 300,
               lineHeight: 1.65,
               letterSpacing: '0.005em',
-              maxWidth: '560px',
+              whiteSpace: 'nowrap',
               color: '#000000',
               textAlign: 'center',
               marginTop: 'clamp(0.6rem, 1.6vh, 1.2rem)',
