@@ -2,8 +2,7 @@
 
 import { useRef } from 'react'
 import { gsap } from '@/lib/gsap'
-import { useGsapContext } from '@/hooks/useGsapContext'
-import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useLang, useContent } from '@/components/providers/LanguageProvider'
 import TwoToneHeading from '@/components/ui/TwoToneHeading'
 
@@ -16,103 +15,87 @@ import TwoToneHeading from '@/components/ui/TwoToneHeading'
  * - Dividers scaleX 0→1 from reading-start
  * - Each row cascades in with a stagger (opacity + translateY)
  * - clearProps on all onComplete so elements are never left hidden
+ *
+ * Reveals use IntersectionObserver (via useScrollReveal) so they are immune
+ * to the Hero pin-spacer position math that causes ScrollTrigger one-shot
+ * reveals to mis-fire at page load.
  */
 export default function RewiredSteps() {
   const sectionRef = useRef<HTMLElement>(null)
   const dividerRefs = useRef<(HTMLSpanElement | null)[]>([])
   const itemRefs = useRef<(HTMLLIElement | null)[]>([])
-  const { motionOk } = useSmoothScroll()
   const { dir } = useLang()
   const c = useContent()
 
   const dividerOrigin = dir === 'rtl' ? 'right center' : 'left center'
 
-  useGsapContext(
+  useScrollReveal(
     sectionRef,
-    () => {
-      if (!motionOk) return
-
+    [
       // Section entrance: the whole section rises first
-      // immediateRender:false → GSAP does NOT snapshot the "from" state at creation time.
-      // Without this, if the trigger fires at page-load (before pin-spacer is accounted for),
-      // GSAP sets opacity:0 immediately and then clearProps leaves it visible—arms never re-fire.
-      gsap.fromTo(
-        sectionRef.current,
-        { opacity: 0, y: 44 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.9,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 92%' },
-        }
-      )
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.08, // 'top 92%'
+        build: () =>
+          gsap.fromTo(
+            sectionRef.current,
+            { opacity: 0, y: 44 },
+            { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', paused: true }
+          ),
+      },
+      // Heading words: masked word-clip stagger reveal
+      {
+        trigger: '.learn-heading',
+        revealAt: 0.18, // 'top 82%'
+        build: () => {
+          const headingWords = sectionRef.current?.querySelectorAll('.learn-heading .tt-word')
+          return gsap.fromTo(
+            headingWords ? Array.from(headingWords) : [],
+            { yPercent: 115, opacity: 0 },
+            {
+              yPercent: 0,
+              opacity: 1,
+              stagger: 0.05,
+              ease: 'power3.out',
+              duration: 0.95,
+              paused: true,
+            }
+          )
+        },
+      },
+    ],
+    [dividerOrigin]
+  )
 
-      // Heading words: masked word-clip stagger reveal with strong yPercent
-      const headingWords = sectionRef.current?.querySelectorAll('.learn-heading .tt-word')
-      if (headingWords && headingWords.length > 0) {
-        gsap.fromTo(
-          headingWords,
-          { yPercent: 115, opacity: 0 },
-          {
-            yPercent: 0,
-            opacity: 1,
-            stagger: 0.05,
-            ease: 'power3.out',
-            duration: 0.95,
-            immediateRender: false,
-            scrollTrigger: {
-              trigger: '.learn-heading',
-              start: 'top 82%',
-            },
-          }
-        )
-      }
-
-      // Items: dividers scaleX 0→1 then row fades in
-      const items = itemRefs.current.filter(Boolean) as HTMLLIElement[]
-      const dividers = dividerRefs.current.filter(Boolean) as HTMLSpanElement[]
-
-      items.forEach((item, i) => {
-        const divider = dividers[i]
-
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: item,
-            start: 'top 82%',
-          },
-        })
+  // Per-item reveals: each item's divider + row content
+  useScrollReveal(
+    sectionRef,
+    (itemRefs.current.filter(Boolean) as HTMLLIElement[]).map((item, i) => ({
+      trigger: item,
+      revealAt: 0.18, // 'top 82%'
+      build: () => {
+        const divider = dividerRefs.current[i]
+        const tl = gsap.timeline({ paused: true })
 
         if (divider) {
           tl.fromTo(
             divider,
             { scaleX: 0, transformOrigin: dividerOrigin },
-            {
-              scaleX: 1,
-              duration: 0.6,
-              ease: 'power3.out',
-              immediateRender: false,
-            }
+            { scaleX: 1, duration: 0.6, ease: 'power3.out' }
           )
         }
 
-        // Row number + content rise together, slightly offset from divider
         tl.fromTo(
           item.querySelectorAll('.item-content'),
           { opacity: 0, y: 18 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.6,
-            ease: 'power3.out',
-            immediateRender: false,
-          },
+          { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
           '-=0.25'
         )
-      })
-    },
-    [motionOk, dividerOrigin]
+
+        return tl
+      },
+    })),
+    [dividerOrigin]
   )
 
   return (
@@ -155,7 +138,7 @@ export default function RewiredSteps() {
                   className="block h-px bg-[rgba(17,17,17,0.15)]"
                   style={{
                     transformOrigin: dividerOrigin,
-                    transform: motionOk ? 'scaleX(0)' : 'scaleX(1)',
+                    transform: 'scaleX(0)',
                   }}
                   aria-hidden="true"
                 />
