@@ -99,7 +99,7 @@ export default function ChevronStrip() {
         of page direction so the arrows always point the same way and never collide.
       */}
       <div className="overflow-hidden px-4" dir="ltr">
-        <div className="flex items-stretch justify-center gap-[clamp(4px,0.6vw,12px)]">
+        <div className="flex items-stretch justify-center gap-[clamp(0px,0.15vw,4px)]">
           {chevronImages.map((src, i) => {
             const meta =
               IMAGE_META[i] ?? {
