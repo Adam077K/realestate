@@ -107,13 +107,14 @@ const BACK_LAYERS: CloudLayer[] = [
     coverage: 0.08, driftX: 0, parallax: 0.25,
   },
   // ── MID (cumulus) — peach-apricot warmth, lit from the low afternoon sun ─
-  // sepia(0.18-0.22) + hue-rotate(-8 to -10deg) pushes cloud white toward
-  // warm apricot without over-orange. Matches the FIND reference cloud palette.
+  // Round 3: pushed sepia(0.28-0.34) + hue-rotate(-12 to -14deg) so the dominant
+  // central cumulus masses read as peach/apricot rather than cold white.
+  // The global warm light-wash layer above the scene reinforces this further.
   {
     id: 'mid-1', src: SRC.c5,
     top: '6%', left: '8%', width: 'clamp(380px, 48vw, 780px)',
     baseOpacity: 0.70, blur: 3,
-    tint: 'saturate(0.82) hue-rotate(-10deg) sepia(0.22) brightness(1.04)',
+    tint: 'saturate(0.86) hue-rotate(-14deg) sepia(0.32) brightness(1.05)',
     flipX: false, rotate: -2,
     anim: 'hc-drift-c', duration: 97, delay: -52,
     coverage: 0.18, driftX: 3, parallax: 0.55,
@@ -122,7 +123,7 @@ const BACK_LAYERS: CloudLayer[] = [
     id: 'mid-2', src: SRC.c4,
     top: '10%', left: '58%', width: 'clamp(360px, 46vw, 740px)',
     baseOpacity: 0.74, blur: 2,
-    tint: 'saturate(0.80) hue-rotate(-8deg) sepia(0.18) brightness(1.03)',
+    tint: 'saturate(0.84) hue-rotate(-12deg) sepia(0.28) brightness(1.04)',
     flipX: true, rotate: 3,
     anim: 'hc-drift-d', duration: 83, delay: -19,
     coverage: 0.20, driftX: -3, parallax: 0.60,
@@ -131,7 +132,7 @@ const BACK_LAYERS: CloudLayer[] = [
     id: 'mid-3', src: SRC.c1,
     top: '22%', left: '2%', width: 'clamp(340px, 44vw, 700px)',
     baseOpacity: 0.76, blur: 2,
-    tint: 'saturate(0.84) hue-rotate(-9deg) sepia(0.20) brightness(1.04)',
+    tint: 'saturate(0.88) hue-rotate(-13deg) sepia(0.30) brightness(1.05)',
     flipX: false, rotate: -1,
     anim: 'hc-drift-a', duration: 107, delay: -61,
     coverage: 0.30, driftX: 4, parallax: 0.65,
@@ -140,7 +141,7 @@ const BACK_LAYERS: CloudLayer[] = [
     id: 'mid-4', src: SRC.c5,
     top: '26%', left: '52%', width: 'clamp(320px, 42vw, 680px)',
     baseOpacity: 0.72, blur: 3,
-    tint: 'saturate(0.82) hue-rotate(-8deg) sepia(0.18) brightness(1.05)',
+    tint: 'saturate(0.86) hue-rotate(-12deg) sepia(0.28) brightness(1.06)',
     flipX: true, rotate: 2,
     anim: 'hc-drift-b', duration: 89, delay: -28,
     coverage: 0.32, driftX: -4, parallax: 0.68,

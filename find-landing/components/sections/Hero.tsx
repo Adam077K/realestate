@@ -309,7 +309,7 @@ export default function Hero() {
               style={{
                 verticalAlign: 'top',
                 display: 'block',
-                filter: 'saturate(1.08) brightness(1.03) sepia(0.16) hue-rotate(-8deg) contrast(1.02)',
+                filter: 'saturate(1.10) brightness(1.02) sepia(0.24) hue-rotate(-10deg) contrast(1.03)',
               }}
               sizes="(max-width: 768px) 125vw, 1800px"
             />
@@ -320,7 +320,7 @@ export default function Hero() {
               position: 'absolute',
               inset: 0,
               zIndex: 2,
-              background: 'linear-gradient(to top, rgba(255,165,80,0.42) 0%, rgba(255,190,110,0.28) 28%, rgba(255,210,140,0.10) 55%, transparent 78%)',
+              background: 'linear-gradient(to top, rgba(255,150,70,0.55) 0%, rgba(255,175,95,0.32) 28%, rgba(255,200,130,0.10) 55%, transparent 85%)',
               WebkitMaskImage: `url(${images.heroBuildingCutout})`,
               WebkitMaskSize: '100% auto',
               WebkitMaskPosition: 'top center',
@@ -329,7 +329,7 @@ export default function Hero() {
               maskSize: '100% auto',
               maskPosition: 'top center',
               maskRepeat: 'no-repeat',
-              mixBlendMode: 'soft-light' as const,
+              mixBlendMode: 'overlay' as const,
               pointerEvents: 'none',
             }}
           />
@@ -453,11 +453,11 @@ export default function Hero() {
           {/* Building image — warm filter tints only the opaque pixel of the PNG.
               CSS filter on <img> touches rendered pixels, NOT the transparent alpha channel,
               so the sky gradient behind is completely unaffected.
-              saturate(1.08)  — lift colour vividness slightly
-              brightness(1.03) — slight lift so warm cast reads bright, not muddy
-              sepia(0.16)     — push grey concrete toward warm beige/amber
-              hue-rotate(-8deg) — rotate remaining hues toward orange-peach
-              contrast(1.02)  — micro-boost to keep shadow depth */}
+              saturate(1.10)   — lift colour vividness
+              brightness(1.02) — slight lift so warm cast reads bright, not muddy
+              sepia(0.24)      — push grey concrete toward warm beige/amber (stronger than before)
+              hue-rotate(-10deg) — rotate remaining hues toward orange-peach
+              contrast(1.03)   — micro-boost to keep shadow depth */}
           <div ref={buildingImgRef} style={{ display: 'block', lineHeight: 0, fontSize: 0, position: 'relative', zIndex: 1 }}>
             <Image
               src={images.heroBuildingCutout}
@@ -470,17 +470,18 @@ export default function Hero() {
               style={{
                 verticalAlign: 'top',
                 display: 'block',
-                filter: 'saturate(1.08) brightness(1.03) sepia(0.16) hue-rotate(-8deg) contrast(1.02)',
+                filter: 'saturate(1.10) brightness(1.02) sepia(0.24) hue-rotate(-10deg) contrast(1.03)',
               }}
               sizes="(max-width: 768px) 125vw, 1800px"
             />
           </div>
 
-          {/* Directional warm glow — soft-light amber gradient masked to the building silhouette.
+          {/* Directional warm glow — overlay amber gradient masked to the building silhouette.
               mask-image alpha-clips the gradient so it ONLY paints onto opaque building pixels.
               Gradient runs from warm amber at bottom (where sun rakes the facade) to transparent
-              ~60% up, giving a natural low-angle golden-hour light direction.
-              mix-blend-mode: soft-light warms the underlying facade without over-saturating.
+              ~85% up, giving a natural raking low-angle golden-hour light direction.
+              mix-blend-mode: overlay (stronger than soft-light) punches the warm tone onto the
+              concrete facade convincingly — selling sunlit glass-and-concrete in golden hour.
               Lives inside buildingWrapRef → pans with building, clipped by outer wrapper → sky safe. */}
           <div
             aria-hidden="true"
@@ -489,7 +490,7 @@ export default function Hero() {
               inset: 0,
               zIndex: 2,
               background:
-                'linear-gradient(to top, rgba(255,165,80,0.42) 0%, rgba(255,190,110,0.28) 28%, rgba(255,210,140,0.10) 55%, transparent 78%)',
+                'linear-gradient(to top, rgba(255,150,70,0.55) 0%, rgba(255,175,95,0.32) 28%, rgba(255,200,130,0.10) 55%, transparent 85%)',
               WebkitMaskImage: `url(${images.heroBuildingCutout})`,
               WebkitMaskSize: '100% auto',
               WebkitMaskPosition: 'top center',
@@ -498,7 +499,7 @@ export default function Hero() {
               maskSize: '100% auto',
               maskPosition: 'top center',
               maskRepeat: 'no-repeat',
-              mixBlendMode: 'soft-light' as const,
+              mixBlendMode: 'overlay' as const,
               pointerEvents: 'none',
             }}
           />
@@ -506,7 +507,8 @@ export default function Hero() {
           {/* Base haze — warm atmospheric mist where building meets the bottom of frame.
               Reads as ground-level ambient glow / soft mist dissolving the base.
               Same mask as above → only touches building pixels, never the sky.
-              No mix-blend-mode here — straight warm white dissolve for mist effect. */}
+              No mix-blend-mode here — straight warm white dissolve for mist effect.
+              Round 3: bumped amber slightly for stronger golden-hour integration. */}
           <div
             aria-hidden="true"
             style={{
@@ -514,7 +516,7 @@ export default function Hero() {
               inset: 0,
               zIndex: 3,
               background:
-                'linear-gradient(to top, rgba(248,220,175,0.55) 0%, rgba(252,230,190,0.28) 12%, rgba(255,240,210,0.08) 28%, transparent 42%)',
+                'linear-gradient(to top, rgba(252,215,160,0.62) 0%, rgba(254,228,182,0.32) 12%, rgba(255,238,205,0.10) 28%, transparent 42%)',
               WebkitMaskImage: `url(${images.heroBuildingCutout})`,
               WebkitMaskSize: '100% auto',
               WebkitMaskPosition: 'top center',
@@ -528,6 +530,25 @@ export default function Hero() {
           />
         </div>
       </div>
+
+      {/* Global warm light-wash — scene-wide golden-hour atmosphere.
+          Sits ABOVE building (z-[2]) and clouds (z-[1]) but BELOW wordmark (z-[3]) and copy (z-[4]).
+          Radial gradient from bottom-center: warm amber fading to transparent by 60% height.
+          mix-blend-mode: soft-light warms the cumulus and building together without mudding the
+          open sky above (opacity is near-zero at the top of the gradient so headline legibility
+          is unaffected). Pointer-events off — purely decorative atmosphere layer. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 2,
+          background:
+            'radial-gradient(ellipse 120% 60% at 50% 100%, rgba(255,170,90,0.22) 0%, rgba(255,185,110,0.10) 30%, transparent 60%)',
+          mixBlendMode: 'soft-light' as const,
+          pointerEvents: 'none',
+        }}
+      />
 
       {/* 4 + 5. Wordmark group — OUTLINE (p 0.40–0.50) then FILL (p 0.50+). */}
       <div
