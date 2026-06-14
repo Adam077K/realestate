@@ -2,43 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from '@/lib/gsap'
-import { useGsapContext } from '@/hooks/useGsapContext'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useLang, useContent } from '@/components/providers/LanguageProvider'
 import { useSmoothScroll } from '@/components/providers/SmoothScrollProvider'
 
 /**
  * Countdown - id="countdown"
  *
- * A premium, dark-toned countdown band placed between the webinar details
- * section (SupportBeyond, dark) and the ChevronStrip (light). The band holds
- * that dark momentum with its own surface - a deep charcoal #111 with a faint
- * radial bloom - so the transition to the light ChevronStrip feels deliberate.
- *
- * Target: 2026-06-22 at 20:30 local time (יום שני, 22.06.26 | Monday 22.06.26).
- * Hardcoded as `new Date(2026, 5, 22, 20, 30, 0)` (month 5 = June, 0-indexed).
- *
- * HYDRATION-SAFE: No Date calls during SSR. A `mounted` flag flips in the first
- * client-side useEffect before the interval begins, so the first render always
- * shows stable `--` placeholders - zero hydration mismatch.
- *
- * Clamps at zero: once the target has passed all units show 0 and the `started`
- * message replaces the lead line.
- *
- * RTL-aware: uses `dir` from useLang(). Labels and layout flow naturally since
- * the flexbox container inherits page direction.
- *
- * Motion: on mount (after `mounted` is true) the four blocks fade-rise in with a
- * small stagger - gated on `motionOk` (respects prefers-reduced-motion).
- * Animation uses CSS transition (`opacity` + `transform`) only - no JS-driven
- * frame loop, no GSAP dependency here.
+ * One-shot reveals use IntersectionObserver (via useScrollReveal), immune to
+ * the Hero pin-spacer math. The digit-block CSS transitions are mount-driven
+ * (unchanged from original).
  */
 
-// ─── Target date ─────────────────────────────────────────────────────────────
-// June 22 2026, 20:30:00 local time. Month is 0-indexed (5 = June).
 const TARGET = new Date(2026, 5, 22, 20, 30, 0)
 const TARGET_MS = TARGET.getTime()
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 interface TimeLeft {
   days: number
   hours: number
@@ -64,7 +42,6 @@ function pad(n: number): string {
   return String(n).padStart(2, '0')
 }
 
-// ─── Sub-component: one number block ─────────────────────────────────────────
 interface UnitBlockProps {
   value: string
   label: string
@@ -88,7 +65,6 @@ function UnitBlock({ value, label, revealed, motionOk, delay }: UnitBlockProps) 
       style={style}
       aria-label={`${value} ${label}`}
     >
-      {/* Number card */}
       <div
         className="relative flex items-center justify-center rounded-xl bg-[rgba(255,255,255,0.06)] ring-1 ring-[rgba(255,255,255,0.1)] backdrop-blur-sm"
         style={{
@@ -97,7 +73,6 @@ function UnitBlock({ value, label, revealed, motionOk, delay }: UnitBlockProps) 
         }}
         aria-hidden="true"
       >
-        {/* Subtle inner glow - top edge highlight */}
         <span
           className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-xl bg-[rgba(255,255,255,0.18)]"
           aria-hidden="true"
@@ -109,7 +84,6 @@ function UnitBlock({ value, label, revealed, motionOk, delay }: UnitBlockProps) 
           {value}
         </span>
       </div>
-      {/* Label */}
       <span
         className="text-[10px] font-medium uppercase tracking-[0.22em] text-[rgba(255,255,255,0.42)] sm:text-[11px]"
         aria-hidden="true"
@@ -120,54 +94,43 @@ function UnitBlock({ value, label, revealed, motionOk, delay }: UnitBlockProps) 
   )
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
 export default function Countdown() {
   const sectionRef = useRef<HTMLElement>(null)
   const { dir } = useLang()
   const c = useContent()
   const { motionOk } = useSmoothScroll()
 
-  // Section entrance: the dark band rises from below on scroll-in.
-  // This supplements the CSS mount-animation on the digit blocks.
-  useGsapContext(
+  // One-shot reveals via IntersectionObserver — immune to pin-spacer position math.
+  useScrollReveal(
     sectionRef,
-    () => {
-      if (!motionOk) return
-
-      gsap.fromTo(
-        sectionRef.current,
-        { opacity: 0, y: 32 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.85,
-          ease: 'power3.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-        }
-      )
-
+    [
+      // Section entrance: dark band rises from below
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.2, // 'top 80%'
+        build: () =>
+          gsap.fromTo(
+            sectionRef.current,
+            { opacity: 0, y: 32 },
+            { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out', paused: true }
+          ),
+      },
       // Lead line: stronger reveal after section settles
-      gsap.fromTo(
-        '.countdown-lead',
-        { opacity: 0, y: 16 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          delay: 0.18,
-          ease: 'power2.out',
-          immediateRender: false,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 80%' },
-        }
-      )
-    },
+      {
+        trigger: sectionRef.current,
+        revealAt: 0.2, // 'top 80%'
+        build: () =>
+          gsap.fromTo(
+            '.countdown-lead',
+            { opacity: 0, y: 16 },
+            { opacity: 1, y: 0, duration: 0.6, delay: 0.18, ease: 'power2.out', paused: true }
+          ),
+      },
+    ],
     [motionOk]
   )
 
   // HYDRATION-SAFE: never call Date during the initial render.
-  // `mounted` stays false on the server and during the first client render,
-  // so SSR and client produce identical `--` placeholders.
   const [mounted, setMounted] = useState(false)
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
@@ -178,7 +141,6 @@ export default function Countdown() {
   })
 
   useEffect(() => {
-    // First effect: flip mounted + compute immediately (avoids a 1-second blank flash).
     setMounted(true)
     setTimeLeft(compute())
 
@@ -199,7 +161,6 @@ export default function Countdown() {
     { key: 'seconds', value: mounted ? pad(timeLeft.seconds) : '--', label: cd.units.seconds },
   ] as const
 
-  // Stagger delays: 0ms / 80ms / 160ms / 240ms
   const delays = [0, 80, 160, 240]
 
   return (
@@ -210,7 +171,6 @@ export default function Countdown() {
       className="relative w-full overflow-hidden bg-[var(--color-dark)]"
       aria-label={mounted && timeLeft.done ? cd.started : cd.lead}
     >
-      {/* Atmospheric radial bloom - centered, monochrome, very subtle */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
@@ -220,14 +180,12 @@ export default function Countdown() {
         }}
       />
 
-      {/* Hairline top-border to separate from SupportBeyond */}
       <div
         aria-hidden="true"
         className="absolute inset-x-0 top-0 h-px bg-[rgba(255,255,255,0.08)]"
       />
 
       <div className="relative mx-auto w-full max-w-5xl px-6 py-16 md:px-12 md:py-24">
-        {/* Lead line */}
         <p
           className="countdown-lead mb-10 text-center font-[var(--font-display)] text-sm font-medium uppercase tracking-[0.28em] text-[rgba(255,255,255,0.5)] md:mb-12 md:text-[13px]"
           style={
@@ -244,7 +202,6 @@ export default function Countdown() {
           {mounted && timeLeft.done ? cd.started : cd.lead}
         </p>
 
-        {/* Digit blocks row */}
         <div
           dir="ltr"
           className="flex flex-row items-start justify-center gap-3 sm:gap-5 md:gap-8"
@@ -263,7 +220,6 @@ export default function Countdown() {
           ))}
         </div>
 
-        {/* Date annotation - visible once mounted */}
         <p
           className="mt-10 text-center font-[var(--font-display)] text-[11px] font-normal tracking-[0.18em] text-[rgba(255,255,255,0.28)] md:mt-12"
           aria-hidden="true"
@@ -280,7 +236,6 @@ export default function Countdown() {
         </p>
       </div>
 
-      {/* Hairline bottom-border - bridge into ChevronStrip's light bg */}
       <div
         aria-hidden="true"
         className="absolute inset-x-0 bottom-0 h-px bg-[rgba(255,255,255,0.06)]"
