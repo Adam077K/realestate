@@ -453,7 +453,7 @@ export default function Hero() {
             className="font-bold"
             style={{
               fontFamily: 'var(--font-hebrew-display)',
-              fontSize: 'clamp(1.8rem, 5.6vw, 5.6rem)',
+              fontSize: 'clamp(2.35rem, 8.5vw, 5.6rem)',
               lineHeight: 0.95,
               letterSpacing: '-0.03em',
               color: '#000000',
@@ -707,7 +707,7 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
           className="font-bold leading-[0.95]"
           style={{
             fontFamily: 'var(--font-hebrew-display)',
-            fontSize: 'clamp(1.8rem, 5.6vw, 5.6rem)',
+            fontSize: 'clamp(2.35rem, 8.5vw, 5.6rem)',
             letterSpacing: '-0.03em',
             color: '#000000',
             whiteSpace: 'pre-line',
