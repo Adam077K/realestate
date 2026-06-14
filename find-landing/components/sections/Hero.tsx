@@ -281,11 +281,11 @@ export default function Hero() {
         className="relative flex min-h-screen w-full items-center justify-center overflow-hidden"
       >
         <SkyGradient />
-        {/* Building — wide, roofline at ~42vh from top (open sky above) */}
+        {/* Building — wide, roofline at ~46vh from top (open sky above) */}
         <div
           className="absolute left-1/2 z-[2]"
           style={{
-            top: 'clamp(30vh, 42vh, 48vh)',
+            top: 'clamp(34vh, 46vh, 52vh)',
             width: 'min(125vw, 1800px)',
             transform: 'translateX(-50%)',
           }}
@@ -348,20 +348,22 @@ export default function Hero() {
       )}
 
       {/* 3. Building — WIDER/PAN VERSION.
-          OUTER: centering only (translateX(-50%)). top: ~42vh positions the building's
-          ROOFLINE at ~42-45% from the viewport top, leaving the UPPER ~42% as OPEN SKY.
-          The building fills the lower ~58% at rest; lower half extends well below fold.
+          OUTER: centering only (translateX(-50%)). top: ~46vh positions the building's
+          ROOFLINE at ~46% from the viewport top, leaving the UPPER ~46% as OPEN SKY.
+          The building fills the lower ~54% at rest; lower half extends well below fold.
           On scroll the INNER pans UP (GSAP translateY), revealing progressively lower floors.
           Width: min(125vw, 1800px) — bleeds off both side edges at all viewport sizes.
           Aspect ratio 1024:946 → height ≈ 0.924 × width.
           At 1800px wide: height ≈ 1662px ≈ 1.85× a 900px viewport.
-          Rest: 0.42 × 900 = 378px from top. Bottom at 378+1662=2040px → entirely below fold.
-          Pan –48vh ≈ –432px: reveals mid-section and approaches ground-level base. */}
+          Rest: 0.46×900 = 414px from top. Bottom at 414+1662=2076px → entirely below fold.
+          Pan –48vh: reveals mid-section and approaches ground-level base.
+          Sky band ~46vh clears the full copy stack (paddingTop 10vh + headline ~13vh +
+          gaps 4.5+4vh + subhead 3.5vh + CTA 5.5vh ≈ 40-41vh) with ~5-6vh breathing room. */}
       <div
         ref={buildingOuterRef}
         className="absolute left-1/2 z-[2]"
         style={{
-          top: 'clamp(30vh, 42vh, 48vh)',
+          top: 'clamp(34vh, 46vh, 52vh)',
           width: 'min(125vw, 1800px)',
           transform: 'translateX(-50%)',
           margin: 0,
@@ -430,15 +432,15 @@ export default function Hero() {
       )}
 
       {/* 7. Text stack — vertically + horizontally centred.
-          v2 rest framing: building roofline at ~42vh, sky occupies top ~42%.
-          Copy sits in the sky zone: paddingTop ~10-14vh puts headline in the
-          upper third. Generous gaps between all three items (headline → subhead → CTA)
-          so nothing feels cramped. Total stack height ≈ headline + 3.5vh + subhead + 3.5vh + CTA
-          ≈ comfortably within the 42vh sky band at both 1440 and 390.
-          Copy must be fully over open sky at rest — zero overlap with building facade. */}
+          v3 rest framing: building roofline at ~46vh (approach b), sky occupies top ~46%.
+          paddingTop reduced to ~10vh (approach a) so the copy block sits higher in the sky.
+          Stack bottom: 10vh + headline ~13vh + gap 4.5vh + subhead 3.5vh + gap 4vh + CTA 5.5vh
+          ≈ 40-41vh — gives 5-6vh of clear sky between CTA bottom and the roofline at 46vh.
+          Mobile (390×844): paddingTop 8vh, headline ~3.7vh, all gaps/text ≈ 27vh total.
+          Roofline clamp min = 34vh → 7vh breathing room on mobile. Both clear. */}
       <div
         className="absolute inset-0 z-[4] flex flex-col items-center justify-start px-6 text-center"
-        style={{ paddingTop: 'clamp(10vh, 13vh, 17vh)' }}
+        style={{ paddingTop: 'clamp(8vh, 10vh, 14vh)' }}
       >
         {/* Cycling headline */}
         <div ref={headlineRef} className="flex w-full flex-col items-center">
