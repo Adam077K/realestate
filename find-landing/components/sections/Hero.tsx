@@ -50,7 +50,7 @@
 
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, type RefObject } from 'react'
 
 import Pill from '@/components/ui/Pill'
 import { BrandWordmarkMask } from '@/components/layout/Logo'
@@ -84,8 +84,10 @@ export default function Hero() {
   const buildingImgRef   = useRef<HTMLDivElement>(null)
   const copyGroupRef     = useRef<HTMLDivElement>(null)   // headline + subhead + CTA as one unit
   const wordmarkRef      = useRef<HTMLDivElement>(null)
-  const outlineRef       = useRef<HTMLDivElement>(null)
-  const fillRef          = useRef<HTMLDivElement>(null)
+  // fillGroupRef — targets the <g className="wm-fill-group"> inside BrandWordmarkMask.
+  // GSAP tweens its opacity 0→1 during the cross-dissolve beat.
+  // The white rim texts in the same SVG never change opacity — zero shift/misalign.
+  const fillGroupRef     = useRef<SVGGElement>(null)
   const scrollNudgeRef   = useRef<HTMLDivElement>(null)
   // cloudFrontVeilRef - forwarded to HeroClouds front-variant veil div.
   // GSAP animates translateY: 40vh→0 for the rising white mask effect.
@@ -163,29 +165,30 @@ export default function Hero() {
       const copyGroup    = copyGroupRef.current
       const buildingImg  = buildingImgRef.current
       const wordmark     = wordmarkRef.current
-      const outline      = outlineRef.current
-      const fill         = fillRef.current
+      const fillGroup    = fillGroupRef.current
       const scrollNudge  = scrollNudgeRef.current
       const cloudVeil    = cloudFrontVeilRef.current
 
-      if (!buildingWrap || !copyGroup || !buildingImg || !wordmark || !outline || !fill) return
+      if (!buildingWrap || !copyGroup || !buildingImg || !wordmark) return
 
       // ── REST state (p = 0) ───────────────────────────────────────────────
       gsap.set(buildingWrap, { y: 0 })
       gsap.set(buildingImg,  { opacity: 1 })
-      gsap.set(outline,      { opacity: 0 })
-      gsap.set(fill,         { opacity: 0 })
+      // fillGroup starts transparent — white rim shows through transparent interiors.
+      // The white rim is baked into BrandWordmarkMask at full opacity always.
+      if (fillGroup) gsap.set(fillGroup, { opacity: 0 })
       gsap.set(copyGroup,    { opacity: 1, y: 0 })
-      // Wordmark sits at rest: slightly scaled down, slightly down - settles during rise
-      gsap.set(wordmark,     { opacity: 1, scale: 0.96, y: 20 })
+      // Wordmark (entire SVG container) starts hidden at rest; settles during rise.
+      gsap.set(wordmark,     { opacity: 0, scale: 0.96, y: 20 })
       if (scrollNudge) gsap.set(scrollNudge, { opacity: 0.45 })
       // Cloud veil starts pushed BELOW the frame (40vh down). GSAP pans it up p0.86–1.0.
       if (cloudVeil) gsap.set(cloudVeil, { y: '40vh' })
 
       // Enable GPU compositing during the pin
       const willChangeTargets: (Element | null)[] = [
-        buildingWrap, copyGroup, wordmark, outline, fill,
+        buildingWrap, copyGroup, wordmark,
       ]
+      if (fillGroup) willChangeTargets.push(fillGroup as unknown as Element)
       if (cloudVeil) willChangeTargets.push(cloudVeil)
       gsap.set(willChangeTargets.filter(Boolean) as Element[], { willChange: 'transform, opacity' })
 
@@ -241,27 +244,23 @@ export default function Hero() {
       // p 0.10–0.24  COPY GROUP FADES OUT - fades as building rises over it
       tl.to(copyGroup, { opacity: 0, y: -40, duration: 0.14, ease: 'none' }, 0.10)
 
-      // p 0.40–0.50  Wordmark settles to final position as building tops out
+      // p 0.40–0.50  Wordmark container settles to final position as building tops out
       tl.to(wordmark, { scale: 1, y: 0, duration: 0.10, ease: 'none' }, 0.40)
 
-      // p 0.44–0.54  Outline fades in + stroke draws (stretched, no snap)
-      tl.to(outline, { opacity: 1, duration: 0.10, ease: 'none' }, 0.44)
-      if (outline) {
-        tl.to(outline.querySelectorAll('.wordmark-outline-text'), {
-          strokeDashoffset: 0,
-          duration: 0.10,
-          ease: 'none',
-          stagger: 0.012,
-        }, 0.44)
-      }
+      // p 0.44–0.54  WORDMARK APPEARS: container opacity 0→1
+      //   White rim is baked into BrandWordmarkMask — becomes visible as the container fades in.
+      //   Interior (fillGroup) stays at opacity:0 → letters appear as hollow white outlines
+      //   floating over the risen building. No stroke-draw needed (no BrandWordmarkOutline).
+      tl.to(wordmark, { opacity: 1, duration: 0.10, ease: 'none' }, 0.44)
 
-      // p 0.54–0.68  CROSS-DISSOLVE (stretched to 0.14 duration - no fast snap):
-      //   buildingImg: 1→0  (building photo fades)
-      //   outline:     1→0
-      //   fill:        0→1  (image inside letters appears)
+      // p 0.54–0.68  CROSS-DISSOLVE (stretched to 0.14 — no fast snap):
+      //   buildingImg: 1→0  (building photo fades out)
+      //   fillGroup:   0→1  (building texture floods letter interiors)
+      //   White rim: unchanged (never moves → no shift, no misalign)
       tl.to(buildingImg, { opacity: 0, duration: 0.14, ease: 'none' }, 0.54)
-      tl.to(outline,     { opacity: 0, duration: 0.14, ease: 'none' }, 0.54)
-      tl.to(fill,        { opacity: 1, duration: 0.14, ease: 'none' }, 0.54)
+      if (fillGroup) {
+        tl.to(fillGroup,   { opacity: 1, duration: 0.14, ease: 'none' }, 0.54)
+      }
 
       // p 0.66–0.90  WORDMARK PRESENCE - slow continuous drift replaces dead hold.
       // Every scroll tick changes something (fill+wordmark slowly drift + scale-creep).
@@ -374,7 +373,11 @@ export default function Hero() {
       </div>
 
       {/* 4. Wordmark group - z-[5], centered (above building z-[3], below veil z-[6]).
-          OUTLINE strokes in (long hold), then cross-dissolves to FILL. */}
+          Single BrandWordmarkMask — white rim is always rendered in the SVG.
+          fillGroupRef targets the inner <g> whose opacity GSAP tweens 0→1.
+          Stage 1 (p0.44–0.54): container fades in → white rim visible, interiors transparent.
+          Stage 2 (p0.54–0.68): fillGroup fades to opacity 1 → building texture fills letters.
+          White rim never moves → no shift, no misalign. */}
       <div
         ref={wordmarkRef}
         className="absolute inset-0 z-[5] flex items-center justify-center"
@@ -382,25 +385,20 @@ export default function Hero() {
         aria-hidden="true"
       >
         <div
-          className="relative mx-auto w-full"
+          className="mx-auto w-full"
           style={{
             maxWidth: 'clamp(350px, 64vw, 915px)',
             paddingLeft: 'clamp(8px, 1.5vw, 24px)',
             paddingRight: 'clamp(8px, 1.5vw, 24px)',
           }}
         >
-          {/* Outline - white stroke, holds then dissolves */}
-          <div ref={outlineRef} style={{ position: 'absolute', inset: 0 }}>
-            <BrandWordmarkOutline subWord="וובינר" />
-          </div>
-          {/* Fill - building image clipped to Hebrew letters */}
-          <div ref={fillRef} style={{ transition: 'none' }}>
-            <BrandWordmarkMask
-              fillSrc={images.heroBuildingFill}
-              subWord="וובינר"
-              className="block h-auto w-full"
-            />
-          </div>
+          <BrandWordmarkMask
+            fillSrc={images.heroBuildingFill}
+            subWord="וובינר"
+            fillGroupRef={fillGroupRef}
+            fillImageOpacity={0}
+            className="block h-auto w-full"
+          />
         </div>
       </div>
 
@@ -550,7 +548,7 @@ function SkyGradient() {
 // ─── Reduced-motion hero ──────────────────────────────────────────────────────
 interface ReducedMotionHeroProps {
   mounted: boolean
-  progressRef: React.RefObject<number>
+  progressRef: RefObject<number>
   c: ReturnType<typeof useContent>
 }
 
@@ -693,72 +691,3 @@ function ReducedMotionHero({ mounted, progressRef, c }: ReducedMotionHeroProps) 
   )
 }
 
-// ─── "בונים עתיד" outline wordmark ──────────────────────────────────────────
-interface BrandWordmarkOutlineProps {
-  subWord?: string
-}
-
-function BrandWordmarkOutline({ subWord }: BrandWordmarkOutlineProps) {
-  const viewBoxH = subWord ? 285 : 175
-  const mainY = subWord ? '38%' : '50%'
-
-  return (
-    <svg
-      viewBox={`0 0 720 ${viewBoxH}`}
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label={subWord ? `בונים עתיד - ${subWord}` : 'בונים עתיד'}
-      className="block h-auto w-full"
-      overflow="visible"
-      preserveAspectRatio="xMidYMid meet"
-    >
-      {/* A8: strokeDasharray/strokeDashoffset on both text nodes enables draw animation via GSAP */}
-      <text
-        x="50%"
-        y={mainY}
-        dominantBaseline="central"
-        textAnchor="middle"
-        direction="rtl"
-        fontFamily="var(--font-hebrew), system-ui, sans-serif"
-        fontWeight="800"
-        fontSize="138"
-        letterSpacing="-2"
-        fill="none"
-        stroke="#ffffff"
-        strokeWidth={2.5}
-        strokeLinejoin="round"
-        pathLength={1}
-        strokeDasharray={1}
-        strokeDashoffset={1}
-        className="wordmark-outline-text"
-        style={{ filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.4))' }}
-      >
-        בונים עתיד
-      </text>
-      {subWord && (
-        <text
-          x="50%"
-          y="80%"
-          dominantBaseline="central"
-          textAnchor="middle"
-          direction="rtl"
-          fontFamily="var(--font-hebrew), system-ui, sans-serif"
-          fontWeight="800"
-          fontSize="69"
-          letterSpacing="-1"
-          fill="none"
-          stroke="#ffffff"
-          strokeWidth={1.5}
-          strokeLinejoin="round"
-          pathLength={1}
-          strokeDasharray={1}
-          strokeDashoffset={1}
-          className="wordmark-outline-text"
-          style={{ filter: 'drop-shadow(0 0 3px rgba(255,255,255,0.35))' }}
-        >
-          {subWord}
-        </text>
-      )}
-    </svg>
-  )
-}

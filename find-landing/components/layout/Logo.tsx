@@ -59,6 +59,18 @@ export interface BrandWordmarkMaskProps {
    * Hero uses subWord="וובינר"; CtaFooter omits it (single-word unchanged).
    */
   subWord?: string
+  /**
+   * Initial opacity of the interior fill images. Defaults to 1.
+   * Set to 0 in the Hero "outline" phase — the white rim stays visible,
+   * letters appear as hollow outlines. GSAP tweens this to 1 for the fill phase.
+   * The white rim stays at opacity 1 throughout (no shift, no misalign).
+   */
+  fillImageOpacity?: number
+  /**
+   * Optional ref forwarded to a wrapper <g> that wraps ONLY the fill images.
+   * GSAP uses this ref to tween opacity 0→1 without touching the white rim.
+   */
+  fillGroupRef?: React.RefObject<SVGGElement | null>
 }
 
 /**
@@ -73,7 +85,7 @@ export interface BrandWordmarkMaskProps {
  * When subWord is provided, a second <text> at fontSize 69 (50% of 138) is added
  * below the main word. The viewBox height expands from 175 → 285 to fit both.
  */
-export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmarkMaskProps) {
+export function BrandWordmarkMask({ fillSrc, className, subWord, fillImageOpacity = 1, fillGroupRef }: BrandWordmarkMaskProps) {
   const rawId = useId()
   const safeId = rawId.replace(/[:]/g, '')
   const clipId = `brand-wordmark-clip-${safeId}`
@@ -171,38 +183,58 @@ export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmark
         בונים עתיד
       </text>
 
-      {/* 2 — Clipped image fills main word (ON TOP of white rim → covers interior) */}
-      <image
-        href={fillSrc}
-        x="0"
-        y="0"
-        width="720"
-        height={viewBoxH}
-        preserveAspectRatio="xMidYMid slice"
-        clipPath={`url(#${clipId})`}
-      />
-
+      {/*
+        Sub-word white rim must be rendered BEFORE the unified fill group,
+        so it sits BEHIND the fill images (SVG paint order = document order).
+        This keeps both rims (main + sub) always visible regardless of fill opacity.
+      */}
       {subWord && (
-        <>
-          {/* 3 — White dilated rim for sub-word (BEHIND sub image) */}
-          <text
-            x="50%"
-            y="80%"
-            dominantBaseline="central"
-            textAnchor="middle"
-            direction="rtl"
-            fontFamily="var(--font-hebrew), system-ui, sans-serif"
-            fontWeight="800"
-            fontSize="69"
-            letterSpacing="-1"
-            fill="#ffffff"
-            filter={`url(#${dilateIdSub})`}
-            aria-hidden="true"
-          >
-            {subWord}
-          </text>
+        /* 3 — White dilated rim for sub-word (BEHIND sub fill image) */
+        <text
+          x="50%"
+          y="80%"
+          dominantBaseline="central"
+          textAnchor="middle"
+          direction="rtl"
+          fontFamily="var(--font-hebrew), system-ui, sans-serif"
+          fontWeight="800"
+          fontSize="69"
+          letterSpacing="-1"
+          fill="#ffffff"
+          filter={`url(#${dilateIdSub})`}
+          aria-hidden="true"
+        >
+          {subWord}
+        </text>
+      )}
 
-          {/* 4 — Clipped image fills sub-word */}
+      {/*
+        UNIFIED fill group — wraps ALL interior fill images (main + sub).
+        GSAP targets this single <g> to tween opacity 0→1:
+          opacity 0 = "outline" phase — white rims show, interiors are transparent
+          opacity 1 = "fill" phase — building image floods the letter interiors
+        The white rim texts above never change opacity, so there's no shift or
+        misalignment during the cross-dissolve. One SVG, one transform. Always stable.
+      */}
+      <g
+        ref={fillGroupRef as React.RefObject<SVGGElement>}
+        style={{ opacity: fillImageOpacity }}
+        aria-hidden="true"
+        className="wm-fill-group"
+      >
+        {/* 2 — Clipped image fills main word */}
+        <image
+          href={fillSrc}
+          x="0"
+          y="0"
+          width="720"
+          height={viewBoxH}
+          preserveAspectRatio="xMidYMid slice"
+          clipPath={`url(#${clipId})`}
+          className="wm-fill-image"
+        />
+        {/* 4 — Clipped image fills sub-word */}
+        {subWord && (
           <image
             href={fillSrc}
             x="0"
@@ -211,9 +243,10 @@ export function BrandWordmarkMask({ fillSrc, className, subWord }: BrandWordmark
             height={viewBoxH}
             preserveAspectRatio="xMidYMid slice"
             clipPath={`url(#${clipIdSub})`}
+            className="wm-fill-image"
           />
-        </>
-      )}
+        )}
+      </g>
     </svg>
   )
 }
