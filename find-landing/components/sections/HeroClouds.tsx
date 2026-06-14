@@ -204,11 +204,13 @@ const expo = (n: number) => {
 
 /**
  * Full-screen soft veil intensity for the FRONT field, 0..1.
- * Ramps to a dense near-full envelope by p≈0.78 (frame_011 cloud screen),
- * then thins to ~0.18 at p=1.0 as the next section emerges through it.
+ * P2.1 — bloom starts at p≈0.40 (was 0.45), end stays ~0.90, so building is
+ * still scaling WHILE clouds thicken (≥50% overlap with grow phase).
+ * Gentle ease-in across the range. Peak veil ≤~0.90 (soft, textured, not flat scrim).
+ * Then thins to ~0.18 at p=1.0 as the next section emerges through it.
  */
 function frontVeilIntensity(p: number): number {
-  const bloom = expo(clamp01((p - 0.45) / 0.33))    // 0 at p=0.45, 1 by p=0.78
+  const bloom = expo(clamp01((p - 0.40) / 0.50))    // 0 at p=0.40, 1 by p=0.90
   const lift  = smooth(clamp01((p - 0.78) / 0.22))  // 0 until 0.78, 1 by p=1.0
   return clamp01(bloom - lift * 0.82)                // peaks ~1, thins to ~0.18
 }
