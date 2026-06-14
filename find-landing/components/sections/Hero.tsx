@@ -37,17 +37,19 @@
  *   INNER  — buildingWrapRef. GSAP animates translateY ONLY.
  *
  * Motion timeline (scrub: true, pin +=290%):
- *   p 0.00       REST: building at pan start (centered, sky visible both sides), headline/subhead/CTA visible
- *   p 0.00–0.55  building pans UP (translateY 0 → -panPx), constant width/scale
+ *   p 0.00       REST: building low (roofline ~50vh), sky open above, headline/subhead/CTA visible
+ *   p 0.00–0.45  building HOLDS near rest — micro-drift only (~4% of panPx ≈ 1–2vh)
+ *                → ALL 3 headline states (p 0.06–0.42) remain over bright clouds
  *   p 0.06–0.42  headline slot-roll cycles 3 sentences with plateau holds per sentence
  *   p 0.38–0.46  subhead+CTA fade+lift out
- *   p 0.43–0.52  headline fade+lift out
+ *   p 0.43–0.52  headline fade+lift out (fully gone by 0.52)
  *   p 0.44–0.52  scroll nudge fades
- *   p 0.52–0.55  dead zone: pure building pan, no text
- *   p 0.55–0.63  CROSS-DISSOLVE begins: outline draws in (building still visible)
+ *   p 0.45–0.72  building PAN REVEAL — rushes to full -panPx after headlines gone
+ *   p 0.52–0.55  dead zone: building mid-pan, no text
+ *   p 0.55–0.63  CROSS-DISSOLVE begins: outline draws in (building still visible / mid-pan)
  *   p 0.57–0.67  building IMAGE fades out
  *   p 0.62–0.72  fill fades in; outline fades as fill lands (p 0.67–0.72)
- *   p 0.72–0.78  brand micro-breath
+ *   p 0.72–0.78  brand micro-breath (pan complete)
  *   p 0.40–0.90  cloud bloom (driven by HeroClouds progressRef)
  *   p 0.40–0.85  nav fades out, restores after
  *   p 0.78–0.88  wordmark lifts into cloud bloom + fades
@@ -180,12 +182,41 @@ export default function Hero() {
         },
       })
 
-      // p 0.00–0.55  BUILDING PANS UP — constant size, translateY 0 → -panPx.
-      // Extended to 0.55 (pin is now longer) so the pan is unhurried.
+      // BUILDING PAN — two-phase schedule:
+      //
+      //   p 0.00–0.45  HOLD near rest position. The headline cycle runs p 0.06–0.42 and
+      //                the headline fades completely by p 0.52. We must keep the building
+      //                LOW (roofline at ~50vh) so all 3 slot-roll states read over bright
+      //                clouds, not over the grey concrete facade.
+      //                A gentle drift of ≤ 2.5vh is allowed as a subtle parallax feel but
+      //                the building top MUST NOT rise into the copy zone (≤ 24vh paddingTop
+      //                + headline height ≈ up to ~40vh).
+      //
+      //   p 0.45–0.72  PAN REVEAL. After the last headline is gone (p 0.52) and during
+      //                the cross-dissolve sequence (outline in p 0.55, building fade p 0.57),
+      //                the building executes its full upward pan. The pan overlaps the
+      //                wordmark cross-dissolve which is fine — by then the building has
+      //                filled the frame and is transitioning to the wordmark.
+      //
+      // Implementation: two tweens — a micro-drift hold, then the reveal.
+
+      // Phase 1: micro-drift (barely perceptible parallax while headlines are visible).
+      // Building moves only ~2-3% of its eventual pan — enough to feel alive, not enough
+      // to bring the roofline close to the copy zone.
+      const microDrift = panPx * 0.04   // ≈ 1–2vh — well below any copy
       tl.to(
         buildingWrap,
-        { y: -panPx, duration: 0.55, ease: 'power2.out' },
+        { y: -microDrift, duration: 0.45, ease: 'power1.in' },
         0
+      )
+
+      // Phase 2: full pan reveal (p 0.45–0.72). Building rushes upward after headlines
+      // are gone, with a strong ease-out so it decelerates into the wordmark frame.
+      // Duration = 0.27 in timeline units (0.72 - 0.45).
+      tl.to(
+        buildingWrap,
+        { y: -panPx, duration: 0.27, ease: 'power2.out' },
+        0.45
       )
 
       // Slot-roll cycling headline — comfortable readable cycle p 0.06–0.42.
@@ -466,18 +497,14 @@ export default function Hero() {
         </div>
       )}
 
-      {/* 3. Building — WIDER/PAN VERSION.
-          OUTER: centering only (translateX(-50%)). top: ~46vh positions the building's
-          ROOFLINE at ~46% from the viewport top, leaving the UPPER ~46% as OPEN SKY.
-          The building fills the lower ~54% at rest; lower half extends well below fold.
-          On scroll the INNER pans UP (GSAP translateY), revealing progressively lower floors.
-          Width: min(125vw, 1800px) — bleeds off both side edges at all viewport sizes.
-          Aspect ratio 1024:946 → height ≈ 0.924 × width.
-          At 1800px wide: height ≈ 1662px ≈ 1.85× a 900px viewport.
-          Rest: 0.46×900 = 414px from top. Bottom at 414+1662=2076px → entirely below fold.
-          Pan –48vh: reveals mid-section and approaches ground-level base.
-          Sky band ~46vh clears the full copy stack (paddingTop 10vh + headline ~13vh +
-          gaps 4.5+4vh + subhead 3.5vh + CTA 5.5vh ≈ 40-41vh) with ~5-6vh breathing room. */}
+      {/* 3. Building — SMALLER (87.5vw/1260px) PAN VERSION.
+          OUTER: centering only (translateX(-50%)). top: clamp(44vh,50vh,56vh) positions
+          the building's ROOFLINE at ~50vh at rest — open sky occupies the top ~50%.
+          Copy sits in clamp(18vh,21vh,24vh) paddingTop zone; full copy stack ends ~40vh.
+          Sky gap between copy bottom (~40vh) and roofline (~50vh) = ~10vh at rest.
+          BUILDING HOLDS NEAR REST THROUGH p0.45 (micro-drift ≤2vh) so all 3 slot-roll
+          headlines read over bright clouds, not over the building facade.
+          PAN REVEALS p0.45–0.72 — building rises the full panPx after headlines are gone. */}
       <div
         ref={buildingOuterRef}
         className="absolute left-1/2 z-[2]"
